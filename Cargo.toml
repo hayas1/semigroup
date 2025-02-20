@@ -1,0 +1,8 @@
+[package]
+name = "coalesced"
+version = "0.1.0"
+description = "Coalesced supports reading configs from multiple sources"
+authors = ["hayas1 <h4ystack@gmail.com>"]
+edition = "2021"
+
+[dependencies]
