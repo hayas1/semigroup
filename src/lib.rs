@@ -1,13 +1,14 @@
 pub trait Coalesce {
     fn coalesce(self, other: Self) -> Self;
 }
-impl<T: Default + PartialEq> Coalesce for T {
+impl<T> Coalesce for Option<T> {
     fn coalesce(self, other: Self) -> Self {
-        if self == T::default() {
-            other
-        } else {
-            self
-        }
+        other.or(self)
+    }
+}
+impl<T, E> Coalesce for Result<T, E> {
+    fn coalesce(self, other: Self) -> Self {
+        other.or(self)
     }
 }
 
