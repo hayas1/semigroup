@@ -1,3 +1,4 @@
+// TODO derive
 pub trait Coalesce {
     fn coalesce(self, other: Self) -> Self;
 }
