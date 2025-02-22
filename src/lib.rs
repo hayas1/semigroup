@@ -1,15 +1,31 @@
 // TODO derive
 pub trait Coalesce {
-    fn coalesce(self, other: Self) -> Self;
+    fn is_other(&self, other: &Self) -> bool;
+    fn coalesce(self, other: Self) -> Self
+    where
+        Self: Sized,
+    {
+        if self.is_other(&other) {
+            other
+        } else {
+            self
+        }
+    }
 }
 impl<T> Coalesce for Option<T> {
-    fn coalesce(self, other: Self) -> Self {
-        other.or(self)
+    fn is_other(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Some(_), None) => false,
+            _ => true,
+        }
     }
 }
 impl<T, E> Coalesce for Result<T, E> {
-    fn coalesce(self, other: Self) -> Self {
-        other.or(self)
+    fn is_other(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Ok(_), Err(_)) => false,
+            _ => true,
+        }
     }
 }
 
@@ -18,20 +34,26 @@ pub struct Coalesced<C> {
     history: Vec<C>,
     current: C,
 }
-impl<C: Coalesce> Coalesce for Coalesced<C> {
-    fn coalesce(self, other: Self) -> Self {
-        let mut coalesced = Self {
-            history: self.history,
-            current: self.current.coalesce(other.current),
-        };
-        coalesced.history.extend(other.history);
-        coalesced
-    }
-}
 impl<C> std::ops::Deref for Coalesced<C> {
     type Target = C;
     fn deref(&self) -> &Self::Target {
         &self.current
+    }
+}
+impl<C: Coalesce> Coalesce for Coalesced<C> {
+    fn is_other(&self, other: &Self) -> bool {
+        self.current.is_other(&other.current)
+    }
+    fn coalesce(self, other: Self) -> Self {
+        let (low, high) = if self.current.is_other(&other.current) {
+            (self, other)
+        } else {
+            (other, self)
+        };
+        let (mut history, current) = (low.history, high.current);
+        history.extend(high.history);
+        history.push(low.current);
+        Coalesced { history, current }
     }
 }
 impl<C> std::ops::DerefMut for Coalesced<C> {
