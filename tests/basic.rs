@@ -5,10 +5,10 @@ pub struct Config<'a> {
 }
 
 pub fn main() {
-    let from_file = Coalesced::new(Config { name: "file" });
-    let from_env = Coalesced::new(Config { name: "env" });
-    let from_cli = Coalesced::new(Config { name: "cli" });
+    let from_file = Coalesced::new(Some(Config { name: "file" }));
+    let from_env = Coalesced::new(Some(Config { name: "env" }));
+    let from_cli = Coalesced::new(Some(Config { name: "cli" }));
 
     let config = from_file.coalesce(from_env).coalesce(from_cli);
-    assert_eq!(config.name, "cli");
+    assert_eq!(config.as_ref().unwrap().name, "cli");
 }
