@@ -80,4 +80,15 @@ mod tests {
         let other = Some(1);
         assert_eq!(target.coalesce(other), Some(1));
     }
+
+    #[test]
+    fn test_coalesced_history() {
+        let from_file = Coalesced::new(Some("file"));
+        let from_env = Coalesced::new(Some("env"));
+        let from_cli = Coalesced::new(Some("cli"));
+
+        let config = from_file.coalesce(from_env).coalesce(from_cli);
+        assert_eq!(config.unwrap(), "cli");
+        assert_eq!(config.history, vec![Some("file"), Some("env")]);
+    }
 }
