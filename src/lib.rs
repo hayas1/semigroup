@@ -1,23 +1,11 @@
-pub trait CoalescePrior {
-    fn is_other(&self, other: &Self) -> bool;
+pub trait Coalesce {
+    fn straight(&self, other: &Self) -> bool;
 }
-impl<T> CoalescePrior for Option<T> {
-    fn is_other(&self, other: &Self) -> bool {
+impl<T> Coalesce for Option<T> {
+    fn straight(&self, other: &Self) -> bool {
         match (self, other) {
-            (Some(_), _) => false,
-            _ => true,
-        }
-    }
-}
-
-pub trait CoalescePosterior {
-    fn is_other(&self, other: &Self) -> bool;
-}
-impl<T> CoalescePosterior for Option<T> {
-    fn is_other(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Some(_), None) => false,
-            _ => true,
+            (Some(_), _) => true,
+            _ => false,
         }
     }
 }
@@ -67,16 +55,52 @@ impl<C> Coalesced<C> {
     }
 
     // TODO impl trait for Option<T> ?
-    pub fn prior(mut self, other: Self) -> Self {
+    pub fn prior(mut self, other: Self) -> Self
+    where
+        C: Coalesce,
+    {
+        let base_len = self.priority.len();
         self.priority.extend(other.priority);
-        self.prior_accessor += other.prior_accessor + 1;
+        self.prior_accessor = base_len + other.prior_accessor;
+        for i in (1..=self.prior_accessor).rev() {
+            if !self.priority[i].straight(&self.priority[i - 1]) {
+                self.prior_accessor = i - 1;
+            } else {
+                break;
+            }
+        }
         self.posterior_accessor = other.posterior_accessor;
+        for i in 0..base_len + other.posterior_accessor {
+            if !self.priority[i].straight(&self.priority[i + 1]) {
+                self.posterior_accessor = i + 1;
+            } else {
+                break;
+            }
+        }
         self
     }
-    pub fn posterior(self, mut other: Self) -> Self {
+    pub fn posterior(self, mut other: Self) -> Self
+    where
+        C: Coalesce,
+    {
+        let base_len = other.priority.len();
         other.priority.extend(self.priority);
-        other.prior_accessor += self.prior_accessor + 1;
+        other.prior_accessor = base_len + self.prior_accessor;
+        for i in (1..=other.prior_accessor).rev() {
+            if !other.priority[i].straight(&other.priority[i - 1]) {
+                other.prior_accessor = i - 1;
+            } else {
+                break;
+            }
+        }
         other.posterior_accessor = self.posterior_accessor;
+        for i in 0..base_len + self.posterior_accessor {
+            if !other.priority[i].straight(&other.priority[i + 1]) {
+                other.posterior_accessor = i + 1;
+            } else {
+                break;
+            }
+        }
         other
     }
 
@@ -105,7 +129,7 @@ mod tests {
         let from_cli = Coalesced::new(Some("cli"));
 
         let config = from_file.prior(from_env).prior(from_cli);
-        assert_eq!(config.unwrap(), "file");
+        assert_eq!(config.unwrap(), "cli");
         assert_eq!(
             config.priority,
             vec![Some("file"), Some("env"), Some("cli")],
@@ -130,6 +154,37 @@ mod tests {
         assert_eq!(
             config.priority,
             vec![Some("file"), Some("env"), Some("cli")],
+        );
+    }
+
+    #[test]
+    fn test_coalesced_complex_prior_posterior() {
+        let first = Coalesced::new(None);
+        let second = Coalesced::new(Some(2));
+        let third = Coalesced::new(Some(3));
+        let four = Coalesced::new(None);
+        let five = Coalesced::new(Some(5));
+        let six = Coalesced::new(None);
+
+        let coalesced = first
+            .prior(second)
+            .prior(third)
+            .prior(four)
+            .prior(five)
+            .prior(six);
+
+        let coalesced = coalesced.prior_access();
+        assert_eq!(coalesced.unwrap(), 5);
+        assert_eq!(
+            coalesced.priority,
+            vec![None, Some(2), Some(3), None, Some(5), None]
+        );
+
+        let coalesced = coalesced.posterior_access();
+        assert_eq!(coalesced.unwrap(), 2);
+        assert_eq!(
+            coalesced.priority,
+            vec![None, Some(2), Some(3), None, Some(5), None]
         );
     }
 }
