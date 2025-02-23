@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 pub trait Coalesce {
     fn straight(&self, other: &Self) -> bool;
 }
@@ -11,47 +13,88 @@ impl<T> Coalesce for Option<T> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-pub struct Coalesced<C> {
+pub struct Coalesced<C, A> {
     priority: Vec<C>,
-    prior_accessor: usize,
-    posterior_accessor: usize,
-    is_prior: bool,
+    accessor: PriorityAccessor<A>,
 }
 
-impl<C> std::ops::Deref for Coalesced<C> {
+pub trait Access {
+    type Accessor;
+    fn position(accessor: &Self::Accessor) -> usize;
+}
+pub enum Prior {}
+impl Access for Prior {
+    type Accessor = PriorityAccessor<Self>;
+    fn position(accessor: &Self::Accessor) -> usize {
+        accessor.prior
+    }
+}
+pub enum Posterior {}
+impl Access for Posterior {
+    type Accessor = PriorityAccessor<Self>;
+    fn position(accessor: &Self::Accessor) -> usize {
+        accessor.posterior
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
+pub struct PriorityAccessor<A> {
+    prior: usize,
+    posterior: usize,
+    access_type: PhantomData<A>,
+}
+impl<A> PriorityAccessor<A> {
+    pub fn new() -> Self {
+        Self {
+            prior: 0,
+            posterior: 0,
+            access_type: PhantomData,
+        }
+    }
+}
+impl PriorityAccessor<Prior> {
+    pub fn as_posterior(self) -> PriorityAccessor<Posterior> {
+        PriorityAccessor {
+            prior: self.prior,
+            posterior: self.posterior,
+            access_type: PhantomData,
+        }
+    }
+}
+impl PriorityAccessor<Posterior> {
+    pub fn as_prior(self) -> PriorityAccessor<Prior> {
+        PriorityAccessor {
+            prior: self.prior,
+            posterior: self.posterior,
+            access_type: PhantomData,
+        }
+    }
+}
+
+impl<C, A: Access<Accessor = PriorityAccessor<A>>> std::ops::Deref for Coalesced<C, A> {
     type Target = C;
     fn deref(&self) -> &Self::Target {
-        if self.is_prior {
-            &self.priority[self.prior_accessor]
-        } else {
-            &self.priority[self.posterior_accessor]
-        }
+        &self.priority[A::position(&self.accessor)]
     }
 }
-impl<C> std::ops::DerefMut for Coalesced<C> {
+impl<C, A: Access<Accessor = PriorityAccessor<A>>> std::ops::DerefMut for Coalesced<C, A> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        if self.is_prior {
-            &mut self.priority[self.prior_accessor]
-        } else {
-            &mut self.priority[self.posterior_accessor]
-        }
+        &mut self.priority[A::position(&self.accessor)]
     }
 }
-impl<C> Coalesced<C> {
-    pub fn new(coalesce: C) -> Self {
+
+impl<C, A> Coalesced<C, A> {
+    fn new(coalesce: C) -> Self {
         Self {
             priority: vec![coalesce],
-            prior_accessor: 0,
-            posterior_accessor: 0,
-            is_prior: true,
+            accessor: PriorityAccessor::new(),
         }
     }
-    pub fn confirm(mut self) -> C {
-        if self.is_prior {
-            self.priority.swap_remove(self.prior_accessor)
-        } else {
-            self.priority.swap_remove(self.posterior_accessor)
-        }
+    pub fn confirm(mut self) -> C
+    where
+        A: Access<Accessor = PriorityAccessor<A>>,
+    {
+        self.priority.swap_remove(A::position(&self.accessor))
     }
 
     // TODO impl trait for Option<T> ?
@@ -61,18 +104,18 @@ impl<C> Coalesced<C> {
     {
         let base_len = self.priority.len();
         self.priority.extend(other.priority);
-        self.prior_accessor = base_len + other.prior_accessor;
-        for i in (1..=self.prior_accessor).rev() {
+        self.accessor.prior = base_len + other.accessor.prior;
+        for i in (1..=self.accessor.prior).rev() {
             if !self.priority[i].straight(&self.priority[i - 1]) {
-                self.prior_accessor = i - 1;
+                self.accessor.prior = i - 1;
             } else {
                 break;
             }
         }
-        self.posterior_accessor = other.posterior_accessor;
-        for i in 0..base_len + other.posterior_accessor {
+        self.accessor.posterior = other.accessor.posterior;
+        for i in 0..base_len + other.accessor.posterior {
             if !self.priority[i].straight(&self.priority[i + 1]) {
-                self.posterior_accessor = i + 1;
+                self.accessor.posterior = i + 1;
             } else {
                 break;
             }
@@ -85,35 +128,44 @@ impl<C> Coalesced<C> {
     {
         let base_len = other.priority.len();
         other.priority.extend(self.priority);
-        other.prior_accessor = base_len + self.prior_accessor;
-        for i in (1..=other.prior_accessor).rev() {
+        other.accessor.prior = base_len + self.accessor.prior;
+        for i in (1..=other.accessor.prior).rev() {
             if !other.priority[i].straight(&other.priority[i - 1]) {
-                other.prior_accessor = i - 1;
+                other.accessor.prior = i - 1;
             } else {
                 break;
             }
         }
-        other.posterior_accessor = self.posterior_accessor;
-        for i in 0..base_len + self.posterior_accessor {
+        other.accessor.posterior = self.accessor.posterior;
+        for i in 0..base_len + self.accessor.posterior {
             if !other.priority[i].straight(&other.priority[i + 1]) {
-                other.posterior_accessor = i + 1;
+                other.accessor.posterior = i + 1;
             } else {
                 break;
             }
         }
         other
     }
-
-    pub fn prior_access(self) -> Self {
-        Self {
-            is_prior: true,
-            ..self
+}
+impl<C> Coalesced<C, Prior> {
+    pub fn new_prior(coalesce: C) -> Coalesced<C, Prior> {
+        Coalesced::<C, Prior>::new(coalesce)
+    }
+    pub fn as_posterior(self) -> Coalesced<C, Posterior> {
+        Coalesced {
+            priority: self.priority,
+            accessor: self.accessor.as_posterior(),
         }
     }
-    pub fn posterior_access(self) -> Self {
-        Self {
-            is_prior: false,
-            ..self
+}
+impl<C> Coalesced<C, Posterior> {
+    pub fn new_posterior(coalesce: C) -> Coalesced<C, Posterior> {
+        Coalesced::<C, Posterior>::new(coalesce)
+    }
+    pub fn as_prior(self) -> Coalesced<C, Prior> {
+        Coalesced {
+            priority: self.priority,
+            accessor: self.accessor.as_prior(),
         }
     }
 }
@@ -124,9 +176,9 @@ mod tests {
 
     #[test]
     fn test_coalesced_prior_history() {
-        let from_file = Coalesced::new(Some("file"));
-        let from_env = Coalesced::new(Some("env"));
-        let from_cli = Coalesced::new(Some("cli"));
+        let from_file = Coalesced::new_prior(Some("file"));
+        let from_env = Coalesced::new_prior(Some("env"));
+        let from_cli = Coalesced::new_prior(Some("cli"));
 
         let config = from_file.prior(from_env).prior(from_cli);
         assert_eq!(config.unwrap(), "cli");
@@ -138,9 +190,9 @@ mod tests {
 
     #[test]
     fn test_coalesced_posterior_history() {
-        let from_file = Coalesced::new(Some("file"));
-        let from_env = Coalesced::new(Some("env"));
-        let from_cli = Coalesced::new(Some("cli"));
+        let from_file = Coalesced::new_prior(Some("file"));
+        let from_env = Coalesced::new_prior(Some("env"));
+        let from_cli = Coalesced::new_prior(Some("cli"));
 
         let config = from_file.prior(from_env).prior(from_cli);
         assert_eq!(config.unwrap(), "cli");
@@ -149,7 +201,7 @@ mod tests {
             vec![Some("file"), Some("env"), Some("cli")],
         );
 
-        let config = config.posterior_access();
+        let config = config.as_posterior();
         assert_eq!(config.unwrap(), "file");
         assert_eq!(
             config.priority,
@@ -159,12 +211,12 @@ mod tests {
 
     #[test]
     fn test_coalesced_complex_prior_posterior() {
-        let first = Coalesced::new(None);
-        let second = Coalesced::new(Some(2));
-        let third = Coalesced::new(Some(3));
-        let four = Coalesced::new(None);
-        let five = Coalesced::new(Some(5));
-        let six = Coalesced::new(None);
+        let first = Coalesced::new_prior(None);
+        let second = Coalesced::new_prior(Some(2));
+        let third = Coalesced::new_prior(Some(3));
+        let four = Coalesced::new_prior(None);
+        let five = Coalesced::new_prior(Some(5));
+        let six = Coalesced::new_prior(None);
 
         let coalesced = first
             .prior(second)
@@ -173,14 +225,13 @@ mod tests {
             .prior(five)
             .prior(six);
 
-        let coalesced = coalesced.prior_access();
         assert_eq!(coalesced.unwrap(), 5);
         assert_eq!(
             coalesced.priority,
             vec![None, Some(2), Some(3), None, Some(5), None]
         );
 
-        let coalesced = coalesced.posterior_access();
+        let coalesced = coalesced.as_posterior();
         assert_eq!(coalesced.unwrap(), 2);
         assert_eq!(
             coalesced.priority,
