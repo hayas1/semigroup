@@ -98,7 +98,7 @@ impl<C, A> Coalesced<C, A> {
     }
 
     // TODO impl trait for Option<T> ?
-    pub fn prior(mut self, other: Self) -> Self
+    pub fn extend_prior(mut self, other: Self) -> Self
     where
         C: Coalesce,
     {
@@ -122,7 +122,7 @@ impl<C, A> Coalesced<C, A> {
         }
         self
     }
-    pub fn posterior(self, mut other: Self) -> Self
+    pub fn extend_posterior(self, mut other: Self) -> Self
     where
         C: Coalesce,
     {
@@ -151,7 +151,7 @@ impl<C> Coalesced<C, Prior> {
     pub fn new_prior(coalesce: C) -> Coalesced<C, Prior> {
         Coalesced::<C, Prior>::new(coalesce)
     }
-    pub fn as_posterior(self) -> Coalesced<C, Posterior> {
+    pub fn posterior(self) -> Coalesced<C, Posterior> {
         Coalesced {
             priority: self.priority,
             accessor: self.accessor.as_posterior(),
@@ -162,7 +162,7 @@ impl<C> Coalesced<C, Posterior> {
     pub fn new_posterior(coalesce: C) -> Coalesced<C, Posterior> {
         Coalesced::<C, Posterior>::new(coalesce)
     }
-    pub fn as_prior(self) -> Coalesced<C, Prior> {
+    pub fn prior(self) -> Coalesced<C, Prior> {
         Coalesced {
             priority: self.priority,
             accessor: self.accessor.as_prior(),
@@ -180,7 +180,7 @@ mod tests {
         let from_env = Coalesced::new_prior(Some("env"));
         let from_cli = Coalesced::new_prior(Some("cli"));
 
-        let config = from_file.prior(from_env).prior(from_cli);
+        let config = from_file.extend_prior(from_env).extend_prior(from_cli);
         assert_eq!(config.unwrap(), "cli");
         assert_eq!(
             config.priority,
@@ -194,7 +194,9 @@ mod tests {
         let from_env = Coalesced::new_posterior(Some("env"));
         let from_cli = Coalesced::new_posterior(Some("cli"));
 
-        let config = from_file.posterior(from_env).posterior(from_cli);
+        let config = from_file
+            .extend_posterior(from_env)
+            .extend_posterior(from_cli);
         assert_eq!(config.unwrap(), "cli");
         assert_eq!(
             config.priority,
@@ -208,13 +210,15 @@ mod tests {
         let from_env = Coalesced::new_prior(Some("env"));
         let from_cli = Coalesced::new_prior(Some("cli"));
 
-        let config = from_file.posterior(from_env).posterior(from_cli);
+        let config = from_file
+            .extend_posterior(from_env)
+            .extend_posterior(from_cli);
         assert_eq!(config.unwrap(), "file");
         assert_eq!(
             config.priority,
             vec![Some("cli"), Some("env"), Some("file")],
         );
-        let config_posterior = config.as_posterior();
+        let config_posterior = config.posterior();
         assert_eq!(config_posterior.unwrap(), "cli");
         assert_eq!(
             config_posterior.priority,
@@ -227,13 +231,13 @@ mod tests {
         let from_env = Coalesced::new_posterior(Some("env"));
         let from_cli = Coalesced::new_posterior(Some("cli"));
 
-        let config = from_file.prior(from_env).prior(from_cli);
+        let config = from_file.extend_prior(from_env).extend_prior(from_cli);
         assert_eq!(config.unwrap(), "file");
         assert_eq!(
             config.priority,
             vec![Some("file"), Some("env"), Some("cli")],
         );
-        let config_prior = config.as_prior();
+        let config_prior = config.prior();
         assert_eq!(config_prior.unwrap(), "cli");
         assert_eq!(
             config_prior.priority,
@@ -251,11 +255,11 @@ mod tests {
         let six = Coalesced::new_prior(None);
 
         let coalesced = first
-            .prior(second)
-            .prior(third)
-            .prior(four)
-            .prior(five)
-            .prior(six);
+            .extend_prior(second)
+            .extend_prior(third)
+            .extend_prior(four)
+            .extend_prior(five)
+            .extend_prior(six);
 
         assert_eq!(coalesced.unwrap(), 5);
         assert_eq!(
@@ -263,7 +267,7 @@ mod tests {
             vec![None, Some(2), Some(3), None, Some(5), None]
         );
 
-        let coalesced = coalesced.as_posterior();
+        let coalesced = coalesced.posterior();
         assert_eq!(coalesced.unwrap(), 2);
         assert_eq!(
             coalesced.priority,

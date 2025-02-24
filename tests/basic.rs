@@ -9,6 +9,6 @@ pub fn main() {
     let from_env = Coalesced::new_prior(Some(Config { name: "env" }));
     let from_cli = Coalesced::new_prior(Some(Config { name: "cli" }));
 
-    let config = from_file.prior(from_env).prior(from_cli);
+    let config = from_file.extend_prior(from_env).extend_prior(from_cli);
     assert_eq!(config.as_ref().unwrap().name, "cli");
 }
