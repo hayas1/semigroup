@@ -5,4 +5,8 @@ description = "Coalesced supports reading configs from multiple sources"
 authors = ["hayas1 <h4ystack@gmail.com>"]
 edition = "2021"
 
+[features]
+serde = ["dep:serde"]
+
 [dependencies]
+serde = { version = "1.0.218", optional = true }

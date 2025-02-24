@@ -1,3 +1,6 @@
+#[cfg(feature = "serde")]
+pub mod serde;
+
 use std::marker::PhantomData;
 
 pub trait Coalesce {
