@@ -190,21 +190,53 @@ mod tests {
 
     #[test]
     fn test_coalesced_posterior_history() {
+        let from_file = Coalesced::new_posterior(Some("file"));
+        let from_env = Coalesced::new_posterior(Some("env"));
+        let from_cli = Coalesced::new_posterior(Some("cli"));
+
+        let config = from_file.posterior(from_env).posterior(from_cli);
+        assert_eq!(config.unwrap(), "cli");
+        assert_eq!(
+            config.priority,
+            vec![Some("cli"), Some("env"), Some("file")],
+        );
+    }
+
+    #[test]
+    fn test_coalesced_switch_prior_to_posterior() {
         let from_file = Coalesced::new_prior(Some("file"));
         let from_env = Coalesced::new_prior(Some("env"));
         let from_cli = Coalesced::new_prior(Some("cli"));
 
+        let config = from_file.posterior(from_env).posterior(from_cli);
+        assert_eq!(config.unwrap(), "file");
+        assert_eq!(
+            config.priority,
+            vec![Some("cli"), Some("env"), Some("file")],
+        );
+        let config_posterior = config.as_posterior();
+        assert_eq!(config_posterior.unwrap(), "cli");
+        assert_eq!(
+            config_posterior.priority,
+            vec![Some("cli"), Some("env"), Some("file")],
+        );
+    }
+    #[test]
+    fn test_coalesced_switch_posterior_to_prior() {
+        let from_file = Coalesced::new_posterior(Some("file"));
+        let from_env = Coalesced::new_posterior(Some("env"));
+        let from_cli = Coalesced::new_posterior(Some("cli"));
+
         let config = from_file.prior(from_env).prior(from_cli);
-        assert_eq!(config.unwrap(), "cli");
+        assert_eq!(config.unwrap(), "file");
         assert_eq!(
             config.priority,
             vec![Some("file"), Some("env"), Some("cli")],
         );
-
-        let config = config.as_posterior();
-        assert_eq!(config.unwrap(), "file");
+        let config_prior = config.as_prior();
+        assert_eq!(config_prior.unwrap(), "cli");
         assert_eq!(
-            config.priority,
+            config_prior.priority,
             vec![Some("file"), Some("env"), Some("cli")],
         );
     }
