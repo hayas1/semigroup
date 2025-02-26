@@ -5,6 +5,18 @@ use std::marker::PhantomData;
 
 pub trait Coalesce {
     fn straight(&self, other: &Self) -> bool;
+    fn extend_prior<A>(self, other: Coalesced<Self, A>) -> Coalesced<Self, A>
+    where
+        Self: Sized,
+    {
+        Coalesced::new(self).extend_prior(other)
+    }
+    fn extend_posterior<A>(self, other: Coalesced<Self, A>) -> Coalesced<Self, A>
+    where
+        Self: Sized,
+    {
+        Coalesced::new(self).extend_posterior(other)
+    }
 }
 impl<T> Coalesce for Option<T> {
     fn straight(&self, other: &Self) -> bool {
@@ -16,7 +28,7 @@ impl<T> Coalesce for Option<T> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-pub struct Coalesced<C, A> {
+pub struct Coalesced<C, A = Prior> {
     priority: Vec<C>,
     accessor: PriorityAccessor<A>,
 }
