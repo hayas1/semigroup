@@ -112,7 +112,7 @@ impl<C, A> Coalesced<C, A> {
         self.priority.swap_remove(A::position(&self.accessor))
     }
 
-    // TODO impl trait for Option<T> ?
+    // TODO impl as trait ?
     pub fn extend_prior(mut self, other: Self) -> Self
     where
         C: Coalesce,
