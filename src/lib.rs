@@ -31,18 +31,18 @@ impl<T> Coalesce for Option<T> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-pub struct Coalesced<C, A = Prior> {
-    priority: Vec<C>,
+pub struct Coalesced<C, A = Prior, E = ()> {
+    priority: Vec<extension::Extension<C, E>>,
     accessor: priority::Accessor<A>,
 }
 
-impl<C, A> std::ops::Deref for Coalesced<C, A>
+impl<C, A, E> std::ops::Deref for Coalesced<C, A, E>
 where
     A: priority::Access<Accessor = priority::Accessor<A>>,
 {
     type Target = C;
     fn deref(&self) -> &Self::Target {
-        &self.priority[A::position(&self.accessor)]
+        &self.priority[A::position(&self.accessor)].value
     }
 }
 impl<C, A> std::ops::DerefMut for Coalesced<C, A>
@@ -50,22 +50,27 @@ where
     A: priority::Access<Accessor = priority::Accessor<A>>,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.priority[A::position(&self.accessor)]
+        &mut self.priority[A::position(&self.accessor)].value
     }
 }
-
-impl<C, A> Coalesced<C, A> {
+impl<C, A> Coalesced<C, A, ()> {
     fn new(coalesce: C) -> Self {
+        Self::new_with(coalesce, ())
+    }
+}
+impl<C, A, E> Coalesced<C, A, E> {
+    fn new_with(coalesce: C, extension: E) -> Self {
         Self {
-            priority: vec![coalesce],
+            priority: vec![extension::Extension::new_with(coalesce, extension)],
             accessor: priority::Accessor::new(),
         }
     }
+    // TODO impl as Into trait ?
     pub fn confirm(mut self) -> C
     where
         A: priority::Access<Accessor = priority::Accessor<A>>,
     {
-        self.priority.swap_remove(A::position(&self.accessor))
+        self.priority.swap_remove(A::position(&self.accessor)).value
     }
 
     // TODO impl as trait ?
@@ -143,6 +148,8 @@ impl<C> Coalesced<C, Posterior> {
 
 #[cfg(test)]
 mod tests {
+    use crate::extension::Extension;
+
     use super::*;
 
     #[test]
@@ -155,7 +162,11 @@ mod tests {
         assert_eq!(config.unwrap(), "cli");
         assert_eq!(
             config.priority,
-            vec![Some("file"), Some("env"), Some("cli")],
+            vec![
+                Extension::new(Some("file")),
+                Extension::new(Some("env")),
+                Extension::new(Some("cli")),
+            ],
         );
     }
 
@@ -171,7 +182,11 @@ mod tests {
         assert_eq!(config.unwrap(), "cli");
         assert_eq!(
             config.priority,
-            vec![Some("cli"), Some("env"), Some("file")],
+            vec![
+                Extension::new(Some("cli")),
+                Extension::new(Some("env")),
+                Extension::new(Some("file")),
+            ],
         );
     }
 
@@ -187,13 +202,21 @@ mod tests {
         assert_eq!(config.unwrap(), "file");
         assert_eq!(
             config.priority,
-            vec![Some("cli"), Some("env"), Some("file")],
+            vec![
+                Extension::new(Some("cli")),
+                Extension::new(Some("env")),
+                Extension::new(Some("file")),
+            ],
         );
         let config_posterior = config.posterior();
         assert_eq!(config_posterior.unwrap(), "cli");
         assert_eq!(
             config_posterior.priority,
-            vec![Some("cli"), Some("env"), Some("file")],
+            vec![
+                Extension::new(Some("cli")),
+                Extension::new(Some("env")),
+                Extension::new(Some("file")),
+            ],
         );
     }
     #[test]
@@ -206,13 +229,21 @@ mod tests {
         assert_eq!(config.unwrap(), "file");
         assert_eq!(
             config.priority,
-            vec![Some("file"), Some("env"), Some("cli")],
+            vec![
+                Extension::new(Some("file")),
+                Extension::new(Some("env")),
+                Extension::new(Some("cli")),
+            ],
         );
         let config_prior = config.prior();
         assert_eq!(config_prior.unwrap(), "cli");
         assert_eq!(
             config_prior.priority,
-            vec![Some("file"), Some("env"), Some("cli")],
+            vec![
+                Extension::new(Some("file")),
+                Extension::new(Some("env")),
+                Extension::new(Some("cli")),
+            ],
         );
     }
 
@@ -235,14 +266,28 @@ mod tests {
         assert_eq!(coalesced.unwrap(), 5);
         assert_eq!(
             coalesced.priority,
-            vec![None, Some(2), Some(3), None, Some(5), None]
+            vec![
+                Extension::new(None),
+                Extension::new(Some(2)),
+                Extension::new(Some(3)),
+                Extension::new(None),
+                Extension::new(Some(5)),
+                Extension::new(None),
+            ],
         );
 
         let coalesced = coalesced.posterior();
         assert_eq!(coalesced.unwrap(), 2);
         assert_eq!(
             coalesced.priority,
-            vec![None, Some(2), Some(3), None, Some(5), None]
+            vec![
+                Extension::new(None),
+                Extension::new(Some(2)),
+                Extension::new(Some(3)),
+                Extension::new(None),
+                Extension::new(Some(5)),
+                Extension::new(None),
+            ],
         );
     }
 }
