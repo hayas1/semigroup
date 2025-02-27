@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{Access, Coalesced, PriorityAccessor};
+use crate::{
+    priority::{Access, PriorityAccessor},
+    Coalesced,
+};
 
 impl<C, A> Serialize for Coalesced<C, A>
 where

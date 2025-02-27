@@ -1,7 +1,9 @@
+pub mod priority;
+
 #[cfg(feature = "serde")]
 pub mod serde;
 
-use std::marker::PhantomData;
+pub use priority::{Posterior, Prior};
 
 pub trait Coalesce {
     fn straight(&self, other: &Self) -> bool;
@@ -30,69 +32,22 @@ impl<T> Coalesce for Option<T> {
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct Coalesced<C, A = Prior> {
     priority: Vec<C>,
-    accessor: PriorityAccessor<A>,
+    accessor: priority::PriorityAccessor<A>,
 }
 
-pub trait Access {
-    type Accessor;
-    fn position(accessor: &Self::Accessor) -> usize;
-}
-pub enum Prior {}
-impl Access for Prior {
-    type Accessor = PriorityAccessor<Self>;
-    fn position(accessor: &Self::Accessor) -> usize {
-        accessor.prior
-    }
-}
-pub enum Posterior {}
-impl Access for Posterior {
-    type Accessor = PriorityAccessor<Self>;
-    fn position(accessor: &Self::Accessor) -> usize {
-        accessor.posterior
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-pub struct PriorityAccessor<A> {
-    prior: usize,
-    posterior: usize,
-    access_type: PhantomData<A>,
-}
-impl<A> PriorityAccessor<A> {
-    pub fn new() -> Self {
-        Self {
-            prior: 0,
-            posterior: 0,
-            access_type: PhantomData,
-        }
-    }
-}
-impl PriorityAccessor<Prior> {
-    pub fn as_posterior(self) -> PriorityAccessor<Posterior> {
-        PriorityAccessor {
-            prior: self.prior,
-            posterior: self.posterior,
-            access_type: PhantomData,
-        }
-    }
-}
-impl PriorityAccessor<Posterior> {
-    pub fn as_prior(self) -> PriorityAccessor<Prior> {
-        PriorityAccessor {
-            prior: self.prior,
-            posterior: self.posterior,
-            access_type: PhantomData,
-        }
-    }
-}
-
-impl<C, A: Access<Accessor = PriorityAccessor<A>>> std::ops::Deref for Coalesced<C, A> {
+impl<C, A> std::ops::Deref for Coalesced<C, A>
+where
+    A: priority::Access<Accessor = priority::PriorityAccessor<A>>,
+{
     type Target = C;
     fn deref(&self) -> &Self::Target {
         &self.priority[A::position(&self.accessor)]
     }
 }
-impl<C, A: Access<Accessor = PriorityAccessor<A>>> std::ops::DerefMut for Coalesced<C, A> {
+impl<C, A> std::ops::DerefMut for Coalesced<C, A>
+where
+    A: priority::Access<Accessor = priority::PriorityAccessor<A>>,
+{
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.priority[A::position(&self.accessor)]
     }
@@ -102,12 +57,12 @@ impl<C, A> Coalesced<C, A> {
     fn new(coalesce: C) -> Self {
         Self {
             priority: vec![coalesce],
-            accessor: PriorityAccessor::new(),
+            accessor: priority::PriorityAccessor::new(),
         }
     }
     pub fn confirm(mut self) -> C
     where
-        A: Access<Accessor = PriorityAccessor<A>>,
+        A: priority::Access<Accessor = priority::PriorityAccessor<A>>,
     {
         self.priority.swap_remove(A::position(&self.accessor))
     }
