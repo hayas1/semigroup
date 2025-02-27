@@ -1,14 +1,14 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    priority::{Access, PriorityAccessor},
+    priority::{Access, Accessor},
     Coalesced,
 };
 
 impl<C, A> Serialize for Coalesced<C, A>
 where
     C: Serialize,
-    A: Access<Accessor = PriorityAccessor<A>>,
+    A: Access<Accessor = Accessor<A>>,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -21,7 +21,7 @@ where
 impl<'de, C, A> Deserialize<'de> for Coalesced<C, A>
 where
     C: Deserialize<'de>,
-    A: Access<Accessor = PriorityAccessor<A>>,
+    A: Access<Accessor = Accessor<A>>,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where

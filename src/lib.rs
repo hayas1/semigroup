@@ -32,12 +32,12 @@ impl<T> Coalesce for Option<T> {
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct Coalesced<C, A = Prior> {
     priority: Vec<C>,
-    accessor: priority::PriorityAccessor<A>,
+    accessor: priority::Accessor<A>,
 }
 
 impl<C, A> std::ops::Deref for Coalesced<C, A>
 where
-    A: priority::Access<Accessor = priority::PriorityAccessor<A>>,
+    A: priority::Access<Accessor = priority::Accessor<A>>,
 {
     type Target = C;
     fn deref(&self) -> &Self::Target {
@@ -46,7 +46,7 @@ where
 }
 impl<C, A> std::ops::DerefMut for Coalesced<C, A>
 where
-    A: priority::Access<Accessor = priority::PriorityAccessor<A>>,
+    A: priority::Access<Accessor = priority::Accessor<A>>,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.priority[A::position(&self.accessor)]
@@ -57,12 +57,12 @@ impl<C, A> Coalesced<C, A> {
     fn new(coalesce: C) -> Self {
         Self {
             priority: vec![coalesce],
-            accessor: priority::PriorityAccessor::new(),
+            accessor: priority::Accessor::new(),
         }
     }
     pub fn confirm(mut self) -> C
     where
-        A: priority::Access<Accessor = priority::PriorityAccessor<A>>,
+        A: priority::Access<Accessor = priority::Accessor<A>>,
     {
         self.priority.swap_remove(A::position(&self.accessor))
     }

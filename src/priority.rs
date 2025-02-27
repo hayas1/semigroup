@@ -6,27 +6,27 @@ pub trait Access {
 }
 pub enum Prior {}
 impl Access for Prior {
-    type Accessor = PriorityAccessor<Self>;
+    type Accessor = Accessor<Self>;
     fn position(accessor: &Self::Accessor) -> usize {
         accessor.prior
     }
 }
 pub enum Posterior {}
 impl Access for Posterior {
-    type Accessor = PriorityAccessor<Self>;
+    type Accessor = Accessor<Self>;
     fn position(accessor: &Self::Accessor) -> usize {
         accessor.posterior
     }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-pub struct PriorityAccessor<A> {
+pub struct Accessor<A> {
     // TODO visibility
     pub(crate) prior: usize,
     pub(crate) posterior: usize,
     pub(crate) access_type: PhantomData<A>,
 }
-impl<A> PriorityAccessor<A> {
+impl<A> Accessor<A> {
     pub fn new() -> Self {
         Self {
             prior: 0,
@@ -35,18 +35,18 @@ impl<A> PriorityAccessor<A> {
         }
     }
 }
-impl PriorityAccessor<Prior> {
-    pub fn as_posterior(self) -> PriorityAccessor<Posterior> {
-        PriorityAccessor {
+impl Accessor<Prior> {
+    pub fn as_posterior(self) -> Accessor<Posterior> {
+        Accessor {
             prior: self.prior,
             posterior: self.posterior,
             access_type: PhantomData,
         }
     }
 }
-impl PriorityAccessor<Posterior> {
-    pub fn as_prior(self) -> PriorityAccessor<Prior> {
-        PriorityAccessor {
+impl Accessor<Posterior> {
+    pub fn as_prior(self) -> Accessor<Prior> {
+        Accessor {
             prior: self.prior,
             posterior: self.posterior,
             access_type: PhantomData,
