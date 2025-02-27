@@ -4,7 +4,6 @@ pub mod priority;
 #[cfg(feature = "serde")]
 pub mod serde;
 
-use extension::Extension;
 pub use priority::{Posterior, Prior};
 
 pub trait Coalesce {
@@ -121,13 +120,13 @@ impl<C, A, E> Coalesced<C, A, E>
 where
     A: priority::Access<Accessor = priority::Accessor<A>>,
 {
-    pub fn access_owned(mut self) -> Extension<C, E> {
+    pub fn access_owned(mut self) -> extension::Extension<C, E> {
         self.priority.swap_remove(A::position(&self.accessor))
     }
-    pub fn access(&self) -> &Extension<C, E> {
+    pub fn access(&self) -> &extension::Extension<C, E> {
         &self.priority[A::position(&self.accessor)]
     }
-    pub fn access_mut(&mut self) -> &mut Extension<C, E> {
+    pub fn access_mut(&mut self) -> &mut extension::Extension<C, E> {
         &mut self.priority[A::position(&self.accessor)]
     }
 
