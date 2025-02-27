@@ -4,6 +4,7 @@ pub mod priority;
 #[cfg(feature = "serde")]
 pub mod serde;
 
+use extension::Extension;
 pub use priority::{Posterior, Prior};
 
 pub trait Coalesce {
@@ -65,13 +66,6 @@ impl<C, A, E> Coalesced<C, A, E> {
             accessor: priority::Accessor::new(),
         }
     }
-    // TODO impl as Into trait ?
-    pub fn confirm(mut self) -> C
-    where
-        A: priority::Access<Accessor = priority::Accessor<A>>,
-    {
-        self.priority.swap_remove(A::position(&self.accessor)).value
-    }
 
     // TODO impl as trait ?
     pub fn extend_prior(mut self, other: Self) -> Self
@@ -123,11 +117,52 @@ impl<C, A, E> Coalesced<C, A, E> {
         other
     }
 }
+impl<C, A, E> Coalesced<C, A, E>
+where
+    A: priority::Access<Accessor = priority::Accessor<A>>,
+{
+    pub fn access_owned(mut self) -> Extension<C, E> {
+        self.priority.swap_remove(A::position(&self.accessor))
+    }
+    pub fn access(&self) -> &Extension<C, E> {
+        &self.priority[A::position(&self.accessor)]
+    }
+    pub fn access_mut(&mut self) -> &mut Extension<C, E> {
+        &mut self.priority[A::position(&self.accessor)]
+    }
+
+    // TODO impl as Into trait ?
+    pub fn into_value(self) -> C {
+        self.access_owned().value
+    }
+    pub fn value(&self) -> &C {
+        &self.access().value
+    }
+    pub fn value_mut(&mut self) -> &mut C {
+        &mut self.access_mut().value
+    }
+
+    pub fn into_extension(self) -> E {
+        self.access_owned().extension
+    }
+    pub fn extension(&self) -> &E {
+        &self.access().extension
+    }
+    pub fn extension_mut(&mut self) -> &mut E {
+        &mut self.access_mut().extension
+    }
+}
+
 impl<C> Coalesced<C, Prior> {
     pub fn new_prior(coalesce: C) -> Coalesced<C, Prior> {
         Coalesced::<C, Prior>::new(coalesce)
     }
-    pub fn posterior(self) -> Coalesced<C, Posterior> {
+}
+impl<C, E> Coalesced<C, Prior, E> {
+    pub fn new_prior_with(coalesce: C, extension: E) -> Coalesced<C, Prior, E> {
+        Coalesced::new_with(coalesce, extension)
+    }
+    pub fn posterior(self) -> Coalesced<C, Posterior, E> {
         Coalesced {
             priority: self.priority,
             accessor: self.accessor.as_posterior(),
@@ -138,7 +173,12 @@ impl<C> Coalesced<C, Posterior> {
     pub fn new_posterior(coalesce: C) -> Coalesced<C, Posterior> {
         Coalesced::<C, Posterior>::new(coalesce)
     }
-    pub fn prior(self) -> Coalesced<C, Prior> {
+}
+impl<C, E> Coalesced<C, Posterior, E> {
+    pub fn new_posterior_with(coalesce: C, extension: E) -> Coalesced<C, Posterior, E> {
+        Coalesced::new_with(coalesce, extension)
+    }
+    pub fn prior(self) -> Coalesced<C, Prior, E> {
         Coalesced {
             priority: self.priority,
             accessor: self.accessor.as_prior(),
