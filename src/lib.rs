@@ -1,3 +1,4 @@
+pub mod extension;
 pub mod priority;
 
 #[cfg(feature = "serde")]
