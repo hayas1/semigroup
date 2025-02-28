@@ -19,6 +19,9 @@ impl Access for Posterior {
     }
 }
 
+pub enum Single {}
+pub enum Multiple {}
+
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct Accessor<A> {
     // TODO visibility

@@ -4,17 +4,23 @@ pub mod priority;
 #[cfg(feature = "serde")]
 pub mod serde;
 
-pub use priority::{Posterior, Prior};
+pub use priority::{Multiple, Posterior, Prior, Single};
 
 pub trait Coalesce {
     fn straight(&self, other: &Self) -> bool;
-    fn extend_prior<A>(self, other: Coalesced<Self, A>) -> Coalesced<Self, A>
+    fn extend_prior<A, L>(
+        self,
+        other: Coalesced<Self, A, (), L>,
+    ) -> Coalesced<Self, A, (), Multiple>
     where
         Self: Sized,
     {
         Coalesced::new(self).extend_prior(other)
     }
-    fn extend_posterior<A>(self, other: Coalesced<Self, A>) -> Coalesced<Self, A>
+    fn extend_posterior<A, L>(
+        self,
+        other: Coalesced<Self, A, (), L>,
+    ) -> Coalesced<Self, A, (), Multiple>
     where
         Self: Sized,
     {
@@ -31,12 +37,13 @@ impl<T> Coalesce for Option<T> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-pub struct Coalesced<C, A = Prior, E = ()> {
+pub struct Coalesced<C, A = Prior, E = (), L = Single> {
     priority: Vec<extension::Extension<C, E>>,
     accessor: priority::Accessor<A>,
+    phantom: std::marker::PhantomData<L>,
 }
 
-impl<C, A, E> std::ops::Deref for Coalesced<C, A, E>
+impl<C, A, L> std::ops::Deref for Coalesced<C, A, (), L>
 where
     A: priority::Access<Accessor = priority::Accessor<A>>,
 {
@@ -45,7 +52,7 @@ where
         &self.priority[A::position(&self.accessor)].value
     }
 }
-impl<C, A> std::ops::DerefMut for Coalesced<C, A>
+impl<C, A, L> std::ops::DerefMut for Coalesced<C, A, (), L>
 where
     A: priority::Access<Accessor = priority::Accessor<A>>,
 {
@@ -58,16 +65,17 @@ impl<C, A> Coalesced<C, A, ()> {
         Self::new_with(coalesce, ())
     }
 }
-impl<C, A, E> Coalesced<C, A, E> {
+impl<C, A, E, L> Coalesced<C, A, E, L> {
     fn new_with(coalesce: C, extension: E) -> Self {
         Self {
             priority: vec![extension::Extension::new_with(coalesce, extension)],
             accessor: priority::Accessor::new(),
+            phantom: std::marker::PhantomData,
         }
     }
 
     // TODO impl as trait ?
-    pub fn extend_prior(mut self, other: Self) -> Self
+    pub fn extend_prior<L2>(mut self, other: Coalesced<C, A, E, L2>) -> Coalesced<C, A, E, Multiple>
     where
         C: Coalesce,
     {
@@ -89,9 +97,16 @@ impl<C, A, E> Coalesced<C, A, E> {
                 break;
             }
         }
-        self
+        Coalesced {
+            priority: self.priority,
+            accessor: self.accessor,
+            phantom: std::marker::PhantomData,
+        }
     }
-    pub fn extend_posterior(self, mut other: Self) -> Self
+    pub fn extend_posterior<L2>(
+        self,
+        mut other: Coalesced<C, A, E, L2>,
+    ) -> Coalesced<C, A, E, Multiple>
     where
         C: Coalesce,
     {
@@ -113,10 +128,14 @@ impl<C, A, E> Coalesced<C, A, E> {
                 break;
             }
         }
-        other
+        Coalesced {
+            priority: other.priority,
+            accessor: other.accessor,
+            phantom: std::marker::PhantomData,
+        }
     }
 }
-impl<C, A, E> Coalesced<C, A, E>
+impl<C, A, E, L> Coalesced<C, A, E, L>
 where
     A: priority::Access<Accessor = priority::Accessor<A>>,
 {
@@ -151,36 +170,62 @@ where
         &mut self.access_mut().extension
     }
 }
+impl<C, A, E> Coalesced<C, A, E, Single>
+where
+    A: priority::Access<Accessor = priority::Accessor<A>>,
+{
+    pub fn set_extension<E2>(self, extension: E2) -> Coalesced<C, A, E2, Single> {
+        let Self {
+            mut priority,
+            accessor,
+            phantom,
+        } = self;
+        Coalesced {
+            priority: vec![extension::Extension::new_with(
+                priority.swap_remove(A::position(&accessor)).value,
+                extension,
+            )],
+            accessor,
+            phantom,
+        }
+    }
+}
 
 impl<C> Coalesced<C, Prior> {
-    pub fn new_prior(coalesce: C) -> Coalesced<C, Prior> {
+    pub fn new_prior(coalesce: C) -> Self {
         Coalesced::<C, Prior>::new(coalesce)
     }
 }
 impl<C, E> Coalesced<C, Prior, E> {
-    pub fn new_prior_with(coalesce: C, extension: E) -> Coalesced<C, Prior, E> {
+    pub fn new_prior_with(coalesce: C, extension: E) -> Self {
         Coalesced::new_with(coalesce, extension)
     }
+}
+impl<C, E, L> Coalesced<C, Prior, E, L> {
     pub fn posterior(self) -> Coalesced<C, Posterior, E> {
         Coalesced {
             priority: self.priority,
             accessor: self.accessor.as_posterior(),
+            phantom: std::marker::PhantomData,
         }
     }
 }
 impl<C> Coalesced<C, Posterior> {
-    pub fn new_posterior(coalesce: C) -> Coalesced<C, Posterior> {
+    pub fn new_posterior(coalesce: C) -> Self {
         Coalesced::<C, Posterior>::new(coalesce)
     }
 }
 impl<C, E> Coalesced<C, Posterior, E> {
-    pub fn new_posterior_with(coalesce: C, extension: E) -> Coalesced<C, Posterior, E> {
+    pub fn new_posterior_with(coalesce: C, extension: E) -> Self {
         Coalesced::new_with(coalesce, extension)
     }
+}
+impl<C, E, L> Coalesced<C, Posterior, E, L> {
     pub fn prior(self) -> Coalesced<C, Prior, E> {
         Coalesced {
             priority: self.priority,
             accessor: self.accessor.as_prior(),
+            phantom: std::marker::PhantomData,
         }
     }
 }
