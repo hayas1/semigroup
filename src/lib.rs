@@ -190,6 +190,15 @@ where
         }
     }
 }
+impl<C, A, E> Coalesced<C, A, E, Multiple>
+where
+    A: priority::Access<Accessor = priority::Accessor<A>>,
+{
+    pub fn to_single(self) -> Coalesced<C, A, E, Single> {
+        let ext = self.access_owned();
+        Coalesced::new_with(ext.value, ext.extension)
+    }
+}
 
 impl<C> Coalesced<C, Prior> {
     pub fn new_prior(coalesce: C) -> Self {
