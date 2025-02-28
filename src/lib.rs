@@ -49,7 +49,7 @@ where
 {
     type Target = C;
     fn deref(&self) -> &Self::Target {
-        &self.priority[A::position(&self.accessor)].value
+        self.value()
     }
 }
 impl<C, A, L> std::ops::DerefMut for Coalesced<C, A, (), L>
@@ -57,7 +57,7 @@ where
     A: priority::Access<Accessor = priority::Accessor<A>>,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.priority[A::position(&self.accessor)].value
+        self.value_mut()
     }
 }
 impl<C, A> Coalesced<C, A, ()> {
