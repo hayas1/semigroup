@@ -65,7 +65,7 @@ mod tests {
                 .number
                 .extend_prior(env.number)
                 .extend_prior(cli.number)
-                .to_single(),
+                .into_single(),
         };
 
         let serialized = serde_json::to_string(&config).unwrap();
@@ -83,7 +83,7 @@ mod tests {
                 .number
                 .extend_prior(env.number)
                 .extend_prior(cli.number)
-                .to_single(),
+                .into_single(),
         };
 
         assert_eq!(config.number.unwrap(), 100);
