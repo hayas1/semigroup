@@ -58,4 +58,25 @@ mod tests {
             ],
         );
     }
+
+    #[test]
+    fn test_coalesced_set_extension() {
+        let from_file = Coalesced::new_prior(Some(1));
+        let from_env = Coalesced::new_prior(Some(10));
+        let from_cli = Coalesced::new_prior(Some(100));
+        assert_eq!(from_file.extension(), &());
+        assert_eq!(from_env.extension(), &());
+        assert_eq!(from_cli.extension(), &());
+
+        let from_file = from_file.set_extension("file");
+        let from_env = from_env.set_extension("env");
+        let from_cli = from_cli.set_extension("cli");
+        assert_eq!(from_file.extension(), &"file");
+        assert_eq!(from_env.extension(), &"env");
+        assert_eq!(from_cli.extension(), &"cli");
+
+        let config = from_file.extend_prior(from_env).extend_prior(from_cli);
+        assert_eq!(config.value(), &Some(100));
+        assert_eq!(config.extension(), &"cli");
+    }
 }
