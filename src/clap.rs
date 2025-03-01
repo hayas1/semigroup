@@ -40,4 +40,13 @@ mod tests {
         let cli = Cli::try_parse_from(["coalesced"]).unwrap();
         assert!(cli.number.is_none());
     }
+    #[test]
+    fn test_coalesced_with_clap() {
+        let cli = Cli::try_parse_from(["coalesced", "--number", "100"]).unwrap();
+        let cli_number = cli.number.set_extension("cli");
+        let number = Coalesced::new_prior_with(Some(10), "const");
+        let coalesced = cli_number.extend_prior(number);
+        assert_eq!(coalesced.value(), &Some(10));
+        assert_eq!(coalesced.extension(), &"const");
+    }
 }
