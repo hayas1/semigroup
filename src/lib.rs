@@ -35,6 +35,14 @@ impl<T> Coalesce for Option<T> {
         }
     }
 }
+impl<T, E> Coalesce for Result<T, E> {
+    fn straight(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Ok(_), _) => true,
+            _ => false,
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct Coalesced<C, A = Prior, E = (), L = Single> {
