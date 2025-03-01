@@ -7,10 +7,13 @@ edition = "2021"
 
 [features]
 serde = ["dep:serde"]
+clap = ["dep:clap"]
 
 [dependencies]
+clap = { version = "4.5.31", optional = true }
 serde = { version = "1.0.218", optional = true }
 
 [dev-dependencies]
+clap = { version = "4.5.31", features = ["derive"] }
 serde = { version = "1.0.218", features = ["derive"] }
 serde_json = "1.0.139"

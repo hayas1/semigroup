@@ -4,6 +4,7 @@ pub trait Access {
     type Accessor;
     fn position(accessor: &Self::Accessor) -> usize;
 }
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Prior {}
 impl Access for Prior {
     type Accessor = Accessor<Self>;
@@ -11,6 +12,7 @@ impl Access for Prior {
         accessor.prior
     }
 }
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Posterior {}
 impl Access for Posterior {
     type Accessor = Accessor<Self>;
@@ -19,7 +21,10 @@ impl Access for Posterior {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Single {}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Multiple {}
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
