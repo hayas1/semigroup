@@ -10,24 +10,24 @@ pub use priority::{Multiple, Posterior, Prior, Single};
 
 pub trait Coalesce {
     fn straight(&self, other: &Self) -> bool;
-    fn extend_prior<A, L>(
-        self,
-        other: Coalesced<Self, A, (), L>,
-    ) -> Coalesced<Self, A, (), Multiple>
-    where
-        Self: Sized,
-    {
-        Coalesced::new(self).extend_prior(other)
-    }
-    fn extend_posterior<A, L>(
-        self,
-        other: Coalesced<Self, A, (), L>,
-    ) -> Coalesced<Self, A, (), Multiple>
-    where
-        Self: Sized,
-    {
-        Coalesced::new(self).extend_posterior(other)
-    }
+    // fn extend_prior<A, L>(
+    //     self,
+    //     other: Coalesced<Self, A, (), L>,
+    // ) -> Coalesced<Self, A, (), Multiple>
+    // where
+    //     Self: Sized,
+    // {
+    //     Coalesced::new(self).extend_prior(other)
+    // }
+    // fn extend_posterior<A, L>(
+    //     self,
+    //     other: Coalesced<Self, A, (), L>,
+    // ) -> Coalesced<Self, A, (), Multiple>
+    // where
+    //     Self: Sized,
+    // {
+    //     Coalesced::new(self).extend_posterior(other)
+    // }
 }
 impl<T> Coalesce for Option<T> {
     fn straight(&self, other: &Self) -> bool {
@@ -83,12 +83,13 @@ impl<C, A, E, L> Coalesced<C, A, E, L> {
             phantom: std::marker::PhantomData,
         }
     }
-
-    // TODO impl as trait ?
-    pub fn extend_prior<L2>(mut self, other: Coalesced<C, A, E, L2>) -> Coalesced<C, A, E, Multiple>
-    where
-        C: Coalesce,
-    {
+}
+impl<C, A, E, L> Coalesced<C, A, E, L>
+where
+    C: Coalesce,
+    A: priority::Access<Accessor = priority::Accessor<A>>,
+{
+    pub fn concat<L2>(mut self, other: Coalesced<C, A, E, L2>) -> Coalesced<C, A, E, Multiple> {
         let base_len = self.priority.len();
         self.priority.extend(other.priority);
         self.accessor.prior = base_len + other.accessor.prior;
@@ -110,37 +111,6 @@ impl<C, A, E, L> Coalesced<C, A, E, L> {
         Coalesced {
             priority: self.priority,
             accessor: self.accessor,
-            phantom: std::marker::PhantomData,
-        }
-    }
-    pub fn extend_posterior<L2>(
-        self,
-        mut other: Coalesced<C, A, E, L2>,
-    ) -> Coalesced<C, A, E, Multiple>
-    where
-        C: Coalesce,
-    {
-        let base_len = other.priority.len();
-        other.priority.extend(self.priority);
-        other.accessor.prior = base_len + self.accessor.prior;
-        for i in (1..=other.accessor.prior).rev() {
-            if !other.priority[i].straight(&other.priority[i - 1]) {
-                other.accessor.prior = i - 1;
-            } else {
-                break;
-            }
-        }
-        other.accessor.posterior = self.accessor.posterior;
-        for i in 0..base_len + self.accessor.posterior {
-            if !other.priority[i].straight(&other.priority[i + 1]) {
-                other.accessor.posterior = i + 1;
-            } else {
-                break;
-            }
-        }
-        Coalesced {
-            priority: other.priority,
-            accessor: other.accessor,
             phantom: std::marker::PhantomData,
         }
     }
@@ -261,7 +231,7 @@ mod tests {
         let from_env = Coalesced::new_prior(Some("env"));
         let from_cli = Coalesced::new_prior(Some("cli"));
 
-        let config = from_file.extend_prior(from_env).extend_prior(from_cli);
+        let config = from_file.concat(from_env).concat(from_cli);
         assert_eq!(config.unwrap(), "cli");
         assert_eq!(
             config.priority,
@@ -279,16 +249,14 @@ mod tests {
         let from_env = Coalesced::new_posterior(Some("env"));
         let from_cli = Coalesced::new_posterior(Some("cli"));
 
-        let config = from_file
-            .extend_posterior(from_env)
-            .extend_posterior(from_cli);
-        assert_eq!(config.unwrap(), "cli");
+        let config = from_file.concat(from_env).concat(from_cli);
+        assert_eq!(config.unwrap(), "file");
         assert_eq!(
             config.priority,
             vec![
-                Extension::new(Some("cli")),
-                Extension::new(Some("env")),
                 Extension::new(Some("file")),
+                Extension::new(Some("env")),
+                Extension::new(Some("cli")),
             ],
         );
     }
@@ -299,26 +267,24 @@ mod tests {
         let from_env = Coalesced::new_prior(Some("env"));
         let from_cli = Coalesced::new_prior(Some("cli"));
 
-        let config = from_file
-            .extend_posterior(from_env)
-            .extend_posterior(from_cli);
-        assert_eq!(config.unwrap(), "file");
+        let config = from_file.concat(from_env).concat(from_cli);
+        assert_eq!(config.unwrap(), "cli");
         assert_eq!(
             config.priority,
             vec![
-                Extension::new(Some("cli")),
-                Extension::new(Some("env")),
                 Extension::new(Some("file")),
+                Extension::new(Some("env")),
+                Extension::new(Some("cli")),
             ],
         );
         let config_posterior = config.posterior();
-        assert_eq!(config_posterior.unwrap(), "cli");
+        assert_eq!(config_posterior.unwrap(), "file");
         assert_eq!(
             config_posterior.priority,
             vec![
-                Extension::new(Some("cli")),
-                Extension::new(Some("env")),
                 Extension::new(Some("file")),
+                Extension::new(Some("env")),
+                Extension::new(Some("cli")),
             ],
         );
     }
@@ -328,7 +294,7 @@ mod tests {
         let from_env = Coalesced::new_posterior(Some("env"));
         let from_cli = Coalesced::new_posterior(Some("cli"));
 
-        let config = from_file.extend_prior(from_env).extend_prior(from_cli);
+        let config = from_file.concat(from_env).concat(from_cli);
         assert_eq!(config.unwrap(), "file");
         assert_eq!(
             config.priority,
@@ -360,11 +326,11 @@ mod tests {
         let six = Coalesced::new_prior(None);
 
         let coalesced = first
-            .extend_prior(second)
-            .extend_prior(third)
-            .extend_prior(four)
-            .extend_prior(five)
-            .extend_prior(six);
+            .concat(second)
+            .concat(third)
+            .concat(four)
+            .concat(five)
+            .concat(six);
 
         assert_eq!(coalesced.unwrap(), 5);
         assert_eq!(
