@@ -29,7 +29,10 @@ impl<T, E> Coalesce for Result<T, E> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-pub struct Coalesced<C, A = Prior, E = (), L = Single> {
+pub struct Coalesced<C, A = Prior, E = (), L = Single>
+where
+    L: priority::sealed::Length,
+{
     priority: Vec<extension::Extension<C, E>>,
     accessor: priority::Accessor<A>,
     phantom: std::marker::PhantomData<L>,
@@ -38,6 +41,7 @@ pub struct Coalesced<C, A = Prior, E = (), L = Single> {
 impl<C, A, L> std::ops::Deref for Coalesced<C, A, (), L>
 where
     A: priority::Access<Accessor = priority::Accessor<A>>,
+    L: priority::sealed::Length,
 {
     type Target = C;
     fn deref(&self) -> &Self::Target {
@@ -47,6 +51,7 @@ where
 impl<C, A, L> std::ops::DerefMut for Coalesced<C, A, (), L>
 where
     A: priority::Access<Accessor = priority::Accessor<A>>,
+    L: priority::sealed::Length,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.value_mut()
@@ -57,7 +62,10 @@ impl<C, A> Coalesced<C, A, ()> {
         Self::new_with(coalesce, ())
     }
 }
-impl<C, A, E, L> Coalesced<C, A, E, L> {
+impl<C, A, E, L> Coalesced<C, A, E, L>
+where
+    L: priority::sealed::Length,
+{
     fn new_with(coalesce: C, extension: E) -> Self {
         Self {
             priority: vec![extension::Extension::new_with(coalesce, extension)],
@@ -70,8 +78,12 @@ impl<C, A, E, L> Coalesced<C, A, E, L>
 where
     C: Coalesce,
     A: priority::Access<Accessor = priority::Accessor<A>>,
+    L: priority::sealed::Length,
 {
-    pub fn register<L2>(mut self, other: Coalesced<C, A, E, L2>) -> Coalesced<C, A, E, Multiple> {
+    pub fn register<L2>(mut self, other: Coalesced<C, A, E, L2>) -> Coalesced<C, A, E, Multiple>
+    where
+        L2: priority::sealed::Length,
+    {
         let base_len = self.priority.len();
         self.priority.extend(other.priority);
         self.accessor.prior = base_len + other.accessor.prior;
@@ -100,6 +112,7 @@ where
 impl<C, A, E, L> Coalesced<C, A, E, L>
 where
     A: priority::Access<Accessor = priority::Accessor<A>>,
+    L: priority::sealed::Length,
 {
     pub fn access_owned(mut self) -> extension::Extension<C, E> {
         self.priority.swap_remove(A::position(&self.accessor))
@@ -172,8 +185,11 @@ impl<C, E> Coalesced<C, Prior, E> {
         Coalesced::new_with(coalesce, extension)
     }
 }
-impl<C, E, L> Coalesced<C, Prior, E, L> {
-    pub fn posterior(self) -> Coalesced<C, Posterior, E> {
+impl<C, E, L> Coalesced<C, Prior, E, L>
+where
+    L: priority::sealed::Length,
+{
+    pub fn posterior(self) -> Coalesced<C, Posterior, E, L> {
         Coalesced {
             priority: self.priority,
             accessor: self.accessor.as_posterior(),
@@ -191,8 +207,11 @@ impl<C, E> Coalesced<C, Posterior, E> {
         Coalesced::new_with(coalesce, extension)
     }
 }
-impl<C, E, L> Coalesced<C, Posterior, E, L> {
-    pub fn prior(self) -> Coalesced<C, Prior, E> {
+impl<C, E, L> Coalesced<C, Posterior, E, L>
+where
+    L: priority::sealed::Length,
+{
+    pub fn prior(self) -> Coalesced<C, Prior, E, L> {
         Coalesced {
             priority: self.priority,
             accessor: self.accessor.as_prior(),

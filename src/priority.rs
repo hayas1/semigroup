@@ -21,11 +21,16 @@ impl Access for Posterior {
     }
 }
 
+pub(crate) mod sealed {
+    pub trait Length {}
+}
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Single {}
+impl sealed::Length for Single {}
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Multiple {}
+impl sealed::Length for Multiple {}
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct Accessor<A> {
