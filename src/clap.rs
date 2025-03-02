@@ -1,9 +1,15 @@
 use std::str::FromStr;
 
-use crate::Coalesced;
+use crate::{
+    priority::{
+        sealed::{Access, Length},
+        Accessor,
+    },
+    Coalesced,
+};
 
 // TODO not Option<T>, T instead ?
-impl<T, P> FromStr for Coalesced<Option<T>, P>
+impl<T, A> FromStr for Coalesced<Option<T>, A>
 where
     T: FromStr,
 {
@@ -14,6 +20,20 @@ where
             Ok(Coalesced::new(None))
         } else {
             s.parse().map(Some).map(Coalesced::new)
+        }
+    }
+}
+// TODO not Option<T>, T instead ?
+impl<T, A, E, L> ToString for Coalesced<Option<T>, A, E, L>
+where
+    T: ToString,
+    A: Access<Accessor = Accessor<A>>,
+    L: Length,
+{
+    fn to_string(&self) -> String {
+        match self.value() {
+            Some(s) => s.to_string(),
+            None => String::new(),
         }
     }
 }
@@ -39,6 +59,10 @@ mod tests {
 
         let cli = Cli::try_parse_from(["coalesced", "--number", ""]).unwrap();
         assert!(cli.number.is_none());
+
+        // TODO
+        // let cli = Cli::try_parse_from(["coalesced"]).unwrap();
+        // assert!(cli.number.is_none());
     }
     #[test]
     fn test_coalesced_with_clap() {
