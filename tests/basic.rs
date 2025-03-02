@@ -10,7 +10,7 @@ fn test_coalesced_basic_config() {
     let from_env = Coalesced::new_prior(Some(Config { name: "env" }));
     let from_cli = Coalesced::new_prior(Some(Config { name: "cli" }));
 
-    let config = from_file.concat(from_env).concat(from_cli);
+    let config = from_file.register(from_env).register(from_cli);
     assert_eq!(config.as_ref().unwrap().name, "cli");
 }
 
@@ -45,7 +45,7 @@ fn test_coalesced_complex_config() {
     };
     let expected = [Some(10), Some(100), Some(1)];
     for (cfg, exp) in config.locals.into_iter().zip(expected) {
-        let number = config.number.clone().concat(cfg.number);
+        let number = config.number.clone().register(cfg.number);
         assert_eq!(*number, exp);
     }
 }

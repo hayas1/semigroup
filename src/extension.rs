@@ -46,7 +46,7 @@ mod tests {
         let from_env = Coalesced::new_prior_with(Some("env"), Context::Env);
         let from_cli = Coalesced::new_prior_with(Some("cli"), Context::Cli);
 
-        let config = from_file.concat(from_env).concat(from_cli);
+        let config = from_file.register(from_env).register(from_cli);
         assert_eq!(config.value(), &Some("cli"));
         assert_eq!(config.extension(), &Context::Cli);
         assert_eq!(
@@ -75,7 +75,7 @@ mod tests {
         assert_eq!(from_env.extension(), &"env");
         assert_eq!(from_cli.extension(), &"cli");
 
-        let config = from_file.concat(from_env).concat(from_cli);
+        let config = from_file.register(from_env).register(from_cli);
         assert_eq!(config.value(), &Some(100));
         assert_eq!(config.extension(), &"cli");
     }
