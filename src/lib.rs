@@ -10,24 +10,6 @@ pub use priority::{Multiple, Posterior, Prior, Single};
 
 pub trait Coalesce {
     fn straight(&self, other: &Self) -> bool;
-    // fn extend_prior<A, L>(
-    //     self,
-    //     other: Coalesced<Self, A, (), L>,
-    // ) -> Coalesced<Self, A, (), Multiple>
-    // where
-    //     Self: Sized,
-    // {
-    //     Coalesced::new(self).extend_prior(other)
-    // }
-    // fn extend_posterior<A, L>(
-    //     self,
-    //     other: Coalesced<Self, A, (), L>,
-    // ) -> Coalesced<Self, A, (), Multiple>
-    // where
-    //     Self: Sized,
-    // {
-    //     Coalesced::new(self).extend_posterior(other)
-    // }
 }
 impl<T> Coalesce for Option<T> {
     fn straight(&self, other: &Self) -> bool {
