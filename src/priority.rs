@@ -1,12 +1,16 @@
 use std::marker::PhantomData;
 
-pub trait Access {
-    type Accessor;
-    fn position(accessor: &Self::Accessor) -> usize;
+pub(crate) mod sealed {
+    pub trait Access {
+        type Accessor;
+        fn position(accessor: &Self::Accessor) -> usize;
+    }
+    pub trait Length {}
 }
+
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Prior {}
-impl Access for Prior {
+impl sealed::Access for Prior {
     type Accessor = Accessor<Self>;
     fn position(accessor: &Self::Accessor) -> usize {
         accessor.prior
@@ -14,16 +18,13 @@ impl Access for Prior {
 }
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Posterior {}
-impl Access for Posterior {
+impl sealed::Access for Posterior {
     type Accessor = Accessor<Self>;
     fn position(accessor: &Self::Accessor) -> usize {
         accessor.posterior
     }
 }
 
-pub(crate) mod sealed {
-    pub trait Length {}
-}
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Single {}
 impl sealed::Length for Single {}

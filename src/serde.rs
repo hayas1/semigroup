@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    priority::{Access, Accessor},
+    priority::{sealed::Access, Accessor},
     Coalesced,
 };
 

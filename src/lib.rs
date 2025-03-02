@@ -40,7 +40,7 @@ where
 
 impl<C, A, L> std::ops::Deref for Coalesced<C, A, (), L>
 where
-    A: priority::Access<Accessor = priority::Accessor<A>>,
+    A: priority::sealed::Access<Accessor = priority::Accessor<A>>,
     L: priority::sealed::Length,
 {
     type Target = C;
@@ -50,7 +50,7 @@ where
 }
 impl<C, A, L> std::ops::DerefMut for Coalesced<C, A, (), L>
 where
-    A: priority::Access<Accessor = priority::Accessor<A>>,
+    A: priority::sealed::Access<Accessor = priority::Accessor<A>>,
     L: priority::sealed::Length,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
@@ -77,7 +77,7 @@ where
 impl<C, A, E, L> Coalesced<C, A, E, L>
 where
     C: Coalesce,
-    A: priority::Access<Accessor = priority::Accessor<A>>,
+    A: priority::sealed::Access<Accessor = priority::Accessor<A>>,
     L: priority::sealed::Length,
 {
     pub fn register<L2>(mut self, other: Coalesced<C, A, E, L2>) -> Coalesced<C, A, E, Multiple>
@@ -111,7 +111,7 @@ where
 }
 impl<C, A, E, L> Coalesced<C, A, E, L>
 where
-    A: priority::Access<Accessor = priority::Accessor<A>>,
+    A: priority::sealed::Access<Accessor = priority::Accessor<A>>,
     L: priority::sealed::Length,
 {
     pub fn access_owned(mut self) -> extension::Extension<C, E> {
@@ -147,7 +147,7 @@ where
 }
 impl<C, A, E> Coalesced<C, A, E, Single>
 where
-    A: priority::Access<Accessor = priority::Accessor<A>>,
+    A: priority::sealed::Access<Accessor = priority::Accessor<A>>,
 {
     pub fn set_extension<E2>(self, extension: E2) -> Coalesced<C, A, E2, Single> {
         let Self {
@@ -167,7 +167,7 @@ where
 }
 impl<C, A, E> Coalesced<C, A, E, Multiple>
 where
-    A: priority::Access<Accessor = priority::Accessor<A>>,
+    A: priority::sealed::Access<Accessor = priority::Accessor<A>>,
 {
     pub fn into_single(self) -> Coalesced<C, A, E, Single> {
         let ext = self.access_owned();
