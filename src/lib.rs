@@ -262,6 +262,41 @@ mod tests {
     }
 
     #[test]
+    fn test_coalesced_prior_history_with_none() {
+        let from_file = Coalesced::new_prior(Some("file"));
+        let from_env = Coalesced::new_prior(Some("env"));
+        let from_cli = Coalesced::new_prior(None);
+
+        let config = from_file.concat(from_env).concat(from_cli);
+        assert_eq!(config.unwrap(), "env");
+        assert_eq!(
+            config.priority,
+            vec![
+                Extension::new(Some("file")),
+                Extension::new(Some("env")),
+                Extension::new(None),
+            ],
+        );
+    }
+    #[test]
+    fn test_coalesced_posterior_history_with_none() {
+        let from_file = Coalesced::new_posterior(None);
+        let from_env = Coalesced::new_posterior(Some("env"));
+        let from_cli = Coalesced::new_posterior(Some("cli"));
+
+        let config = from_file.concat(from_env).concat(from_cli);
+        assert_eq!(config.unwrap(), "env");
+        assert_eq!(
+            config.priority,
+            vec![
+                Extension::new(None),
+                Extension::new(Some("env")),
+                Extension::new(Some("cli")),
+            ],
+        );
+    }
+
+    #[test]
     fn test_coalesced_switch_prior_to_posterior() {
         let from_file = Coalesced::new_prior(Some("file"));
         let from_env = Coalesced::new_prior(Some("env"));
