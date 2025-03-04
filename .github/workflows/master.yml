@@ -1,0 +1,101 @@
+name: Master
+
+on:
+  push:
+    branches: [ "master" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      should-release: ${{ steps.detect-version.outputs.should-release }}
+      expected-git-tag: ${{ steps.detect-version.outputs.expected-git-tag }}
+    timeout-minutes: 30
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@stable
+    - name: Cargo home
+      id: cargo-home
+      run: echo "path=${CARGO_HOME:-~/.cargo}" >>"$GITHUB_OUTPUT"
+    - uses: actions/cache@v4
+      with:
+        path: |
+          target
+          ${{ steps.cargo-home.outputs.path }}
+        key: cargo-${{ hashFiles('**/Cargo.toml') }}
+
+    - name: Release test
+      run: cargo test --all --release
+    - name: Release test with features
+      run: cargo test --all --release --features=serde --features=clap
+    - name: Run doc
+      run: cargo doc --all --no-deps
+    - name: Coverage
+      run: >
+        cargo install cargo-tarpaulin &&
+          cargo tarpaulin --output-dir target/doc --manifest-path Cargo.toml --out Html
+    - name: Remove 600 permission files
+      run: find target/doc -perm 600 | xargs rm -rf
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: target/doc
+
+    - name: Check version in Cargo.toml and git tag
+      uses: ./.github/actions/versions
+      id: detect-version
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    timeout-minutes: 30
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  release-draft:
+    needs: build
+    runs-on: ubuntu-latest
+    if: needs.build.outputs.should-release == 'true'
+    permissions:
+      contents: write
+    timeout-minutes: 30
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@stable
+    - name: Cargo home
+      id: cargo-home
+      run: echo "path=${CARGO_HOME:-~/.cargo}" >>"$GITHUB_OUTPUT"
+    - uses: actions/cache@v4
+      with:
+        path: |
+          target
+          ${{ steps.cargo-home.outputs.path }}
+        key: cargo-${{ hashFiles('**/Cargo.toml') }}
+
+    - name: Release build
+      run: cargo build --release
+    - name: Push tag
+      run: |
+        git tag ${{ needs.build.outputs.expected-git-tag }}
+        git push origin ${{ needs.build.outputs.expected-git-tag }}
+    - name: Release draft
+      id: create-release
+      uses: actions/create-release@v1 # archived
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ needs.build.outputs.expected-git-tag }}
+        release_name: ${{ needs.build.outputs.expected-git-tag }}
+        draft: true
