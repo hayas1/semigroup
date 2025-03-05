@@ -45,10 +45,10 @@ mod tests {
     use super::*;
 
     #[derive(Debug, Clone, Parser)]
-    #[clap(version, about, arg_required_else_help = true)]
+    #[clap(version, about)]
     pub struct Cli {
         /// Some number
-        #[arg(short, long)]
+        #[arg(short, long, default_value = "")] // TODO remove default_value = ""
         pub number: Coalesced<Option<i64>>,
     }
 
@@ -60,9 +60,8 @@ mod tests {
         let cli = Cli::try_parse_from(["coalesced", "--number", ""]).unwrap();
         assert!(cli.number.is_none());
 
-        // TODO
-        // let cli = Cli::try_parse_from(["coalesced"]).unwrap();
-        // assert!(cli.number.is_none());
+        let cli = Cli::try_parse_from(["coalesced"]).unwrap();
+        assert!(cli.number.is_none());
     }
     #[test]
     fn test_coalesced_with_clap() {
