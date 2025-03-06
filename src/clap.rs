@@ -63,6 +63,7 @@ mod tests {
         let cli = Cli::try_parse_from(["coalesced"]).unwrap();
         assert!(cli.number.is_none());
     }
+
     #[test]
     fn test_coalesced_with_clap() {
         let cli = Cli::try_parse_from(["coalesced", "--number", "100"]).unwrap();
@@ -72,10 +73,18 @@ mod tests {
         assert_eq!(coalesced.value(), &Some(100));
         assert_eq!(coalesced.extension(), &"cli");
     }
-
     #[test]
     fn test_coalesced_with_clap_empty() {
         let cli = Cli::try_parse_from(["coalesced", "--number", ""]).unwrap();
+        let cli_number = cli.number.set_extension("cli");
+        let number = Coalesced::new_prior_with(Some(10), "const");
+        let coalesced = number.register(cli_number);
+        assert_eq!(coalesced.value(), &Some(10));
+        assert_eq!(coalesced.extension(), &"const");
+    }
+    #[test]
+    fn test_coalesced_with_clap_empty_arg() {
+        let cli = Cli::try_parse_from(["coalesced"]).unwrap();
         let cli_number = cli.number.set_extension("cli");
         let number = Coalesced::new_prior_with(Some(10), "const");
         let coalesced = number.register(cli_number);
