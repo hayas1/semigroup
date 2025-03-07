@@ -134,7 +134,7 @@ impl<C, A, E> Coalesced<C, A, E, Single>
 where
     A: Access<Accessor = Accessor<A>>,
 {
-    pub fn set_extension_impl<E2>(self, extension: E2) -> Coalesced<C, A, E2, Single> {
+    pub(crate) fn set_extension_impl<E2>(self, extension: E2) -> Coalesced<C, A, E2, Single> {
         let Self {
             mut priority,
             accessor,
@@ -174,7 +174,7 @@ impl<C, E, L> Coalesced<C, Prior, E, L>
 where
     L: Length,
 {
-    pub fn posterior_impl(self) -> Coalesced<C, Posterior, E, L> {
+    pub(crate) fn posterior_impl(self) -> Coalesced<C, Posterior, E, L> {
         Coalesced {
             priority: self.priority,
             accessor: self.accessor.as_posterior(),
@@ -196,7 +196,7 @@ impl<C, E, L> Coalesced<C, Posterior, E, L>
 where
     L: Length,
 {
-    pub fn prior_impl(self) -> Coalesced<C, Prior, E, L> {
+    pub(crate) fn prior_impl(self) -> Coalesced<C, Prior, E, L> {
         Coalesced {
             priority: self.priority,
             accessor: self.accessor.as_prior(),
