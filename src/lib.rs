@@ -1,11 +1,11 @@
-pub mod coalesced;
-pub mod extension;
-pub mod priority;
+mod coalesced;
+mod extension;
+mod priority;
 
 #[cfg(feature = "clap")]
-pub mod clap;
+mod clap;
 #[cfg(feature = "serde")]
-pub mod serde;
+mod serde;
 
 pub use coalesced::Coalesced;
 pub use priority::{Multiple, Posterior, Prior, Single};
