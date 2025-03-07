@@ -80,7 +80,7 @@ where
     A: priority::sealed::Access<Accessor = priority::Accessor<A>>,
     L: priority::sealed::Length,
 {
-    pub fn register<L2>(mut self, other: Coalesced<C, A, E, L2>) -> Coalesced<C, A, E, Multiple>
+    pub fn coalesce<L2>(mut self, other: Coalesced<C, A, E, L2>) -> Coalesced<C, A, E, Multiple>
     where
         L2: priority::sealed::Length,
     {
@@ -232,7 +232,7 @@ mod tests {
         let from_env = Coalesced::new_prior(Some("env"));
         let from_cli = Coalesced::new_prior(Some("cli"));
 
-        let config = from_file.register(from_env).register(from_cli);
+        let config = from_file.coalesce(from_env).coalesce(from_cli);
         assert_eq!(config.unwrap(), "cli");
         assert_eq!(
             config.priority,
@@ -250,7 +250,7 @@ mod tests {
         let from_env = Coalesced::new_posterior(Some("env"));
         let from_cli = Coalesced::new_posterior(Some("cli"));
 
-        let config = from_file.register(from_env).register(from_cli);
+        let config = from_file.coalesce(from_env).coalesce(from_cli);
         assert_eq!(config.unwrap(), "file");
         assert_eq!(
             config.priority,
@@ -268,7 +268,7 @@ mod tests {
         let from_env = Coalesced::new_prior(Some("env"));
         let from_cli = Coalesced::new_prior(None);
 
-        let config = from_file.register(from_env).register(from_cli);
+        let config = from_file.coalesce(from_env).coalesce(from_cli);
         assert_eq!(config.unwrap(), "env");
         assert_eq!(
             config.priority,
@@ -285,7 +285,7 @@ mod tests {
         let from_env = Coalesced::new_posterior(Some("env"));
         let from_cli = Coalesced::new_posterior(Some("cli"));
 
-        let config = from_file.register(from_env).register(from_cli);
+        let config = from_file.coalesce(from_env).coalesce(from_cli);
         assert_eq!(config.unwrap(), "env");
         assert_eq!(
             config.priority,
@@ -303,7 +303,7 @@ mod tests {
         let from_env = Coalesced::new_prior(Some("env"));
         let from_cli = Coalesced::new_prior(Some("cli"));
 
-        let config = from_file.register(from_env).register(from_cli);
+        let config = from_file.coalesce(from_env).coalesce(from_cli);
         assert_eq!(config.unwrap(), "cli");
         assert_eq!(
             config.priority,
@@ -330,7 +330,7 @@ mod tests {
         let from_env = Coalesced::new_posterior(Some("env"));
         let from_cli = Coalesced::new_posterior(Some("cli"));
 
-        let config = from_file.register(from_env).register(from_cli);
+        let config = from_file.coalesce(from_env).coalesce(from_cli);
         assert_eq!(config.unwrap(), "file");
         assert_eq!(
             config.priority,
@@ -362,11 +362,11 @@ mod tests {
         let six = Coalesced::new_prior(None);
 
         let coalesced = first
-            .register(second)
-            .register(third)
-            .register(four)
-            .register(five)
-            .register(six);
+            .coalesce(second)
+            .coalesce(third)
+            .coalesce(four)
+            .coalesce(five)
+            .coalesce(six);
 
         assert_eq!(coalesced.unwrap(), 5);
         assert_eq!(

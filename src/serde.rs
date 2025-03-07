@@ -63,8 +63,8 @@ mod tests {
             name: "config",
             number: file
                 .number
-                .register(env.number)
-                .register(cli.number)
+                .coalesce(env.number)
+                .coalesce(cli.number)
                 .into_single(),
         };
 
@@ -81,8 +81,8 @@ mod tests {
             name: "config",
             number: file
                 .number
-                .register(env.number)
-                .register(cli.number)
+                .coalesce(env.number)
+                .coalesce(cli.number)
                 .into_single(),
         };
 
@@ -108,8 +108,8 @@ mod tests {
             name: "config",
             number: file
                 .number
-                .register(env.number)
-                .register(cli.number)
+                .coalesce(env.number)
+                .coalesce(cli.number)
                 .into_single(),
         };
 
@@ -126,8 +126,8 @@ mod tests {
             name: "config",
             number: file
                 .number
-                .register(env.number)
-                .register(cli.number)
+                .coalesce(env.number)
+                .coalesce(cli.number)
                 .into_single(),
         };
 
