@@ -4,7 +4,7 @@ use crate::{
         sealed::{Access, Length},
         Accessor,
     },
-    Straight, Multiple, Posterior, Prior, Single,
+    Multiple, Posterior, Prior, Single, Straight,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
@@ -62,7 +62,10 @@ where
     A: Access<Accessor = Accessor<A>>,
     L: Length,
 {
-    pub fn coalesce<L2>(mut self, other: Coalesced<C, A, E, L2>) -> Coalesced<C, A, E, Multiple>
+    pub fn coalesce_impl<L2>(
+        mut self,
+        other: Coalesced<C, A, E, L2>,
+    ) -> Coalesced<C, A, E, Multiple>
     where
         L2: Length,
     {
@@ -204,7 +207,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::extension::Extension;
+    use crate::{extension::Extension, Coalesce};
 
     use super::*;
 

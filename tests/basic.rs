@@ -1,4 +1,4 @@
-use coalesced::Coalesced;
+use coalesced::{Coalesce, Coalesced};
 
 pub struct Config<'a> {
     pub name: &'a str,

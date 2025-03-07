@@ -34,7 +34,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{Straight, Prior};
+    use crate::{coalesce::Coalesce, Prior};
 
     use super::*;
 
@@ -43,20 +43,20 @@ mod tests {
         name: &'a str,
         number: Option<i64>,
     }
-    // #[test]
-    // fn test_deserialized_coalesce() {
-    //     let file: Config = serde_json::from_str(r#"{"name":"file","number":1}"#).unwrap();
-    //     let env: Config = serde_json::from_str(r#"{"name":"env","number":10}"#).unwrap();
-    //     let cli: Config = serde_json::from_str(r#"{"name":"cli","number":100}"#).unwrap();
+    #[test]
+    fn test_deserialized_coalesce() {
+        let file: Config = serde_json::from_str(r#"{"name":"file","number":1}"#).unwrap();
+        let env: Config = serde_json::from_str(r#"{"name":"env","number":10}"#).unwrap();
+        let cli: Config = serde_json::from_str(r#"{"name":"cli","number":100}"#).unwrap();
 
-    //     let number = file
-    //         .number
-    //         .coalesce(env.number)
-    //         .coalesce(cli.number)
-    //         .into_single();
+        let number: Coalesced<Option<i64>, Prior> = file
+            .number
+            .coalesce(env.number)
+            .coalesce(cli.number)
+            .into_single();
 
-    //     assert_eq!(number.unwrap(), 100);
-    // }
+        assert_eq!(number.unwrap(), 100);
+    }
 
     #[derive(Serialize, Deserialize)]
     struct CoalesceConfig<'a> {

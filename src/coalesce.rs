@@ -8,22 +8,6 @@ use crate::{
 
 pub trait Straight {
     fn straight(&self, other: &Self) -> bool;
-    fn coalesce<A, L, T>(self, other: T) -> Coalesced<Self, A, T::Extension, Multiple>
-    where
-        Self: Sized + IntoCoalesced<A, Coalesce = Self, Extension = T::Extension, Length = L>,
-        A: Access<Accessor = Accessor<A>>,
-        L: Length,
-        T: CoalesceTarget<A, L, Coalesce = Self>,
-    {
-        other.coalesce_target(self.into_coalesced())
-    }
-    fn set_extension<A, E>(self, extension: E) -> Coalesced<Self, A, E, Single>
-    where
-        Self: Sized,
-        A: Access<Accessor = Accessor<A>>,
-    {
-        Coalesced::new(self).set_extension(extension)
-    }
 }
 impl<T> Straight for Option<T> {
     fn straight(&self, other: &Self) -> bool {
@@ -42,47 +26,41 @@ impl<T, E> Straight for Result<T, E> {
     }
 }
 
-pub trait CoalesceTarget<A, L>
+pub trait Coalesce<C, A, E>
 where
-    A: Access<Accessor = Accessor<A>>,
-    L: Length,
-{
-    type Coalesce;
-    type Extension;
-    fn coalesce_target(
-        self,
-        base: Coalesced<Self::Coalesce, A, Self::Extension, L>,
-    ) -> Coalesced<Self::Coalesce, A, Self::Extension, Multiple>;
-}
-impl<C, A, E, L> CoalesceTarget<A, L> for Coalesced<C, A, E, L>
-where
-    A: Access<Accessor = Accessor<A>>,
     C: Straight,
-    L: Length,
+    A: Access<Accessor = Accessor<A>>,
 {
-    type Coalesce = C;
-    type Extension = E;
-    fn coalesce_target(
-        self,
-        base: Coalesced<Self::Coalesce, A, Self::Extension, L>,
-    ) -> Coalesced<Self::Coalesce, A, Self::Extension, Multiple> {
-        base.coalesce(self)
+    fn coalesce<T>(self, other: T) -> Coalesced<C, A, E, Multiple>
+    where
+        Self: Sized + IntoCoalesced<A, Coalesce = C, Extension = E>,
+        T: IntoCoalesced<A, Coalesce = C, Extension = E>,
+    {
+        self.into_coalesced().coalesce_impl(other.into_coalesced())
     }
 }
-impl<T, A, L> CoalesceTarget<A, L> for Option<T>
+impl<T, A, E> Coalesce<Self, A, E> for Option<T> where A: Access<Accessor = Accessor<A>> {}
+impl<T, Err, A, E> Coalesce<Self, A, E> for Result<T, Err> where A: Access<Accessor = Accessor<A>> {}
+impl<C, A, E, L> Coalesce<C, A, E> for Coalesced<C, A, E, L>
 where
+    C: Straight,
     A: Access<Accessor = Accessor<A>>,
     L: Length,
 {
-    type Coalesce = Self;
-    type Extension = ();
-    fn coalesce_target(
-        self,
-        base: Coalesced<Self::Coalesce, A, Self::Extension, L>,
-    ) -> Coalesced<Self::Coalesce, A, Self::Extension, Multiple> {
-        base.coalesce(Coalesced::new(self))
+}
+
+pub trait CoalesceExt {
+    fn set_extension<A, E>(self, extension: E) -> Coalesced<Self, A, E, Single>
+    where
+        Self: Sized,
+        A: Access<Accessor = Accessor<A>>,
+    {
+        Coalesced::new(self).set_extension(extension)
     }
 }
+impl<T> CoalesceExt for Option<T> {}
+impl<T, E> CoalesceExt for Result<T, E> {}
+impl<C, A, E, L> CoalesceExt for Coalesced<C, A, E, L> where L: Length {}
 
 pub trait IntoCoalesced<A> {
     type Coalesce;
