@@ -6,7 +6,7 @@ use crate::{
     Coalesced, Multiple, Single,
 };
 
-pub trait Coalesce {
+pub trait Straight {
     fn straight(&self, other: &Self) -> bool;
     fn coalesce<A, L, T>(self, other: T) -> Coalesced<Self, A, T::Extension, Multiple>
     where
@@ -25,7 +25,7 @@ pub trait Coalesce {
         Coalesced::new(self).set_extension(extension)
     }
 }
-impl<T> Coalesce for Option<T> {
+impl<T> Straight for Option<T> {
     fn straight(&self, other: &Self) -> bool {
         match (self, other) {
             (Some(_), _) => true,
@@ -33,7 +33,7 @@ impl<T> Coalesce for Option<T> {
         }
     }
 }
-impl<T, E> Coalesce for Result<T, E> {
+impl<T, E> Straight for Result<T, E> {
     fn straight(&self, other: &Self) -> bool {
         match (self, other) {
             (Ok(_), _) => true,
@@ -57,7 +57,7 @@ where
 impl<C, A, E, L> CoalesceTarget<A, L> for Coalesced<C, A, E, L>
 where
     A: Access<Accessor = Accessor<A>>,
-    C: Coalesce,
+    C: Straight,
     L: Length,
 {
     type Coalesce = C;

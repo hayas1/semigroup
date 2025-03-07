@@ -1,4 +1,4 @@
-use crate::Coalesce;
+use crate::Straight;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct Extension<T, E = ()> {
@@ -6,9 +6,9 @@ pub struct Extension<T, E = ()> {
     pub extension: E,
 }
 
-impl<T, E> Coalesce for Extension<T, E>
+impl<T, E> Straight for Extension<T, E>
 where
-    T: Coalesce,
+    T: Straight,
 {
     fn straight(&self, other: &Self) -> bool {
         self.value.straight(&other.value)

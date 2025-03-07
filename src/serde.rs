@@ -34,32 +34,52 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::Prior;
+    use crate::{Straight, Prior};
 
     use super::*;
 
     #[derive(Serialize, Deserialize)]
     struct Config<'a> {
         name: &'a str,
+        number: Option<i64>,
+    }
+    // #[test]
+    // fn test_deserialized_coalesce() {
+    //     let file: Config = serde_json::from_str(r#"{"name":"file","number":1}"#).unwrap();
+    //     let env: Config = serde_json::from_str(r#"{"name":"env","number":10}"#).unwrap();
+    //     let cli: Config = serde_json::from_str(r#"{"name":"cli","number":100}"#).unwrap();
+
+    //     let number = file
+    //         .number
+    //         .coalesce(env.number)
+    //         .coalesce(cli.number)
+    //         .into_single();
+
+    //     assert_eq!(number.unwrap(), 100);
+    // }
+
+    #[derive(Serialize, Deserialize)]
+    struct CoalesceConfig<'a> {
+        name: &'a str,
         number: Coalesced<Option<i64>, Prior>,
     }
 
     #[test]
     fn test_coalesced_serialize() {
-        let file = Config {
+        let file = CoalesceConfig {
             name: "file",
             number: Coalesced::new_prior(Some(1)),
         };
-        let env = Config {
+        let env = CoalesceConfig {
             name: "env",
             number: Coalesced::new_prior(Some(10)),
         };
-        let cli = Config {
+        let cli = CoalesceConfig {
             name: "cli",
             number: Coalesced::new_prior(Some(100)),
         };
 
-        let config = Config {
+        let config = CoalesceConfig {
             name: "config",
             number: file
                 .number
@@ -73,11 +93,11 @@ mod tests {
     }
     #[test]
     fn test_coalesced_deserialize() {
-        let file: Config = serde_json::from_str(r#"{"name":"file","number":1}"#).unwrap();
-        let env: Config = serde_json::from_str(r#"{"name":"env","number":10}"#).unwrap();
-        let cli: Config = serde_json::from_str(r#"{"name":"cli","number":100}"#).unwrap();
+        let file: CoalesceConfig = serde_json::from_str(r#"{"name":"file","number":1}"#).unwrap();
+        let env: CoalesceConfig = serde_json::from_str(r#"{"name":"env","number":10}"#).unwrap();
+        let cli: CoalesceConfig = serde_json::from_str(r#"{"name":"cli","number":100}"#).unwrap();
 
-        let config = Config {
+        let config = CoalesceConfig {
             name: "config",
             number: file
                 .number
@@ -91,20 +111,20 @@ mod tests {
 
     #[test]
     fn test_coalesced_serialize_with_none() {
-        let file = Config {
+        let file = CoalesceConfig {
             name: "file",
             number: Coalesced::new_prior(Some(1)),
         };
-        let env = Config {
+        let env = CoalesceConfig {
             name: "env",
             number: Coalesced::new_prior(Some(10)),
         };
-        let cli = Config {
+        let cli = CoalesceConfig {
             name: "cli",
             number: Coalesced::new_prior(None),
         };
 
-        let config = Config {
+        let config = CoalesceConfig {
             name: "config",
             number: file
                 .number
@@ -118,11 +138,11 @@ mod tests {
     }
     #[test]
     fn test_coalesced_deserialize_with() {
-        let file: Config = serde_json::from_str(r#"{"name":"file","number":1}"#).unwrap();
-        let env: Config = serde_json::from_str(r#"{"name":"env","number":10}"#).unwrap();
-        let cli: Config = serde_json::from_str(r#"{"name":"cli"}"#).unwrap();
+        let file: CoalesceConfig = serde_json::from_str(r#"{"name":"file","number":1}"#).unwrap();
+        let env: CoalesceConfig = serde_json::from_str(r#"{"name":"env","number":10}"#).unwrap();
+        let cli: CoalesceConfig = serde_json::from_str(r#"{"name":"cli"}"#).unwrap();
 
-        let config = Config {
+        let config = CoalesceConfig {
             name: "config",
             number: file
                 .number

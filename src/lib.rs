@@ -8,6 +8,6 @@ mod clap;
 #[cfg(feature = "serde")]
 mod serde;
 
-pub use coalesce::Coalesce;
+pub use coalesce::Straight;
 pub use coalesced::Coalesced;
 pub use priority::{Multiple, Posterior, Prior, Single};

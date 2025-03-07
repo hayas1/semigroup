@@ -4,7 +4,7 @@ use crate::{
         sealed::{Access, Length},
         Accessor,
     },
-    Coalesce, Multiple, Posterior, Prior, Single,
+    Straight, Multiple, Posterior, Prior, Single,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
@@ -58,7 +58,7 @@ where
 }
 impl<C, A, E, L> Coalesced<C, A, E, L>
 where
-    C: Coalesce,
+    C: Straight,
     A: Access<Accessor = Accessor<A>>,
     L: Length,
 {

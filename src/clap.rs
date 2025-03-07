@@ -4,7 +4,7 @@
 mod tests {
     use clap::Parser;
 
-    use crate::{Coalesce, Coalesced};
+    use crate::{Coalesced, Straight};
 
     #[derive(Debug, Clone, Parser)]
     #[clap(version, about)]
