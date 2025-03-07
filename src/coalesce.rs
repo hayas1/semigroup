@@ -104,3 +104,14 @@ where
         Coalesced::new(self)
     }
 }
+impl<T, E, A> IntoCoalesced<A> for Result<T, E>
+where
+    A: Access<Accessor = Accessor<A>>,
+{
+    type Coalesce = Self;
+    type Extension = ();
+    type Length = Single;
+    fn into_coalesced(self) -> Coalesced<Self::Coalesce, A, Self::Extension, Self::Length> {
+        Coalesced::new(self)
+    }
+}
