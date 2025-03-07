@@ -50,8 +50,8 @@ mod tests {
         assert_eq!(config.value(), &Some("cli"));
         assert_eq!(config.extension(), &Context::Cli);
         assert_eq!(
-            config.priority,
-            vec![
+            config.priority(),
+            &vec![
                 Extension::new_with(Some("file"), Context::File),
                 Extension::new_with(Some("env"), Context::Env),
                 Extension::new_with(Some("cli"), Context::Cli),
