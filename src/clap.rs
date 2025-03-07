@@ -1,55 +1,17 @@
-use std::str::FromStr;
-
-use crate::{
-    priority::{
-        sealed::{Access, Length},
-        Accessor,
-    },
-    Coalesced,
-};
-
-// TODO not Option<T>, T instead ?
-impl<T, A> FromStr for Coalesced<Option<T>, A>
-where
-    T: FromStr,
-{
-    type Err = T::Err;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.is_empty() {
-            Ok(Coalesced::new(None))
-        } else {
-            s.parse().map(Some).map(Coalesced::new)
-        }
-    }
-}
-// TODO not Option<T>, T instead ?
-impl<T, A, E, L> ToString for Coalesced<Option<T>, A, E, L>
-where
-    T: ToString,
-    A: Access<Accessor = Accessor<A>>,
-    L: Length,
-{
-    fn to_string(&self) -> String {
-        match self.value() {
-            Some(s) => s.to_string(),
-            None => String::new(),
-        }
-    }
-}
+// TODO test as outside of crate
 
 #[cfg(test)]
 mod tests {
     use clap::Parser;
 
-    use super::*;
+    use crate::{Coalesce, Coalesced};
 
     #[derive(Debug, Clone, Parser)]
     #[clap(version, about)]
     pub struct Cli {
         /// Some number
-        #[arg(short, long, default_value = "")] // TODO remove default_value = ""
-        pub number: Coalesced<Option<i64>>,
+        #[arg(short, long)]
+        pub number: Option<i64>,
     }
 
     #[test]
