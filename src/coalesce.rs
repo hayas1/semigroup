@@ -3,7 +3,7 @@ use crate::{
         sealed::{Access, Length},
         Accessor,
     },
-    Coalesced, Multiple, Single,
+    Coalesced, Multiple, Posterior, Prior, Single,
 };
 
 pub trait Straight {
@@ -56,6 +56,20 @@ pub trait CoalesceExt {
         A: Access<Accessor = Accessor<A>>,
     {
         self.into_coalesced().set_extension_impl(extension)
+    }
+    fn posterior(self) -> Coalesced<Self::Coalesce, Posterior, Self::Extension, Self::Length>
+    where
+        Self: Sized + IntoCoalesced<Prior>,
+        Self::Length: Length,
+    {
+        self.into_coalesced().posterior_impl()
+    }
+    fn prior(self) -> Coalesced<Self::Coalesce, Prior, Self::Extension, Self::Length>
+    where
+        Self: Sized + IntoCoalesced<Posterior>,
+        Self::Length: Length,
+    {
+        self.into_coalesced().prior_impl()
     }
 }
 impl<T> CoalesceExt for Option<T> {}

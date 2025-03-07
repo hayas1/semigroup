@@ -174,7 +174,7 @@ impl<C, E, L> Coalesced<C, Prior, E, L>
 where
     L: Length,
 {
-    pub fn posterior(self) -> Coalesced<C, Posterior, E, L> {
+    pub fn posterior_impl(self) -> Coalesced<C, Posterior, E, L> {
         Coalesced {
             priority: self.priority,
             accessor: self.accessor.as_posterior(),
@@ -196,7 +196,7 @@ impl<C, E, L> Coalesced<C, Posterior, E, L>
 where
     L: Length,
 {
-    pub fn prior(self) -> Coalesced<C, Prior, E, L> {
+    pub fn prior_impl(self) -> Coalesced<C, Prior, E, L> {
         Coalesced {
             priority: self.priority,
             accessor: self.accessor.as_prior(),
@@ -207,7 +207,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{extension::Extension, Coalesce};
+    use crate::{coalesce::CoalesceExt, extension::Extension, Coalesce};
 
     use super::*;
 
