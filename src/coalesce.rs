@@ -50,12 +50,12 @@ where
 }
 
 pub trait CoalesceExt {
-    fn set_extension<A, E>(self, extension: E) -> Coalesced<Self, A, E, Single>
+    fn set_extension<A, E>(self, extension: E) -> Coalesced<Self::Coalesce, A, E, Single>
     where
-        Self: Sized,
+        Self: Sized + IntoCoalesced<A, Length = Single>,
         A: Access<Accessor = Accessor<A>>,
     {
-        Coalesced::new(self).set_extension(extension)
+        self.into_coalesced().set_extension_impl(extension)
     }
 }
 impl<T> CoalesceExt for Option<T> {}
