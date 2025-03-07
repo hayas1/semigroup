@@ -115,3 +115,58 @@ where
         Coalesced::new(self)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_coalesce_option() {
+        let a = Some(1);
+        let b = Some(2);
+        let c = a.coalesce(b);
+
+        let pri = c.prior();
+        assert_eq!(pri.unwrap(), 2);
+        let post = pri.posterior();
+        assert_eq!(post.unwrap(), 1);
+    }
+    #[test]
+    fn test_coalesce_result() {
+        let a = Ok(1);
+        let b = Err(2);
+        let c = a.coalesce(b);
+
+        let pri = c.prior();
+        assert_eq!(pri.unwrap(), 1);
+        let post = pri.posterior();
+        assert_eq!(post.unwrap(), 1);
+    }
+
+    #[test]
+    fn test_coalesce_option_extension() {
+        let a = Some(1).set_extension("A");
+        let b = Some(2).set_extension("B");
+        let c = a.coalesce(b);
+
+        let pri = c.prior();
+        assert_eq!(pri.value(), &Some(2));
+        assert_eq!(pri.extension(), &"B");
+        let post = pri.posterior();
+        assert_eq!(post.value(), &Some(1));
+        assert_eq!(post.extension(), &"A");
+    }
+    #[test]
+    fn test_coalesce_result_extension() {
+        let a = Ok(1).set_extension("A");
+        let b = Err(2).set_extension("B");
+        let c = a.coalesce(b);
+
+        let pri = c.prior();
+        assert_eq!(pri.value(), &Ok(1));
+        assert_eq!(pri.extension(), &"A");
+        let post = pri.posterior();
+        assert_eq!(post.value(), &Ok(1));
+        assert_eq!(post.extension(), &"A");
+    }
+}
