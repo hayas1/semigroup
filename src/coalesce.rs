@@ -14,16 +14,18 @@ pub trait Priority {
 impl<T> Priority for Option<T> {
     fn order(&self, other: &Self) -> Ordering {
         match (self, other) {
-            (Some(_), _) => Ordering::Greater,
-            _ => Ordering::Less,
+            (Some(_), None) => Ordering::Greater,
+            (None, Some(_)) => Ordering::Less,
+            _ => Ordering::Equal,
         }
     }
 }
 impl<T, E> Priority for Result<T, E> {
     fn order(&self, other: &Self) -> Ordering {
         match (self, other) {
-            (Ok(_), _) => Ordering::Greater,
-            _ => Ordering::Less,
+            (Ok(_), Err(_)) => Ordering::Greater,
+            (Err(_), Ok(_)) => Ordering::Less,
+            _ => Ordering::Equal,
         }
     }
 }

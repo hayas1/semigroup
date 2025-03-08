@@ -73,7 +73,7 @@ where
         self.priority.extend(other.priority);
         self.accessor.prior = base_len + other.accessor.prior;
         for i in (1..=self.accessor.prior).rev() {
-            if !self.priority[i].order(&self.priority[i - 1]).is_gt() {
+            if !self.priority[i].order(&self.priority[i - 1]).is_ge() {
                 self.accessor.prior = i - 1;
             } else {
                 break;
