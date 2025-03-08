@@ -36,7 +36,8 @@ where
         Self: Sized + IntoCoalesced<A, Coalesce = C, Extension = E>,
         T: IntoCoalesced<A, Coalesce = C, Extension = E>,
     {
-        self.into_coalesced().coalesce_impl(other.into_coalesced())
+        let (sc, oc) = (self.into_coalesced(), other.into_coalesced());
+        sc.coalesce_impl(oc)
     }
 }
 impl<T, A, E> Coalesce<Self, A, E> for Option<T> where A: Access<Accessor = Accessor<A>> {}
@@ -76,7 +77,7 @@ impl<T> CoalesceExt for Option<T> {}
 impl<T, E> CoalesceExt for Result<T, E> {}
 impl<C, A, E, L> CoalesceExt for Coalesced<C, A, E, L> where L: Length {}
 
-pub trait IntoCoalesced<A = Prior> {
+pub trait IntoCoalesced<A> {
     type Coalesce;
     type Extension;
     type Length: Length;
