@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use crate::{
     priority::{
         sealed::{Access, Length},
@@ -7,21 +9,21 @@ use crate::{
 };
 
 pub trait Priority {
-    fn order(&self, other: &Self) -> bool;
+    fn order(&self, other: &Self) -> Ordering;
 }
 impl<T> Priority for Option<T> {
-    fn order(&self, other: &Self) -> bool {
+    fn order(&self, other: &Self) -> Ordering {
         match (self, other) {
-            (Some(_), _) => true,
-            _ => false,
+            (Some(_), _) => Ordering::Greater,
+            _ => Ordering::Less,
         }
     }
 }
 impl<T, E> Priority for Result<T, E> {
-    fn order(&self, other: &Self) -> bool {
+    fn order(&self, other: &Self) -> Ordering {
         match (self, other) {
-            (Ok(_), _) => true,
-            _ => false,
+            (Ok(_), _) => Ordering::Greater,
+            _ => Ordering::Less,
         }
     }
 }

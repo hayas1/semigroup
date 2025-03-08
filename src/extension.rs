@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use crate::Priority;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
@@ -10,7 +12,7 @@ impl<T, E> Priority for Extension<T, E>
 where
     T: Priority,
 {
-    fn order(&self, other: &Self) -> bool {
+    fn order(&self, other: &Self) -> Ordering {
         self.value.order(&other.value)
     }
 }
