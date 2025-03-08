@@ -1,4 +1,4 @@
-// TODO test as outside of crate
+//! TODO doc
 
 #[cfg(test)]
 mod tests {

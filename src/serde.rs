@@ -1,3 +1,5 @@
+//! TODO doc
+
 use serde::{Deserialize, Serialize};
 
 use crate::{
