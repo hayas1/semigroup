@@ -36,7 +36,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{coalesce::Coalesce, Prior};
+    use crate::{coalesce::Coalesce, CoalesceExt, Posterior, Prior};
 
     use super::*;
 
@@ -46,18 +46,33 @@ mod tests {
         number: Option<i64>,
     }
     #[test]
-    fn test_deserialized_coalesce() {
+    fn test_deserialize_option_with_coalesce() {
         let file: Config = serde_json::from_str(r#"{"name":"file","number":1}"#).unwrap();
         let env: Config = serde_json::from_str(r#"{"name":"env","number":10}"#).unwrap();
         let cli: Config = serde_json::from_str(r#"{"name":"cli","number":100}"#).unwrap();
 
-        let number: Coalesced<Option<i64>, Prior> = file
+        let number = file
             .number
             .coalesce(env.number)
             .coalesce(cli.number)
             .into_single();
 
         assert_eq!(number.unwrap(), 100);
+    }
+    #[test]
+    fn test_deserialize_option_with_coalesce_posterior() {
+        let file: Config = serde_json::from_str(r#"{"name":"file","number":1}"#).unwrap();
+        let env: Config = serde_json::from_str(r#"{"name":"env","number":10}"#).unwrap();
+        let cli: Config = serde_json::from_str(r#"{"name":"cli","number":100}"#).unwrap();
+
+        let number = file
+            .number
+            .coalesce(env.number)
+            .coalesce(cli.number)
+            .posterior()
+            .into_single();
+
+        assert_eq!(number.unwrap(), 1);
     }
 
     #[derive(Serialize, Deserialize)]
@@ -139,7 +154,7 @@ mod tests {
         assert_eq!(serialized, r#"{"name":"config","number":10}"#);
     }
     #[test]
-    fn test_coalesced_deserialize_with() {
+    fn test_coalesced_deserialize_with_none() {
         let file: CoalesceConfig = serde_json::from_str(r#"{"name":"file","number":1}"#).unwrap();
         let env: CoalesceConfig = serde_json::from_str(r#"{"name":"env","number":10}"#).unwrap();
         let cli: CoalesceConfig = serde_json::from_str(r#"{"name":"cli"}"#).unwrap();
@@ -154,5 +169,58 @@ mod tests {
         };
 
         assert_eq!(config.number.unwrap(), 10);
+    }
+
+    #[derive(Serialize, Deserialize)]
+    struct CoalesceConfigPosterior<'a> {
+        name: &'a str,
+        number: Coalesced<Option<i64>, Posterior>,
+    }
+    #[test]
+    fn test_coalesced_posterior_config_serialize() {
+        let file = CoalesceConfigPosterior {
+            name: "file",
+            number: Coalesced::new_posterior(Some(1)),
+        };
+        let env = CoalesceConfigPosterior {
+            name: "env",
+            number: Coalesced::new_posterior(Some(10)),
+        };
+        let cli = CoalesceConfigPosterior {
+            name: "cli",
+            number: Coalesced::new_posterior(Some(100)),
+        };
+
+        let config = CoalesceConfigPosterior {
+            name: "config",
+            number: file
+                .number
+                .coalesce(env.number)
+                .coalesce(cli.number)
+                .into_single(),
+        };
+
+        let serialized = serde_json::to_string(&config).unwrap();
+        assert_eq!(serialized, r#"{"name":"config","number":1}"#);
+    }
+    #[test]
+    fn test_coalesced_posterior_config_deserialize() {
+        let file: CoalesceConfigPosterior =
+            serde_json::from_str(r#"{"name":"file","number":1}"#).unwrap();
+        let env: CoalesceConfigPosterior =
+            serde_json::from_str(r#"{"name":"env","number":10}"#).unwrap();
+        let cli: CoalesceConfigPosterior =
+            serde_json::from_str(r#"{"name":"cli","number":100}"#).unwrap();
+
+        let config = CoalesceConfigPosterior {
+            name: "config",
+            number: file
+                .number
+                .coalesce(env.number)
+                .coalesce(cli.number)
+                .into_single(),
+        };
+
+        assert_eq!(config.number.unwrap(), 1);
     }
 }
