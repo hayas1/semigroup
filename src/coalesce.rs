@@ -76,7 +76,7 @@ impl<T> CoalesceExt for Option<T> {}
 impl<T, E> CoalesceExt for Result<T, E> {}
 impl<C, A, E, L> CoalesceExt for Coalesced<C, A, E, L> where L: Length {}
 
-pub trait IntoCoalesced<A> {
+pub trait IntoCoalesced<A = Prior> {
     type Coalesce;
     type Extension;
     type Length: Length;
@@ -93,25 +93,19 @@ where
         self
     }
 }
-impl<T, A> IntoCoalesced<A> for Option<T>
-where
-    A: Access<Accessor = Accessor<A>>,
-{
+impl<T> IntoCoalesced for Option<T> {
     type Coalesce = Self;
     type Extension = ();
     type Length = Single;
-    fn into_coalesced(self) -> Coalesced<Self::Coalesce, A, Self::Extension, Self::Length> {
+    fn into_coalesced(self) -> Coalesced<Self::Coalesce, Prior, Self::Extension, Self::Length> {
         Coalesced::new(self)
     }
 }
-impl<T, E, A> IntoCoalesced<A> for Result<T, E>
-where
-    A: Access<Accessor = Accessor<A>>,
-{
+impl<T, E> IntoCoalesced for Result<T, E> {
     type Coalesce = Self;
     type Extension = ();
     type Length = Single;
-    fn into_coalesced(self) -> Coalesced<Self::Coalesce, A, Self::Extension, Self::Length> {
+    fn into_coalesced(self) -> Coalesced<Self::Coalesce, Prior, Self::Extension, Self::Length> {
         Coalesced::new(self)
     }
 }
@@ -124,49 +118,62 @@ mod tests {
     fn test_coalesce_option() {
         let a = Some(1);
         let b = Some(2);
-        let c = a.coalesce(b);
-
-        let pri = c.prior();
-        assert_eq!(pri.unwrap(), 2);
-        let post = pri.posterior();
-        assert_eq!(post.unwrap(), 1);
+        let c = None;
+        let coalesce = a.coalesce(b).coalesce(c);
+        assert_eq!(coalesce.unwrap(), 2);
     }
     #[test]
     fn test_coalesce_result() {
         let a = Ok(1);
-        let b = Err(2);
-        let c = a.coalesce(b);
-
-        let pri = c.prior();
-        assert_eq!(pri.unwrap(), 1);
-        let post = pri.posterior();
-        assert_eq!(post.unwrap(), 1);
+        let b = Ok(2);
+        let c = Err(3);
+        let coalesce = a.coalesce(b).coalesce(c);
+        assert_eq!(coalesce.unwrap(), 2);
     }
 
     #[test]
     fn test_coalesce_option_extension() {
         let a = Some(1).set_extension("A");
         let b = Some(2).set_extension("B");
-        let c = a.coalesce(b);
-
-        let pri = c.prior();
-        assert_eq!(pri.value(), &Some(2));
-        assert_eq!(pri.extension(), &"B");
-        let post = pri.posterior();
-        assert_eq!(post.value(), &Some(1));
-        assert_eq!(post.extension(), &"A");
+        let c = None.set_extension("C");
+        let coalesce = a.coalesce(b).coalesce(c);
+        assert_eq!(coalesce.value(), &Some(2));
+        assert_eq!(coalesce.extension(), &"B");
     }
     #[test]
     fn test_coalesce_result_extension() {
         let a = Ok(1).set_extension("A");
-        let b = Err(2).set_extension("B");
-        let c = a.coalesce(b);
+        let b = Ok(2).set_extension("B");
+        let c = Err(3).set_extension("C");
+        let coalesced = a.coalesce(b).coalesce(c);
+        assert_eq!(coalesced.value(), &Ok(2));
+        assert_eq!(coalesced.extension(), &"B");
+    }
 
-        let pri = c.prior();
-        assert_eq!(pri.value(), &Ok(1));
-        assert_eq!(pri.extension(), &"A");
-        let post = pri.posterior();
-        assert_eq!(post.value(), &Ok(1));
-        assert_eq!(post.extension(), &"A");
+    #[test]
+    fn test_coalesce_option_prior_posterior() {
+        let a = Some(1);
+        let b = Some(2);
+        let c = None;
+        let coalesce = a.coalesce(b).coalesce(c);
+        assert_eq!(coalesce.unwrap(), 2);
+
+        let posterior = coalesce.posterior();
+        assert_eq!(posterior.unwrap(), 1);
+        let prior = posterior.prior();
+        assert_eq!(prior.unwrap(), 2);
+    }
+    #[test]
+    fn test_coalesce_result_prior_posterior() {
+        let a = Ok(1);
+        let b = Ok(2);
+        let c = Err(3);
+        let coalesce = a.coalesce(b).coalesce(c);
+        assert_eq!(coalesce.unwrap(), 2);
+
+        let posterior = coalesce.posterior();
+        assert_eq!(posterior.unwrap(), 1);
+        let prior = posterior.prior();
+        assert_eq!(prior.unwrap(), 2);
     }
 }
