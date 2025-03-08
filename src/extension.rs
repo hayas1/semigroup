@@ -1,4 +1,4 @@
-use crate::Straight;
+use crate::Priority;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct Extension<T, E = ()> {
@@ -6,12 +6,12 @@ pub struct Extension<T, E = ()> {
     pub extension: E,
 }
 
-impl<T, E> Straight for Extension<T, E>
+impl<T, E> Priority for Extension<T, E>
 where
-    T: Straight,
+    T: Priority,
 {
-    fn straight(&self, other: &Self) -> bool {
-        self.value.straight(&other.value)
+    fn order(&self, other: &Self) -> bool {
+        self.value.order(&other.value)
     }
 }
 

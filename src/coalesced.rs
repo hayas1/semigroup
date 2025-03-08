@@ -4,7 +4,7 @@ use crate::{
         sealed::{Access, Length},
         Accessor,
     },
-    Multiple, Posterior, Prior, Single, Straight,
+    Multiple, Posterior, Prior, Priority, Single,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
@@ -58,7 +58,7 @@ where
 }
 impl<C, A, E, L> Coalesced<C, A, E, L>
 where
-    C: Straight,
+    C: Priority,
     A: Access<Accessor = Accessor<A>>,
     L: Length,
 {
@@ -73,7 +73,7 @@ where
         self.priority.extend(other.priority);
         self.accessor.prior = base_len + other.accessor.prior;
         for i in (1..=self.accessor.prior).rev() {
-            if !self.priority[i].straight(&self.priority[i - 1]) {
+            if !self.priority[i].order(&self.priority[i - 1]) {
                 self.accessor.prior = i - 1;
             } else {
                 break;
@@ -81,7 +81,7 @@ where
         }
         self.accessor.posterior = other.accessor.posterior;
         for i in 0..base_len + other.accessor.posterior {
-            if !self.priority[i].straight(&self.priority[i + 1]) {
+            if !self.priority[i].order(&self.priority[i + 1]) {
                 self.accessor.posterior = i + 1;
             } else {
                 break;

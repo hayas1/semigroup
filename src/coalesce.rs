@@ -6,19 +6,19 @@ use crate::{
     Coalesced, Multiple, Posterior, Prior, Single,
 };
 
-pub trait Straight {
-    fn straight(&self, other: &Self) -> bool;
+pub trait Priority {
+    fn order(&self, other: &Self) -> bool;
 }
-impl<T> Straight for Option<T> {
-    fn straight(&self, other: &Self) -> bool {
+impl<T> Priority for Option<T> {
+    fn order(&self, other: &Self) -> bool {
         match (self, other) {
             (Some(_), _) => true,
             _ => false,
         }
     }
 }
-impl<T, E> Straight for Result<T, E> {
-    fn straight(&self, other: &Self) -> bool {
+impl<T, E> Priority for Result<T, E> {
+    fn order(&self, other: &Self) -> bool {
         match (self, other) {
             (Ok(_), _) => true,
             _ => false,
@@ -28,7 +28,7 @@ impl<T, E> Straight for Result<T, E> {
 
 pub trait Coalesce<C, A, E>
 where
-    C: Straight,
+    C: Priority,
     A: Access<Accessor = Accessor<A>>,
 {
     fn coalesce<T>(self, other: T) -> Coalesced<C, A, E, Multiple>
@@ -44,7 +44,7 @@ impl<T, A, E> Coalesce<Self, A, E> for Option<T> where A: Access<Accessor = Acce
 impl<T, Err, A, E> Coalesce<Self, A, E> for Result<T, Err> where A: Access<Accessor = Accessor<A>> {}
 impl<C, A, E, L> Coalesce<C, A, E> for Coalesced<C, A, E, L>
 where
-    C: Straight,
+    C: Priority,
     A: Access<Accessor = Accessor<A>>,
     L: Length,
 {
