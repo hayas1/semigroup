@@ -134,7 +134,7 @@ impl<C, A, E> Coalesced<C, A, E, Single>
 where
     A: Access<Accessor = Accessor<A>>,
 {
-    pub(crate) fn set_extension_impl<E2>(self, extension: E2) -> Coalesced<C, A, E2, Single> {
+    pub(crate) fn with_extension_impl<E2>(self, extension: E2) -> Coalesced<C, A, E2, Single> {
         let Self {
             mut priority,
             accessor,

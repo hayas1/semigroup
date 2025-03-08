@@ -68,9 +68,9 @@ mod tests {
         assert_eq!(from_env.extension(), &());
         assert_eq!(from_cli.extension(), &());
 
-        let from_file = from_file.set_extension("file");
-        let from_env = from_env.set_extension("env");
-        let from_cli = from_cli.set_extension("cli");
+        let from_file = from_file.with_extension("file");
+        let from_env = from_env.with_extension("env");
+        let from_cli = from_cli.with_extension("cli");
         assert_eq!(from_file.extension(), &"file");
         assert_eq!(from_env.extension(), &"env");
         assert_eq!(from_cli.extension(), &"cli");

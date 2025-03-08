@@ -50,12 +50,12 @@ where
 }
 
 pub trait CoalesceExt {
-    fn set_extension<A, E>(self, extension: E) -> Coalesced<Self::Coalesce, A, E, Single>
+    fn with_extension<A, E>(self, extension: E) -> Coalesced<Self::Coalesce, A, E, Single>
     where
         Self: Sized + IntoCoalesced<A, Length = Single>,
         A: Access<Accessor = Accessor<A>>,
     {
-        self.into_coalesced().set_extension_impl(extension)
+        self.into_coalesced().with_extension_impl(extension)
     }
     fn posterior(self) -> Coalesced<Self::Coalesce, Posterior, Self::Extension, Self::Length>
     where
@@ -133,18 +133,18 @@ mod tests {
 
     #[test]
     fn test_coalesce_option_extension() {
-        let a = Some(1).set_extension("A");
-        let b = Some(2).set_extension("B");
-        let c = None.set_extension("C");
+        let a = Some(1).with_extension("A");
+        let b = Some(2).with_extension("B");
+        let c = None.with_extension("C");
         let coalesce = a.coalesce(b).coalesce(c).prior();
         assert_eq!(coalesce.value(), &Some(2));
         assert_eq!(coalesce.extension(), &"B");
     }
     #[test]
     fn test_coalesce_result_extension() {
-        let a = Ok(1).set_extension("A");
-        let b = Ok(2).set_extension("B");
-        let c = Err(3).set_extension("C");
+        let a = Ok(1).with_extension("A");
+        let b = Ok(2).with_extension("B");
+        let c = Err(3).with_extension("C");
         let coalesced = a.coalesce(b).coalesce(c).prior();
         assert_eq!(coalesced.value(), &Ok(2));
         assert_eq!(coalesced.extension(), &"B");
