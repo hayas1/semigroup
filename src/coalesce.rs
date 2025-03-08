@@ -93,19 +93,19 @@ where
         self
     }
 }
-impl<T> IntoCoalesced for Option<T> {
+impl<T, A> IntoCoalesced<A> for Option<T> {
     type Coalesce = Self;
     type Extension = ();
     type Length = Single;
-    fn into_coalesced(self) -> Coalesced<Self::Coalesce, Prior, Self::Extension, Self::Length> {
+    fn into_coalesced(self) -> Coalesced<Self::Coalesce, A, Self::Extension, Self::Length> {
         Coalesced::new(self)
     }
 }
-impl<T, E> IntoCoalesced for Result<T, E> {
+impl<T, E, A> IntoCoalesced<A> for Result<T, E> {
     type Coalesce = Self;
     type Extension = ();
     type Length = Single;
-    fn into_coalesced(self) -> Coalesced<Self::Coalesce, Prior, Self::Extension, Self::Length> {
+    fn into_coalesced(self) -> Coalesced<Self::Coalesce, A, Self::Extension, Self::Length> {
         Coalesced::new(self)
     }
 }
@@ -119,7 +119,7 @@ mod tests {
         let a = Some(1);
         let b = Some(2);
         let c = None;
-        let coalesce = a.coalesce(b).coalesce(c);
+        let coalesce = a.coalesce(b).coalesce(c).prior();
         assert_eq!(coalesce.unwrap(), 2);
     }
     #[test]
@@ -127,7 +127,7 @@ mod tests {
         let a = Ok(1);
         let b = Ok(2);
         let c = Err(3);
-        let coalesce = a.coalesce(b).coalesce(c);
+        let coalesce = a.coalesce(b).coalesce(c).prior();
         assert_eq!(coalesce.unwrap(), 2);
     }
 
@@ -136,7 +136,7 @@ mod tests {
         let a = Some(1).set_extension("A");
         let b = Some(2).set_extension("B");
         let c = None.set_extension("C");
-        let coalesce = a.coalesce(b).coalesce(c);
+        let coalesce = a.coalesce(b).coalesce(c).prior();
         assert_eq!(coalesce.value(), &Some(2));
         assert_eq!(coalesce.extension(), &"B");
     }
@@ -145,7 +145,7 @@ mod tests {
         let a = Ok(1).set_extension("A");
         let b = Ok(2).set_extension("B");
         let c = Err(3).set_extension("C");
-        let coalesced = a.coalesce(b).coalesce(c);
+        let coalesced = a.coalesce(b).coalesce(c).prior();
         assert_eq!(coalesced.value(), &Ok(2));
         assert_eq!(coalesced.extension(), &"B");
     }
@@ -175,5 +175,13 @@ mod tests {
         assert_eq!(posterior.unwrap(), 1);
         let prior = posterior.prior();
         assert_eq!(prior.unwrap(), 2);
+    }
+
+    #[test]
+    fn test_posterior_coalesce_option() {
+        let posterior = Some(1).posterior();
+        let coalesce = posterior.coalesce(Some(2));
+
+        assert_eq!(coalesce.unwrap(), 1);
     }
 }

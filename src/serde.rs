@@ -53,6 +53,7 @@ mod tests {
 
         let number = file
             .number
+            .prior()
             .coalesce(env.number)
             .coalesce(cli.number)
             .into_single();
