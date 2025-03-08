@@ -178,10 +178,32 @@ mod tests {
     }
 
     #[test]
-    fn test_posterior_coalesce_option() {
-        let posterior = Some(1).posterior();
-        let coalesce = posterior.coalesce(Some(2));
+    fn test_option_coalesce_matrix() {
+        let option1 = Some(1);
+        let option2 = Some(2);
+        let prior3 = Some(3).prior();
+        let prior4 = Some(4).prior();
+        let posterior5 = Some(5).posterior();
+        let posterior6 = Some(6).posterior();
 
-        assert_eq!(coalesce.unwrap(), 1);
+        let opt_opt_prior = option1.clone().coalesce(option2.clone()).prior();
+        assert_eq!(opt_opt_prior.unwrap(), 2);
+        let opt_opt_posterior = option1.clone().coalesce(option2.clone()).posterior();
+        assert_eq!(opt_opt_posterior.unwrap(), 1);
+
+        let opt_prior = option1.clone().coalesce(prior3.clone());
+        assert_eq!(opt_prior.unwrap(), 3);
+        let opt_posterior = option1.clone().coalesce(posterior5.clone());
+        assert_eq!(opt_posterior.unwrap(), 1);
+
+        let prior_opt = prior3.clone().coalesce(option1.clone());
+        assert_eq!(prior_opt.unwrap(), 1);
+        let posterior_opt = posterior5.clone().coalesce(option1.clone());
+        assert_eq!(posterior_opt.unwrap(), 5);
+
+        let prior_prior = prior3.clone().coalesce(prior4.clone());
+        assert_eq!(prior_prior.unwrap(), 4);
+        let posterior_posterior = posterior5.clone().coalesce(posterior6.clone());
+        assert_eq!(posterior_posterior.unwrap(), 5);
     }
 }
