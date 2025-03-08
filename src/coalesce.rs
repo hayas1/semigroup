@@ -1,34 +1,10 @@
-use std::cmp::Ordering;
-
 use crate::{
     priority::{
         sealed::{Access, Length},
-        Accessor,
+        Accessor, Priority,
     },
     Coalesced, Multiple, Posterior, Prior, Single,
 };
-
-pub trait Priority {
-    fn order(&self, other: &Self) -> Ordering;
-}
-impl<T> Priority for Option<T> {
-    fn order(&self, other: &Self) -> Ordering {
-        match (self, other) {
-            (Some(_), None) => Ordering::Greater,
-            (None, Some(_)) => Ordering::Less,
-            _ => Ordering::Equal,
-        }
-    }
-}
-impl<T, E> Priority for Result<T, E> {
-    fn order(&self, other: &Self) -> Ordering {
-        match (self, other) {
-            (Ok(_), Err(_)) => Ordering::Greater,
-            (Err(_), Ok(_)) => Ordering::Less,
-            _ => Ordering::Equal,
-        }
-    }
-}
 
 pub trait Coalesce<C, A, E>
 where
