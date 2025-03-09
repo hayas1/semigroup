@@ -3,8 +3,8 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    coalesced::Coalesced,
     priority::{sealed::Access, Accessor},
-    Coalesced,
 };
 
 impl<C, A> Serialize for Coalesced<C, A>
@@ -36,7 +36,11 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{coalesce::Coalesce, CoalesceExt, Posterior, Prior};
+
+    use crate::{
+        coalesce::{Coalesce, CoalesceExt},
+        priority::{Posterior, Prior},
+    };
 
     use super::*;
 

@@ -1,9 +1,9 @@
 use crate::{
+    coalesced::Coalesced,
     priority::{
         sealed::{Access, Length},
-        Accessor, Priority,
+        Accessor, Multiple, Posterior, Prior, Priority, Single,
     },
-    Coalesced, Multiple, Posterior, Prior, Single,
 };
 
 pub trait Coalesce<C, A, E>

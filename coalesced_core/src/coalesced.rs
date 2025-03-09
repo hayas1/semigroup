@@ -4,9 +4,8 @@ use crate::{
     extension::Extension,
     priority::{
         sealed::{Access, Length},
-        Accessor,
+        Accessor, Multiple, Posterior, Prior, Priority, Single,
     },
-    Multiple, Posterior, Prior, Priority, Single,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
@@ -209,7 +208,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{coalesce::CoalesceExt, extension::Extension, Coalesce};
+
+    use crate::coalesce::{Coalesce, CoalesceExt};
 
     use super::*;
 

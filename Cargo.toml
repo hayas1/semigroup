@@ -16,3 +16,6 @@ authors.workspace = true
 # repository.workspace = true
 # license-file.workspace = true
 # readme.workspace = true
+
+[dependencies]
+coalesced_core = { path = "coalesced_core" }

@@ -4,11 +4,11 @@ use std::str::FromStr;
 
 use crate::{
     coalesce::IntoCoalesced,
+    coalesced::Coalesced,
     priority::{
         sealed::{Access, Length},
         Accessor,
     },
-    Coalesced,
 };
 
 // impl<T, A> ValueParserFactory for Coalesced<Option<T>, A>
@@ -64,8 +64,10 @@ mod tests {
 
     use crate::{
         coalesce::{Coalesce, CoalesceExt},
-        Coalesced, Posterior,
+        priority::Posterior,
     };
+
+    use super::*;
 
     #[derive(Debug, Clone, Parser)]
     #[clap(version, about)]

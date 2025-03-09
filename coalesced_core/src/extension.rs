@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use crate::Priority;
+use crate::priority::Priority;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct Extension<T, E = ()> {
@@ -32,7 +32,10 @@ impl<T, E> Extension<T, E> {
 #[cfg(test)]
 mod tests {
 
-    use crate::{coalesce::CoalesceExt, Coalesce, Coalesced};
+    use crate::{
+        coalesce::{Coalesce, CoalesceExt},
+        coalesced::Coalesced,
+    };
 
     use super::*;
 

@@ -1,13 +1,5 @@
-mod coalesce;
-mod coalesced;
-mod extension;
-mod priority;
-
-#[cfg(feature = "clap")]
-mod clap;
-#[cfg(feature = "serde")]
-mod serde;
-
-pub use coalesce::{Coalesce, CoalesceExt};
-pub use coalesced::Coalesced;
-pub use priority::{Multiple, Posterior, Prior, Priority, Single};
+pub use coalesced_core::{
+    coalesce::{Coalesce, CoalesceExt},
+    coalesced::Coalesced,
+    priority::{Multiple, Posterior, Prior, Priority, Single},
+};
