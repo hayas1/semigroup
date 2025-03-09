@@ -1,3 +1,5 @@
+use std::ops::{Deref, DerefMut};
+
 use crate::{
     extension::Extension,
     priority::{
@@ -17,7 +19,7 @@ where
     phantom: std::marker::PhantomData<L>,
 }
 
-impl<C, A, L> std::ops::Deref for Coalesced<C, A, (), L>
+impl<C, A, L> Deref for Coalesced<C, A, (), L>
 where
     A: Access<Accessor = Accessor<A>>,
     L: Length,
@@ -27,7 +29,7 @@ where
         self.value()
     }
 }
-impl<C, A, L> std::ops::DerefMut for Coalesced<C, A, (), L>
+impl<C, A, L> DerefMut for Coalesced<C, A, (), L>
 where
     A: Access<Accessor = Accessor<A>>,
     L: Length,
