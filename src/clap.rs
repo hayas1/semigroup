@@ -119,4 +119,22 @@ mod tests {
         let cli = CliPosterior::try_parse_from(["coalesced"]).unwrap();
         assert!(cli.number.is_none());
     }
+    #[test]
+    fn test_coalesced_posterior_with_clap() {
+        let cli = CliPosterior::try_parse_from(["coalesced", "--number", "100"]).unwrap();
+        let cli_number = cli.number.with_extension("cli");
+        let number = Some(10).with_extension("const");
+        let coalesced = number.coalesce(cli_number);
+        assert_eq!(coalesced.value(), &Some(100));
+        assert_eq!(coalesced.extension(), &"cli");
+    }
+    #[test]
+    fn test_coalesced_posterior_with_clap_empty_arg() {
+        let cli = CliPosterior::try_parse_from(["coalesced"]).unwrap();
+        let cli_number = cli.number.with_extension("cli");
+        let number = Some(10).with_extension("const");
+        let coalesced = number.coalesce(cli_number);
+        assert_eq!(coalesced.value(), &Some(10));
+        assert_eq!(coalesced.extension(), &"const");
+    }
 }
