@@ -74,7 +74,6 @@ mod tests {
         #[arg(short, long)]
         pub number: Option<i64>,
     }
-
     #[test]
     fn test_clap_parser() {
         let cli = Cli::try_parse_from(["coalesced", "--number", "100"]).unwrap();
@@ -83,7 +82,6 @@ mod tests {
         let cli = Cli::try_parse_from(["coalesced"]).unwrap();
         assert!(cli.number.is_none());
     }
-
     #[test]
     fn test_coalesced_with_clap() {
         let cli = Cli::try_parse_from(["coalesced", "--number", "100"]).unwrap();
@@ -110,7 +108,6 @@ mod tests {
         #[arg(short, long, default_value = "")] // TODO default_value_t
         pub number: Coalesced<Option<i64>, Posterior>,
     }
-
     #[test]
     fn test_coalesced_clap_parser() {
         let cli = CliPosterior::try_parse_from(["coalesced", "--number", "100"]).unwrap();
