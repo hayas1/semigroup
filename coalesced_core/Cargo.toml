@@ -1,11 +1,11 @@
 [package]
 name = "coalesced_core"
 version.workspace = true
-edition.workspace = true
 authors.workspace = true
-# repository.workspace = true
-# license-file.workspace = true
-# readme.workspace = true
+edition.workspace = true
+repository.workspace = true
+license-file.workspace = true
+readme.workspace = true
 
 
 [features]

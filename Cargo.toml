@@ -4,6 +4,9 @@ version = "0.1.0"
 description = "Coalesced supports reading configs from multiple sources"
 authors = ["hayas1 <h4ystack@gmail.com>"]
 edition = "2021"
+repository = "https://github.com/hayas1/coalesced"
+license-file = "LICENSE"
+readme = "README.md"
 
 [workspace]
 members = ["coalesced_core"]
@@ -11,11 +14,11 @@ members = ["coalesced_core"]
 [package]
 name = "coalesced"
 version.workspace = true
-edition.workspace = true
 authors.workspace = true
-# repository.workspace = true
-# license-file.workspace = true
-# readme.workspace = true
+edition.workspace = true
+repository.workspace = true
+license-file.workspace = true
+readme.workspace = true
 
 [dependencies]
 coalesced_core = { path = "coalesced_core" }
