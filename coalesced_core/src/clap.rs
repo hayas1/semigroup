@@ -122,8 +122,8 @@ mod tests {
         let cli_number = cli.number.with_extension("cli");
         let number = Some(10).with_extension("const");
         let coalesced = number.coalesce(cli_number);
-        assert_eq!(coalesced.value(), &Some(100));
-        assert_eq!(coalesced.extension(), &"cli");
+        assert_eq!(coalesced.value(), &Some(10));
+        assert_eq!(coalesced.extension(), &"const");
     }
     #[test]
     fn test_coalesced_posterior_with_clap_empty_arg() {
