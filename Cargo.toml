@@ -20,5 +20,9 @@ repository.workspace = true
 license-file.workspace = true
 readme.workspace = true
 
+[features]
+serde = ["coalesced_core/serde"]
+clap = ["coalesced_core/clap"]
+
 [dependencies]
-coalesced_core = { path = "coalesced_core" }
+coalesced_core = { path = "coalesced_core", default-features = false }
