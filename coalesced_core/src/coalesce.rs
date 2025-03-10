@@ -8,19 +8,19 @@ use crate::{
     },
 };
 
-pub trait Coalesce<A, E> {
+pub trait Coalesce {
     fn order(&self, other: &Self) -> Ordering;
-    fn coalesce<T>(self, other: T) -> Coalesced<Self, A, E, Multiple>
+    fn coalesce<O, A, E>(self, other: O) -> Coalesced<Self, A, E, Multiple>
     where
         Self: Sized + IntoCoalesced<A, Coalesce = Self, Extension = E>,
         A: Access<Accessor = Accessor<A>>,
-        T: IntoCoalesced<A, Coalesce = Self, Extension = E>,
+        O: IntoCoalesced<A, Coalesce = Self, Extension = E>,
     {
         let (sc, oc) = (self.into_coalesced(), other.into_coalesced());
         sc.coalesce(oc)
     }
 }
-impl<T, A, E> Coalesce<A, E> for Option<T> {
+impl<T> Coalesce for Option<T> {
     fn order(&self, other: &Self) -> Ordering {
         match (self, other) {
             (Some(_), None) => Ordering::Greater,
@@ -29,7 +29,7 @@ impl<T, A, E> Coalesce<A, E> for Option<T> {
         }
     }
 }
-impl<T, Err, A, E> Coalesce<A, E> for Result<T, Err> {
+impl<T, E> Coalesce for Result<T, E> {
     fn order(&self, other: &Self) -> Ordering {
         match (self, other) {
             (Ok(_), Err(_)) => Ordering::Greater,

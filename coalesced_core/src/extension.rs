@@ -8,9 +8,9 @@ pub struct Extension<T, E = ()> {
     pub extension: E,
 }
 
-impl<T, A, E> Coalesce<A, E> for Extension<T, E>
+impl<T, E> Coalesce for Extension<T, E>
 where
-    T: Coalesce<A, E>,
+    T: Coalesce,
 {
     fn order(&self, other: &Self) -> Ordering {
         self.value.order(&other.value)

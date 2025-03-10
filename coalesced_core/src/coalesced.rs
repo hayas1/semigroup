@@ -60,7 +60,7 @@ where
 }
 impl<C, A, E, L> Coalesced<C, A, E, L>
 where
-    C: Coalesce<A, E>,
+    C: Coalesce,
     A: Access<Accessor = Accessor<A>>,
     L: Length,
 {
