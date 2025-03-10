@@ -17,18 +17,11 @@ where
         T: IntoCoalesced<A, Coalesce = C, Extension = E>,
     {
         let (sc, oc) = (self.into_coalesced(), other.into_coalesced());
-        sc.coalesce_impl(oc)
+        sc.coalesce(oc)
     }
 }
 impl<T, A, E> Coalesce<Self, A, E> for Option<T> where A: Access<Accessor = Accessor<A>> {}
 impl<T, Err, A, E> Coalesce<Self, A, E> for Result<T, Err> where A: Access<Accessor = Accessor<A>> {}
-impl<C, A, E, L> Coalesce<C, A, E> for Coalesced<C, A, E, L>
-where
-    C: Priority,
-    A: Access<Accessor = Accessor<A>>,
-    L: Length,
-{
-}
 
 pub trait CoalesceExt {
     fn with_extension<A, E>(self, extension: E) -> Coalesced<Self::Coalesce, A, E, Single>

@@ -32,10 +32,7 @@ impl<T, E> Extension<T, E> {
 #[cfg(test)]
 mod tests {
 
-    use crate::{
-        coalesce::{Coalesce, CoalesceExt},
-        coalesced::Coalesced,
-    };
+    use crate::{coalesce::CoalesceExt, coalesced::Coalesced};
 
     use super::*;
 

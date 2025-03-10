@@ -62,10 +62,7 @@ impl<T, A> Default for Coalesced<Option<T>, A> {
 mod tests {
     use clap::Parser;
 
-    use crate::{
-        coalesce::{Coalesce, CoalesceExt},
-        priority::Posterior,
-    };
+    use crate::{coalesce::CoalesceExt, priority::Posterior};
 
     use super::*;
 

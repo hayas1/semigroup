@@ -1,6 +1,7 @@
 use std::ops::{Deref, DerefMut};
 
 use crate::{
+    coalesce::IntoCoalesced,
     extension::Extension,
     priority::{
         sealed::{Access, Length},
@@ -63,13 +64,11 @@ where
     A: Access<Accessor = Accessor<A>>,
     L: Length,
 {
-    pub fn coalesce_impl<L2>(
-        mut self,
-        other: Coalesced<C, A, E, L2>,
-    ) -> Coalesced<C, A, E, Multiple>
+    pub fn coalesce<O>(mut self, other: O) -> Coalesced<C, A, E, Multiple>
     where
-        L2: Length,
+        O: IntoCoalesced<A, Coalesce = C, Extension = E>,
     {
+        let other = other.into_coalesced();
         let base_len = self.priority.len();
         self.priority.extend(other.priority);
         self.accessor.prior = base_len + other.accessor.prior;
@@ -209,7 +208,7 @@ where
 #[cfg(test)]
 mod tests {
 
-    use crate::coalesce::{Coalesce, CoalesceExt};
+    use crate::coalesce::CoalesceExt;
 
     use super::*;
 
