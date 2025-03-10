@@ -1,0 +1,11 @@
+[package]
+name = "coalesced_derive"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+license-file.workspace = true
+readme.workspace = true
+
+[lib]
+proc-macro = true
