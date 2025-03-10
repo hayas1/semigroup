@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use crate::priority::Priority;
+use crate::coalesce::Coalesce;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct Extension<T, E = ()> {
@@ -8,9 +8,9 @@ pub struct Extension<T, E = ()> {
     pub extension: E,
 }
 
-impl<T, E> Priority for Extension<T, E>
+impl<T, A, E> Coalesce<A, E> for Extension<T, E>
 where
-    T: Priority,
+    T: Coalesce<A, E>,
 {
     fn order(&self, other: &Self) -> Ordering {
         self.value.order(&other.value)

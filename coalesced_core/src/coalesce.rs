@@ -1,27 +1,43 @@
+use std::cmp::Ordering;
+
 use crate::{
     coalesced::Coalesced,
     priority::{
         sealed::{Access, Length},
-        Accessor, Multiple, Posterior, Prior, Priority, Single,
+        Accessor, Multiple, Posterior, Prior, Single,
     },
 };
 
-pub trait Coalesce<C, A, E>
-where
-    C: Priority,
-    A: Access<Accessor = Accessor<A>>,
-{
-    fn coalesce<T>(self, other: T) -> Coalesced<C, A, E, Multiple>
+pub trait Coalesce<A, E> {
+    fn order(&self, other: &Self) -> Ordering;
+    fn coalesce<T>(self, other: T) -> Coalesced<Self, A, E, Multiple>
     where
-        Self: Sized + IntoCoalesced<A, Coalesce = C, Extension = E>,
-        T: IntoCoalesced<A, Coalesce = C, Extension = E>,
+        Self: Sized + IntoCoalesced<A, Coalesce = Self, Extension = E>,
+        A: Access<Accessor = Accessor<A>>,
+        T: IntoCoalesced<A, Coalesce = Self, Extension = E>,
     {
         let (sc, oc) = (self.into_coalesced(), other.into_coalesced());
         sc.coalesce(oc)
     }
 }
-impl<T, A, E> Coalesce<Self, A, E> for Option<T> where A: Access<Accessor = Accessor<A>> {}
-impl<T, Err, A, E> Coalesce<Self, A, E> for Result<T, Err> where A: Access<Accessor = Accessor<A>> {}
+impl<T, A, E> Coalesce<A, E> for Option<T> {
+    fn order(&self, other: &Self) -> Ordering {
+        match (self, other) {
+            (Some(_), None) => Ordering::Greater,
+            (None, Some(_)) => Ordering::Less,
+            _ => Ordering::Equal,
+        }
+    }
+}
+impl<T, Err, A, E> Coalesce<A, E> for Result<T, Err> {
+    fn order(&self, other: &Self) -> Ordering {
+        match (self, other) {
+            (Ok(_), Err(_)) => Ordering::Greater,
+            (Err(_), Ok(_)) => Ordering::Less,
+            _ => Ordering::Equal,
+        }
+    }
+}
 
 pub trait CoalesceExt {
     fn with_extension<A, E>(self, extension: E) -> Coalesced<Self::Coalesce, A, E, Single>

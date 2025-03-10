@@ -1,11 +1,11 @@
 use std::ops::{Deref, DerefMut};
 
 use crate::{
-    coalesce::IntoCoalesced,
+    coalesce::{Coalesce, IntoCoalesced},
     extension::Extension,
     priority::{
         sealed::{Access, Length},
-        Accessor, Multiple, Posterior, Prior, Priority, Single,
+        Accessor, Multiple, Posterior, Prior, Single,
     },
 };
 
@@ -60,7 +60,7 @@ where
 }
 impl<C, A, E, L> Coalesced<C, A, E, L>
 where
-    C: Priority,
+    C: Coalesce<A, E>,
     A: Access<Accessor = Accessor<A>>,
     L: Length,
 {

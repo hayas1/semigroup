@@ -1,26 +1,4 @@
-use std::{cmp::Ordering, marker::PhantomData};
-
-pub trait Priority {
-    fn order(&self, other: &Self) -> Ordering;
-}
-impl<T> Priority for Option<T> {
-    fn order(&self, other: &Self) -> Ordering {
-        match (self, other) {
-            (Some(_), None) => Ordering::Greater,
-            (None, Some(_)) => Ordering::Less,
-            _ => Ordering::Equal,
-        }
-    }
-}
-impl<T, E> Priority for Result<T, E> {
-    fn order(&self, other: &Self) -> Ordering {
-        match (self, other) {
-            (Ok(_), Err(_)) => Ordering::Greater,
-            (Err(_), Ok(_)) => Ordering::Less,
-            _ => Ordering::Equal,
-        }
-    }
-}
+use std::marker::PhantomData;
 
 pub(crate) mod sealed {
     pub trait Access {
