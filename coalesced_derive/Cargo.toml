@@ -9,3 +9,13 @@ readme.workspace = true
 
 [lib]
 proc-macro = true
+
+[features]
+default = ["syn/extra-traits"] # TODO developing
+
+[dependencies]
+quote = "1.0.39"
+syn = "2.0.100"
+
+[dev-dependencies]
+coalesced = { path = "../" }
