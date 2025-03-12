@@ -6,9 +6,12 @@ use syn::{parse_macro_input, DeriveInput};
 pub fn derive_coalesce(input: TokenStream) -> TokenStream {
     let target = parse_macro_input!(input as DeriveInput);
     let ident = &target.ident;
-    // TODO path of `Coalesce` trait
     let expand = quote! {
-        impl coalesced::Coalesce for #ident {
+        impl<A, E, L> ::coalesced::Coalesce<A, E, L> for #ident
+        // where
+        //     L: ::coalesced::Length,
+        {
+            type History = ::coalesced::Coalesced<Self, A, E, L>;
             fn order(&self, other: &Self) -> std::cmp::Ordering {
                 std::cmp::Ordering::Less
             }

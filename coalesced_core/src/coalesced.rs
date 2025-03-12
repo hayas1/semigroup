@@ -11,8 +11,8 @@ use crate::{
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct Coalesced<C, A = Prior, E = (), L = Single>
-where
-    L: Length,
+// where
+//     L: Length,
 {
     priority: Vec<Extension<C, E>>,
     accessor: Accessor<A>,
@@ -60,7 +60,7 @@ where
 }
 impl<C, A, E, L> Coalesced<C, A, E, L>
 where
-    C: Coalesce,
+    C: Coalesce<A, E, L>,
     A: Access<Accessor = Accessor<A>>,
     L: Length,
 {

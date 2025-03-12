@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use crate::coalesce::Coalesce;
+use crate::{coalesce::Coalesce, coalesced::Coalesced, priority::sealed::Length};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct Extension<T, E = ()> {
@@ -8,10 +8,12 @@ pub struct Extension<T, E = ()> {
     pub extension: E,
 }
 
-impl<T, E> Coalesce for Extension<T, E>
+impl<T, A, E, L> Coalesce<A, E, L> for Extension<T, E>
 where
-    T: Coalesce,
+    T: Coalesce<A, E, L>,
+    L: Length,
 {
+    type History = Coalesced<T, A, E, L>;
     fn order(&self, other: &Self) -> Ordering {
         self.value.order(&other.value)
     }
