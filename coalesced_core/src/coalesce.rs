@@ -2,10 +2,7 @@ use std::cmp::Ordering;
 
 use crate::{
     coalesced::Coalesced,
-    priority::{
-        sealed::{Access, Length},
-        Accessor, Multiple, Posterior, Prior, Single,
-    },
+    priority::{Access, Accessor, Length, Multiple, Posterior, Prior, Single},
 };
 
 pub trait Coalesce<A, E, L> {

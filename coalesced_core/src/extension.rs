@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use crate::{coalesce::Coalesce, coalesced::Coalesced, priority::sealed::Length};
+use crate::{coalesce::Coalesce, coalesced::Coalesced, priority::Length};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct Extension<T, E = ()> {

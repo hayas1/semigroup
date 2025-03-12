@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     coalesced::Coalesced,
-    priority::{sealed::Access, Accessor},
+    priority::{Access, Accessor},
 };
 
 impl<C, A> Serialize for Coalesced<C, A>

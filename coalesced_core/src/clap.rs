@@ -5,10 +5,7 @@ use std::str::FromStr;
 use crate::{
     coalesce::IntoCoalesced,
     coalesced::Coalesced,
-    priority::{
-        sealed::{Access, Length},
-        Accessor,
-    },
+    priority::{Access, Accessor, Length},
 };
 
 // impl<T, A> ValueParserFactory for Coalesced<Option<T>, A>

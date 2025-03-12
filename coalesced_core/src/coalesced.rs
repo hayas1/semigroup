@@ -3,16 +3,13 @@ use std::ops::{Deref, DerefMut};
 use crate::{
     coalesce::{Coalesce, IntoCoalesced},
     extension::Extension,
-    priority::{
-        sealed::{Access, Length},
-        Accessor, Multiple, Posterior, Prior, Single,
-    },
+    priority::{Access, Accessor, Length, Multiple, Posterior, Prior, Single},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct Coalesced<C, A = Prior, E = (), L = Single>
-// where
-//     L: Length,
+where
+    L: Length,
 {
     priority: Vec<Extension<C, E>>,
     accessor: Accessor<A>,
