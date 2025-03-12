@@ -5,3 +5,7 @@ pub use coalesced_core::{
     coalesced::Coalesced,
     priority::{Multiple, Posterior, Prior, Single},
 };
+
+pub mod ext {
+    pub use coalesced_core::priority::{Access, Length};
+}
