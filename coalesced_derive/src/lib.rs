@@ -14,7 +14,11 @@ pub fn derive_coalesce(input: TokenStream) -> TokenStream {
                     println!("{}: {}", i, f.ident.as_ref().unwrap());
                 }
             }
-            Fields::Unnamed(_) => todo!(),
+            Fields::Unnamed(us) => {
+                for (i, f) in us.unnamed.iter().enumerate() {
+                    println!("{}: {}", i, f.ident.as_ref().unwrap());
+                }
+            }
             Fields::Unit => todo!(),
         },
         Data::Union(_) => todo!(),
