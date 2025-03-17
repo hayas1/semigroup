@@ -1,11 +1,24 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput};
+use syn::{parse_macro_input, Data, DeriveInput, Fields};
 
 #[proc_macro_derive(Coalesce)]
 pub fn derive_coalesce(input: TokenStream) -> TokenStream {
     let target = parse_macro_input!(input as DeriveInput);
     let ident = &target.ident;
+    match target.data {
+        Data::Enum(_) => todo!(),
+        Data::Struct(s) => match s.fields {
+            Fields::Named(ns) => {
+                for (i, f) in ns.named.iter().enumerate() {
+                    println!("{}: {}", i, f.ident.as_ref().unwrap());
+                }
+            }
+            Fields::Unnamed(_) => todo!(),
+            Fields::Unit => todo!(),
+        },
+        Data::Union(_) => todo!(),
+    }
     let expand = quote! {
         impl<A, E, L> ::coalesced::Coalesce<A, E, L> for #ident
         where
