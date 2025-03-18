@@ -7,7 +7,7 @@ pub fn derive_coalesce(input: TokenStream) -> TokenStream {
     let target = parse_macro_input!(input as DeriveInput);
     let ident = &target.ident;
     match target.data {
-        Data::Enum(_) => todo!(),
+        Data::Enum(_) => unimplemented!(),
         Data::Struct(s) => match s.fields {
             Fields::Named(ns) => {
                 for (i, f) in ns.named.iter().enumerate() {
