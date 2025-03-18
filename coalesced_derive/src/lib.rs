@@ -28,7 +28,6 @@ pub fn derive_coalesce(input: TokenStream) -> TokenStream {
         where
             L: ::coalesced::ext::Length,
         {
-            type History = ::coalesced::Coalesced<Self, A, E, L>;
             fn order(&self, other: &Self) -> std::cmp::Ordering {
                 std::cmp::Ordering::Less
             }

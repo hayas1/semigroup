@@ -6,7 +6,6 @@ use crate::{
 };
 
 pub trait Coalesce<A, E, L> {
-    type History;
     fn order(&self, other: &Self) -> Ordering;
     fn coalesce<O>(self, other: O) -> Coalesced<Self, A, E, Multiple>
     where
@@ -20,7 +19,6 @@ pub trait Coalesce<A, E, L> {
     }
 }
 impl<T, A, E, L> Coalesce<A, E, L> for Option<T> {
-    type History = Coalesced<Self, A, E, Single>;
     fn order(&self, other: &Self) -> Ordering {
         match (self, other) {
             (Some(_), None) => Ordering::Greater,
@@ -30,7 +28,6 @@ impl<T, A, E, L> Coalesce<A, E, L> for Option<T> {
     }
 }
 impl<T, Err, A, E, L> Coalesce<A, E, L> for Result<T, Err> {
-    type History = Coalesced<Self, A, E, Single>;
     fn order(&self, other: &Self) -> Ordering {
         match (self, other) {
             (Ok(_), Err(_)) => Ordering::Greater,
