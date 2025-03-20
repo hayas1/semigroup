@@ -18,4 +18,5 @@ quote = "1.0.39"
 syn = "2.0.100"
 
 [dev-dependencies]
-coalesced = { path = "../" }
+# coalesced = { path = "../" }
+coalesced = { package = "coalesced_base", path = "../coalesced_base" } # TODO

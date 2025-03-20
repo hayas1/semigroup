@@ -116,7 +116,7 @@ dependencies = [
 name = "coalesced_derive"
 version = "0.1.0"
 dependencies = [
- "coalesced",
+ "coalesced_base",
  "quote",
  "syn",
 ]
