@@ -3,12 +3,12 @@ pub trait Coalesce {
 }
 
 impl<T> Coalesce for Option<T> {
-    fn coalesce(self, other: Option<T>) -> Option<T> {
+    fn coalesce(self, other: Self) -> Self {
         self.or(other)
     }
 }
 impl<T, E> Coalesce for Result<T, E> {
-    fn coalesce(self, other: Result<T, E>) -> Result<T, E> {
+    fn coalesce(self, other: Self) -> Self {
         self.or(other)
     }
 }
