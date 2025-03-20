@@ -23,6 +23,7 @@ impl CoalesceOther for () {}
 impl CoalesceOther for bool {}
 impl CoalesceOther for char {}
 impl CoalesceOther for str {}
+impl CoalesceOther for &str {}
 impl CoalesceOther for String {}
 impl CoalesceOther for u8 {}
 impl CoalesceOther for u16 {}
