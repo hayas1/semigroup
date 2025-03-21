@@ -1,12 +1,32 @@
 use crate::Coalesce;
 
+pub trait History<S = Self> {
+    fn coalesce(self, other: S) -> Self;
+}
+pub trait IntoHistory<T>: Sized {
+    type History;
+    fn into_history(self) -> Self::History;
+}
+impl<T: Coalesce> IntoHistory<T> for T {
+    type History = Coalesced<T>;
+    fn into_history(self) -> Self::History {
+        Coalesced::new(self)
+    }
+}
+impl<T> IntoHistory<T> for Coalesced<T> {
+    type History = Self;
+    fn into_history(self) -> Self::History {
+        self
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct Coalesced<T> {
     history: Vec<T>,
 }
-impl<T> Coalesce for Coalesced<T> {
-    fn coalesce(mut self, other: Self) -> Self {
-        self.history.extend(other.history);
+impl<S: IntoHistory<T, History = Coalesced<T>>, T> History<S> for Coalesced<T> {
+    fn coalesce(mut self, other: S) -> Self {
+        self.history.extend(other.into_history().history);
         self
     }
 }
@@ -33,7 +53,7 @@ mod tests {
         let v1 = Some(1);
         let v2 = None;
 
-        let coalesced = Coalesced::new(v1).coalesce(Coalesced::new(v2));
+        let coalesced = Coalesced::new(v1).coalesce(v2.into_history());
         let confirmed = coalesced.into();
 
         assert_eq!(confirmed, Some(1));
