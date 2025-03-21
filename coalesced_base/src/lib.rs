@@ -1,3 +1,5 @@
+pub mod coalesced;
+
 pub trait Coalesce {
     fn coalesce(self, other: Self) -> Self;
 }
