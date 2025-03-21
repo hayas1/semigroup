@@ -46,11 +46,15 @@ impl<T: Coalesce> Coalesced<T> {
             history: vec![value],
         }
     }
-    pub fn into(mut self) -> T {
+    pub fn prior(mut self) -> T {
         let remain = self.history.split_off(1);
-        remain
-            .into_iter()
-            .fold(self.history.swap_remove(0), |c, x| c.coalesce(x))
+        let b = self.history.swap_remove(0);
+        remain.into_iter().fold(b, |c, x| c.coalesce(x))
+    }
+    pub fn posterior(mut self) -> T {
+        let mut tail = self.history.split_off(self.history.len() - 1);
+        let b = tail.swap_remove(0);
+        self.history.into_iter().rev().fold(b, |c, x| c.coalesce(x))
     }
 }
 
@@ -59,13 +63,31 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_coalesced() {
+    fn test_history_coalesced() {
         let v1 = Some(1);
         let v2 = None;
 
-        let coalesced = Coalesced::new(v1).coalesce(v2.into_history());
-        let confirmed = coalesced.into();
+        let coalesced = v1.history_coalesce(v2);
+        assert_eq!(coalesced.history, vec![Some(1), None]);
+    }
 
-        assert_eq!(confirmed, Some(1));
+    #[test]
+    fn test_history_coalesced_prior() {
+        let v1 = 1;
+        let v2 = 2;
+        let v3 = 3;
+
+        let coalesced = v1.history_coalesce(v2).coalesce(v3);
+        assert_eq!(coalesced.prior(), 3);
+    }
+
+    #[test]
+    fn test_history_coalesced_posterior() {
+        let v1 = 1;
+        let v2 = 2;
+        let v3 = 3;
+
+        let coalesced = v1.history_coalesce(v2).coalesce(v3);
+        assert_eq!(coalesced.posterior(), 1);
     }
 }
