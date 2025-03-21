@@ -3,17 +3,24 @@ use crate::Coalesce;
 pub trait History<S = Self> {
     fn coalesce(self, other: S) -> Self;
 }
-pub trait IntoHistory<T>: Sized {
+pub trait IntoHistory: Sized {
     type History;
     fn into_history(self) -> Self::History;
+    fn history_coalesce<S>(self, other: S) -> Self::History
+    where
+        Self::History: History,
+        S: IntoHistory<History = Self::History>,
+    {
+        self.into_history().coalesce(other.into_history())
+    }
 }
-impl<T: Coalesce> IntoHistory<T> for T {
+impl<T: Coalesce> IntoHistory for T {
     type History = Coalesced<T>;
     fn into_history(self) -> Self::History {
         Coalesced::new(self)
     }
 }
-impl<T> IntoHistory<T> for Coalesced<T> {
+impl<T> IntoHistory for Coalesced<T> {
     type History = Self;
     fn into_history(self) -> Self::History {
         self
@@ -24,7 +31,10 @@ impl<T> IntoHistory<T> for Coalesced<T> {
 pub struct Coalesced<T> {
     history: Vec<T>,
 }
-impl<S: IntoHistory<T, History = Coalesced<T>>, T> History<S> for Coalesced<T> {
+impl<S, T> History<S> for Coalesced<T>
+where
+    S: IntoHistory<History = Coalesced<T>>,
+{
     fn coalesce(mut self, other: S) -> Self {
         self.history.extend(other.into_history().history);
         self
