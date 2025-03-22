@@ -46,15 +46,22 @@ impl<T: Coalesce> Coalesced<T> {
             history: vec![value],
         }
     }
+    pub fn history(&self) -> &Vec<T> {
+        &self.history
+    }
+
     pub fn prior(mut self) -> T {
         let remain = self.history.split_off(1);
-        let b = self.history.swap_remove(0);
-        remain.into_iter().fold(b, |c, x| c.coalesce(x))
+        remain
+            .into_iter()
+            .fold(self.history.swap_remove(0), |c, x| c.coalesce(x))
     }
     pub fn posterior(mut self) -> T {
         let mut tail = self.history.split_off(self.history.len() - 1);
-        let b = tail.swap_remove(0);
-        self.history.into_iter().rev().fold(b, |c, x| c.coalesce(x))
+        self.history
+            .into_iter()
+            .rev()
+            .fold(tail.swap_remove(0), |c, x| c.coalesce(x))
     }
 }
 
@@ -68,7 +75,7 @@ mod tests {
         let v2 = None;
 
         let coalesced = v1.history_coalesce(v2);
-        assert_eq!(coalesced.history, vec![Some(1), None]);
+        assert_eq!(coalesced.history(), &vec![Some(1), None]);
     }
 
     #[test]
