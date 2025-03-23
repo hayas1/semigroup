@@ -1,6 +1,6 @@
 <!-- cargo-rdme start -->
 
-`coalesced` supports reading configs from multiple sources
+coalesced supports reading configs from multiple sources
 
 ### Usage
 TODO
