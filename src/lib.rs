@@ -8,4 +8,5 @@ pub use coalesced_base::{
     Coalesce,
 };
 
+#[cfg(feature = "derive")]
 pub use coalesced_derive::Coalesce;

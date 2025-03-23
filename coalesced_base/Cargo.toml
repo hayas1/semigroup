@@ -15,6 +15,6 @@ serde = ["dep:serde"]
 serde = { version = "1.0.219", optional = true }
 
 [dev-dependencies]
-coalesced = { path = "../" }
+coalesced = { path = "../", features = ["derive"] }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
