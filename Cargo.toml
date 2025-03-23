@@ -23,7 +23,7 @@ readme.workspace = true
 [features]
 derive = ["coalesced_derive"]
 serde = ["coalesced_base/serde"]
-# clap = ["coalesced_base/clap"]
+clap = ["coalesced_base/clap"]
 
 [dependencies]
 coalesced_base = { path = "coalesced_base", default-features = false }
