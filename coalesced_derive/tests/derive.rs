@@ -1,5 +1,4 @@
 use coalesced::Coalesce;
-use coalesced_derive::Coalesce;
 
 #[derive(Coalesce)]
 struct Config {

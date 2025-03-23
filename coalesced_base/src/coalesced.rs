@@ -1,4 +1,4 @@
-use crate::Coalesce;
+use crate::coalesce::Coalesce;
 
 pub trait History<S = Self> {
     fn prior(self, other: S) -> Self;

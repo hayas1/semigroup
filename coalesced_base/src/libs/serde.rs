@@ -3,8 +3,8 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    coalesce::Coalesce,
     coalesced::{Coalesced, IntoHistory},
-    Coalesce,
 };
 
 impl<T> Serialize for Coalesced<T>

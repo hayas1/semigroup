@@ -4,8 +4,8 @@
 //! TODO
 
 pub use coalesced_base::{
+    coalesce::Coalesce,
     coalesced::{Coalesced, History, IntoHistory},
-    Coalesce,
 };
 
 #[cfg(feature = "derive")]
