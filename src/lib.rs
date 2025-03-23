@@ -1,4 +1,7 @@
-//! TODO doc
+//! coalesced supports reading configs from multiple sources
+//!
+//! ## Usage
+//! TODO
 
 pub use coalesced_core::{
     coalesce::{Coalesce, CoalesceExt},
