@@ -1,4 +1,7 @@
-use std::ops::{Deref, DerefMut};
+use std::{
+    ops::{Deref, DerefMut},
+    rc::Rc,
+};
 
 use crate::coalesce::Coalesce;
 
@@ -7,48 +10,65 @@ pub trait Extension<T>: Sized {
     fn with_extension<X>(self, extension: X) -> Self::Output<X>;
 }
 impl<T: Coalesce> Extension<T> for Option<T> {
-    type Output<X> = Opt<T, X>;
+    type Output<X> = Extended<Option<T>, X>;
     fn with_extension<X>(self, extension: X) -> Self::Output<X> {
-        Opt {
+        Extended {
             base: self,
-            extension: Some(extension),
+            extension,
         }
     }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-pub struct Opt<T, X> {
-    base: Option<T>,
-    extension: Option<X>, // TODO Option<X> -> X
+pub struct Extended<C, X> {
+    base: C,
+    extension: X,
 }
-impl<T: Coalesce, X> Coalesce for Opt<T, X> {
+impl<T, X> Coalesce for Extended<Option<T>, X> {
     fn prior(self, other: Self) -> Self {
-        let s = self.base.map(|v| (v, self.extension));
-        let o = other.base.map(|v| (v, other.extension));
-        let coalesce = s.prior(o);
-        match coalesce {
-            Some((v, x)) => Opt {
+        let (se, oe) = (Rc::new(self.extension), Rc::new(other.extension));
+        let (s, o) = (
+            self.base.map(|v| (v, se.clone())),
+            other.base.map(|v| (v, oe.clone())),
+        );
+
+        match s.prior(o) {
+            Some((v, x)) => Extended {
                 base: Some(v),
-                extension: x,
+                extension: Rc::try_unwrap(x).unwrap_or_else(|_| unreachable!()),
             },
-            None => Opt {
+            None => Extended {
                 base: None,
-                extension: None,
+                extension: Rc::try_unwrap(se).unwrap_or_else(|_| unreachable!()),
             },
         }
     }
     fn posterior(self, other: Self) -> Self {
-        let _ = other;
-        todo!()
+        let (se, oe) = (Rc::new(self.extension), Rc::new(other.extension));
+        let (s, o) = (
+            self.base.map(|v| (v, se.clone())),
+            other.base.map(|v| (v, oe.clone())),
+        );
+
+        match s.posterior(o) {
+            Some((v, x)) => Extended {
+                base: Some(v),
+                extension: Rc::try_unwrap(x).unwrap_or_else(|_| unreachable!()),
+            },
+            None => Extended {
+                base: None,
+                extension: Rc::try_unwrap(se).unwrap_or_else(|_| unreachable!()),
+            },
+        }
     }
 }
-impl<T: Coalesce, X> Deref for Opt<T, X> {
+impl<T, X> Deref for Extended<Option<T>, X> {
     type Target = Option<T>;
     fn deref(&self) -> &Self::Target {
         &self.base
     }
 }
-impl<T: Coalesce, X> DerefMut for Opt<T, X> {
+impl<T, X> DerefMut for Extended<Option<T>, X> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.base
     }
