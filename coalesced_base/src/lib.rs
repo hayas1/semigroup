@@ -1,24 +1,34 @@
 pub mod coalesced;
 
 pub trait Coalesce {
-    fn coalesce(self, other: Self) -> Self;
+    fn prior(self, other: Self) -> Self;
+    fn posterior(self, other: Self) -> Self;
 }
 
 impl<T> Coalesce for Option<T> {
-    fn coalesce(self, other: Self) -> Self {
+    fn prior(self, other: Self) -> Self {
         self.or(other)
+    }
+    fn posterior(self, other: Self) -> Self {
+        other.or(self)
     }
 }
 impl<T, E> Coalesce for Result<T, E> {
-    fn coalesce(self, other: Self) -> Self {
+    fn prior(self, other: Self) -> Self {
         self.or(other)
+    }
+    fn posterior(self, other: Self) -> Self {
+        other.or(self)
     }
 }
 
 pub trait CoalesceOther {}
 impl<T: CoalesceOther> Coalesce for T {
-    fn coalesce(self, other: Self) -> Self {
+    fn prior(self, other: Self) -> Self {
         other
+    }
+    fn posterior(self, _other: Self) -> Self {
+        self
     }
 }
 impl CoalesceOther for () {}

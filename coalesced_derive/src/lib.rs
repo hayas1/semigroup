@@ -10,12 +10,17 @@ pub fn derive_coalesce(input: TokenStream) -> TokenStream {
         Data::Enum(_) => unimplemented!(),
         Data::Struct(s) => match s.fields {
             Fields::Named(ns) => {
-                let fields = ns.named.into_iter().map(|f| f.ident);
+                let fields: Vec<_> = ns.named.into_iter().map(|f| f.ident).collect();
                 quote! {
                     impl ::coalesced::Coalesce for #ident {
-                        fn coalesce(self, other: Self) -> Self {
+                        fn prior(self, other: Self) -> Self {
                             Self {
-                                #(#fields: self.#fields.coalesce(other.#fields)),*
+                                #(#fields: self.#fields.prior(other.#fields)),*
+                            }
+                        }
+                        fn posterior(self, other: Self) -> Self {
+                            Self {
+                                #(#fields: self.#fields.posterior(other.#fields)),*
                             }
                         }
                     }

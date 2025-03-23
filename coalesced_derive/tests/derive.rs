@@ -32,7 +32,7 @@ fn test_derive_compile() {
         }
     ));
 
-    let c = config.coalesce(config2);
+    let c = config.prior(config2);
     assert_eq!(c.name, "c2");
     assert_eq!(c.value, Some(1));
 }

@@ -1,17 +1,25 @@
 use crate::Coalesce;
 
 pub trait History<S = Self> {
-    fn coalesce(self, other: S) -> Self;
+    fn prior(self, other: S) -> Self;
+    fn posterior(self, other: S) -> Self;
 }
 pub trait IntoHistory: Sized {
     type History;
     fn into_history(self) -> Self::History;
-    fn history_coalesce<S>(self, other: S) -> Self::History
+    fn history_prior<S>(self, other: S) -> Self::History
     where
         Self::History: History,
         S: IntoHistory<History = Self::History>,
     {
-        self.into_history().coalesce(other.into_history())
+        self.into_history().prior(other.into_history())
+    }
+    fn history_posterior<S>(self, other: S) -> Self::History
+    where
+        Self::History: History,
+        S: IntoHistory<History = Self::History>,
+    {
+        self.into_history().posterior(other.into_history())
     }
 }
 impl<T: Coalesce> IntoHistory for T {
@@ -28,40 +36,51 @@ impl<T> IntoHistory for Coalesced<T> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
+pub enum Priority {
+    #[default]
+    Prior,
+    Posterior,
+}
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct Coalesced<T> {
-    history: Vec<T>,
+    base: T,
+    history: Vec<(Priority, T)>,
 }
 impl<S, T> History<S> for Coalesced<T>
 where
     S: IntoHistory<History = Coalesced<T>>,
 {
-    fn coalesce(mut self, other: S) -> Self {
-        self.history.extend(other.into_history().history);
+    fn prior(mut self, other: S) -> Self {
+        let history = other.into_history();
+        self.history.push((Priority::Prior, history.base));
+        self.history.extend(history.history);
+        self
+    }
+    fn posterior(mut self, other: S) -> Self {
+        let history = other.into_history();
+        self.history.push((Priority::Posterior, history.base));
+        self.history.extend(history.history);
         self
     }
 }
 impl<T: Coalesce> Coalesced<T> {
     pub fn new(value: T) -> Self {
         Self {
-            history: vec![value],
+            base: value,
+            history: vec![],
         }
     }
-    pub fn history(&self) -> &Vec<T> {
-        &self.history
+    pub fn history(&self) -> (&T, &Vec<(Priority, T)>) {
+        (&self.base, &self.history)
     }
 
-    pub fn prior(mut self) -> T {
-        let remain = self.history.split_off(1);
-        remain
-            .into_iter()
-            .fold(self.history.swap_remove(0), |c, x| c.coalesce(x))
-    }
-    pub fn posterior(mut self) -> T {
-        let mut tail = self.history.split_off(self.history.len() - 1);
+    pub fn into(self) -> T {
         self.history
             .into_iter()
-            .rev()
-            .fold(tail.swap_remove(0), |c, x| c.coalesce(x))
+            .fold(self.base, |c, (p, x)| match p {
+                Priority::Prior => c.prior(x),
+                Priority::Posterior => c.posterior(x),
+            })
     }
 }
 
@@ -74,8 +93,11 @@ mod tests {
         let v1 = Some(1);
         let v2 = None;
 
-        let coalesced = v1.history_coalesce(v2);
-        assert_eq!(coalesced.history(), &vec![Some(1), None]);
+        let coalesced = v1.history_prior(v2);
+        assert_eq!(
+            coalesced.history(),
+            (&Some(1), &vec![(Priority::Prior, None)])
+        );
     }
 
     #[test]
@@ -84,8 +106,8 @@ mod tests {
         let v2 = 2;
         let v3 = 3;
 
-        let coalesced = v1.history_coalesce(v2).coalesce(v3);
-        assert_eq!(coalesced.prior(), 3);
+        let coalesced = v1.history_prior(v2).prior(v3);
+        assert_eq!(coalesced.into(), 3);
     }
 
     #[test]
@@ -94,7 +116,7 @@ mod tests {
         let v2 = 2;
         let v3 = 3;
 
-        let coalesced = v1.history_coalesce(v2).coalesce(v3);
-        assert_eq!(coalesced.posterior(), 1);
+        let coalesced = v1.history_posterior(v2).posterior(v3);
+        assert_eq!(coalesced.into(), 1);
     }
 }
