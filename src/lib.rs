@@ -3,12 +3,9 @@
 //! ## Usage
 //! TODO
 
-pub use coalesced_core::{
-    coalesce::{Coalesce, CoalesceExt},
-    coalesced::Coalesced,
-    priority::{Multiple, Posterior, Prior, Single},
+pub use coalesced_base::{
+    coalesced::{Coalesced, History, IntoHistory},
+    Coalesce,
 };
 
-pub mod ext {
-    pub use coalesced_core::priority::{Access, Length};
-}
+pub use coalesced_derive::Coalesce;

@@ -1,4 +1,5 @@
 pub mod coalesced;
+pub mod libs;
 
 pub trait Coalesce {
     fn prior(self, other: Self) -> Self;
@@ -7,18 +8,18 @@ pub trait Coalesce {
 
 impl<T> Coalesce for Option<T> {
     fn prior(self, other: Self) -> Self {
-        self.or(other)
+        other.or(self)
     }
     fn posterior(self, other: Self) -> Self {
-        other.or(self)
+        self.or(other)
     }
 }
 impl<T, E> Coalesce for Result<T, E> {
     fn prior(self, other: Self) -> Self {
-        self.or(other)
+        other.or(self)
     }
     fn posterior(self, other: Self) -> Self {
-        other.or(self)
+        self.or(other)
     }
 }
 

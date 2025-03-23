@@ -83,6 +83,17 @@ impl<T: Coalesce> Coalesced<T> {
             })
     }
 }
+impl<T: Coalesce + Clone> Coalesced<T> {
+    pub fn into_cloned(&self) -> T {
+        self.history
+            .iter()
+            .cloned()
+            .fold(self.base.clone(), |c, (p, x)| match p {
+                Priority::Prior => c.prior(x),
+                Priority::Posterior => c.posterior(x),
+            })
+    }
+}
 
 #[cfg(test)]
 mod tests {
