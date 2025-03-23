@@ -70,8 +70,11 @@ impl<T: Coalesce> Coalesced<T> {
             history: vec![],
         }
     }
-    pub fn history(&self) -> (&T, &Vec<(Priority, T)>) {
-        (&self.base, &self.history)
+    pub fn base(&self) -> &T {
+        &self.base
+    }
+    pub fn history(&self) -> &Vec<(Priority, T)> {
+        &self.history
     }
 
     pub fn into(self) -> T {
@@ -105,10 +108,9 @@ mod tests {
         let v2 = None;
 
         let coalesced = v1.history_prior(v2);
-        assert_eq!(
-            coalesced.history(),
-            (&Some(1), &vec![(Priority::Prior, None)])
-        );
+        assert_eq!(coalesced.base(), &Some(1));
+        assert_eq!(coalesced.history(), &vec![(Priority::Prior, None)]);
+        assert_eq!(coalesced.into(), Some(1));
     }
 
     #[test]
