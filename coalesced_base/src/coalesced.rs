@@ -5,7 +5,7 @@ pub trait History<S = Self> {
     fn posterior(self, other: S) -> Self;
 }
 pub trait IntoHistory: Sized {
-    type History;
+    type History; // TODO remove this type parameter ?
     fn into_history(self) -> Self::History;
     fn history_prior<S>(self, other: S) -> Self::History
     where
