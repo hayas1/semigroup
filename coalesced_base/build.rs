@@ -21,13 +21,13 @@ impl ExtensionImplementor {
         let impl_primitive = targets.primitive_owned().map(Self::basic_priority);
         let impl_primitive_ref = targets.primitive_ref().map(Self::basic_priority);
         let impl_primitive_mut = targets.primitive_mut().map(Self::basic_priority);
-        let impl_ref_type = targets.ref_type().map(Self::basic_priority);
+        let impl_slice_ref = targets.slice_ref().map(Self::basic_priority);
         quote! {
             use crate::extension::{Extension, WithExt};
             #(#impl_primitive)*
             #(#impl_primitive_ref)*
             #(#impl_primitive_mut)*
-            #(#impl_ref_type)*
+            #(#impl_slice_ref)*
         }
     }
     fn basic_priority<T: ToTokens>(ident: T) -> TokenStream {
@@ -70,7 +70,7 @@ impl Default for ExtensionTargets {
                 parse_quote! {f32},
                 parse_quote! {f64},
             ],
-            reference: vec![parse_quote! {&str}],
+            reference: vec![parse_quote! {str}, parse_quote! {std::path::Path}],
         }
     }
 }
@@ -88,7 +88,9 @@ impl ExtensionTargets {
             .iter()
             .map(|t| Type::Reference(parse_quote! {&mut #t}))
     }
-    fn ref_type<'a>(&'a self) -> impl 'a + Iterator<Item = &Type> {
-        self.reference.iter()
+    fn slice_ref<'a>(&'a self) -> impl 'a + Iterator<Item = Type> {
+        self.reference
+            .iter()
+            .map(|t| Type::Reference(parse_quote! {&#t}))
     }
 }

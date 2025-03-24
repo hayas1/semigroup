@@ -440,3 +440,12 @@ impl Extension for &str {
         base
     }
 }
+#[doc = "Generated implementation"]
+impl Extension for &std::path::Path {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
