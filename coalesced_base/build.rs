@@ -8,18 +8,48 @@ const GENERATED_RS: &str = "src/generated.rs";
 const RUSTFMT: &str = "rustfmt";
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let generated_impl = Implementor::default().implement();
+    let generated_impl = ExtensionImplementor::implement(&ExtensionTargets::default());
     let generated_rs = Path::new(GENERATED_RS);
     fs::write(&generated_rs, generated_impl.to_string())?;
     Command::new(RUSTFMT).arg(&generated_rs).status()?;
     Ok(())
 }
 
-struct Implementor {
+enum ExtensionImplementor {}
+impl ExtensionImplementor {
+    fn implement(targets: &ExtensionTargets) -> TokenStream {
+        let impl_primitive = targets.primitive_owned().map(Self::basic_priority);
+        let impl_primitive_ref = targets.primitive_ref().map(Self::basic_priority);
+        let impl_primitive_mut = targets.primitive_mut().map(Self::basic_priority);
+        let impl_ref_type = targets.ref_type().map(Self::basic_priority);
+        quote! {
+            use crate::extension::{Extension, WithExt};
+            #(#impl_primitive)*
+            #(#impl_primitive_ref)*
+            #(#impl_primitive_mut)*
+            #(#impl_ref_type)*
+        }
+    }
+    fn basic_priority<T: ToTokens>(ident: T) -> TokenStream {
+        quote! {
+            #[doc = "Generated implementation"]
+            impl Extension for #ident {
+                fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+                    other
+                }
+                fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+                    base
+                }
+            }
+        }
+    }
+}
+
+struct ExtensionTargets {
     primitives: Vec<Type>,
     reference: Vec<Type>,
 }
-impl Default for Implementor {
+impl Default for ExtensionTargets {
     fn default() -> Self {
         Self {
             primitives: vec![
@@ -44,54 +74,21 @@ impl Default for Implementor {
         }
     }
 }
-impl Implementor {
-    fn implement(&self) -> TokenStream {
-        let impl_primitive = self.impl_primitive_owned();
-        let impl_primitive_ref = self.impl_primitive_ref();
-        let impl_primitive_mut = self.impl_primitive_mut();
-        let impl_ref = self.impl_ref();
-        quote! {
-            use crate::extension::{Extension, WithExt};
-            #(#impl_primitive)*
-            #(#impl_primitive_ref)*
-            #(#impl_primitive_mut)*
-            #(#impl_ref)*
-        }
+impl ExtensionTargets {
+    fn primitive_owned<'a>(&'a self) -> impl 'a + Iterator<Item = &Type> {
+        self.primitives.iter()
     }
-    fn impl_primitive_owned<'a>(&'a self) -> impl 'a + Iterator<Item = TokenStream> {
-        self.primitives
-            .iter()
-            .map(Self::coalesce_extension_primitive)
-    }
-    fn impl_primitive_ref<'a>(&'a self) -> impl 'a + Iterator<Item = TokenStream> {
+    fn primitive_ref<'a>(&'a self) -> impl 'a + Iterator<Item = Type> {
         self.primitives
             .iter()
             .map(|t| Type::Reference(parse_quote! {&#t}))
-            .map(Self::coalesce_extension_primitive)
     }
-    fn impl_primitive_mut<'a>(&'a self) -> impl 'a + Iterator<Item = TokenStream> {
+    fn primitive_mut<'a>(&'a self) -> impl 'a + Iterator<Item = Type> {
         self.primitives
             .iter()
             .map(|t| Type::Reference(parse_quote! {&mut #t}))
-            .map(Self::coalesce_extension_primitive)
     }
-    fn impl_ref<'a>(&'a self) -> impl 'a + Iterator<Item = TokenStream> {
-        self.reference
-            .iter()
-            .map(Self::coalesce_extension_primitive)
-    }
-
-    fn coalesce_extension_primitive<T: ToTokens>(ident: T) -> TokenStream {
-        quote! {
-            #[doc = "Generated implementation"]
-            impl Extension for #ident {
-                fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-                    other
-                }
-                fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-                    base
-                }
-            }
-        }
+    fn ref_type<'a>(&'a self) -> impl 'a + Iterator<Item = &Type> {
+        self.reference.iter()
     }
 }
