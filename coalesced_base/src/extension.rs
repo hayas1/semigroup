@@ -2,18 +2,18 @@ use std::ops::{Deref, DerefMut};
 
 use crate::coalesce::Coalesce;
 
-pub trait Extension: Sized {
-    fn ex_prior<X>(base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X>;
-    fn ex_posterior<X>(base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X>;
+pub trait CoalesceExtension: Sized {
+    fn ex_prior<X>(base: Extension<Self, X>, other: Extension<Self, X>) -> Extension<Self, X>;
+    fn ex_posterior<X>(base: Extension<Self, X>, other: Extension<Self, X>) -> Extension<Self, X>;
 
-    fn with_extension<X>(self, extension: X) -> Extended<Self, X> {
-        Extended {
+    fn with_extension<X>(self, extension: X) -> Extension<Self, X> {
+        Extension {
             value: self,
             extension,
         }
     }
 }
-impl<T: Extension> Coalesce for T {
+impl<T: CoalesceExtension> Coalesce for T {
     fn prior(self, other: Self) -> Self {
         let (s, o) = (self.with_extension(()), other.with_extension(()));
         s.prior(o).into()
@@ -27,8 +27,8 @@ enum ExEither<T> {
     Base(T),
     Other(T),
 }
-impl<T> Extension for Option<T> {
-    fn ex_prior<X>(base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X> {
+impl<T> CoalesceExtension for Option<T> {
+    fn ex_prior<X>(base: Extension<Self, X>, other: Extension<Self, X>) -> Extension<Self, X> {
         let (s, o) = (
             base.value.map(ExEither::Base),
             other.value.map(ExEither::Other),
@@ -39,7 +39,7 @@ impl<T> Extension for Option<T> {
             None => None.with_extension(other.extension),
         }
     }
-    fn ex_posterior<X>(base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X> {
+    fn ex_posterior<X>(base: Extension<Self, X>, other: Extension<Self, X>) -> Extension<Self, X> {
         let (s, o) = (
             base.value.map(ExEither::Base),
             other.value.map(ExEither::Other),
@@ -51,8 +51,8 @@ impl<T> Extension for Option<T> {
         }
     }
 }
-impl<T, E> Extension for Result<T, E> {
-    fn ex_prior<X>(base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X> {
+impl<T, E> CoalesceExtension for Result<T, E> {
+    fn ex_prior<X>(base: Extension<Self, X>, other: Extension<Self, X>) -> Extension<Self, X> {
         let (s, o) = (
             base.value.map(ExEither::Base).map_err(ExEither::Base),
             other.value.map(ExEither::Other).map_err(ExEither::Other),
@@ -64,7 +64,7 @@ impl<T, E> Extension for Result<T, E> {
             Err(ExEither::Other(e)) => Err(e).with_extension(other.extension),
         }
     }
-    fn ex_posterior<X>(base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X> {
+    fn ex_posterior<X>(base: Extension<Self, X>, other: Extension<Self, X>) -> Extension<Self, X> {
         let (s, o) = (
             base.value.map(ExEither::Base).map_err(ExEither::Base),
             other.value.map(ExEither::Other).map_err(ExEither::Other),
@@ -79,47 +79,47 @@ impl<T, E> Extension for Result<T, E> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-pub struct Extended<C, X> {
-    value: C,
+pub struct Extension<T, X> {
+    value: T,
     extension: X,
 }
-impl<C, X> Extended<C, X> {
-    pub fn into(self) -> C {
+impl<T, X> Extension<T, X> {
+    pub fn into(self) -> T {
         self.value
     }
     pub fn into_extension(self) -> X {
         self.extension
     }
-    pub fn into_parts(self) -> (C, X) {
+    pub fn into_parts(self) -> (T, X) {
         (self.value, self.extension)
     }
 
-    pub fn value_ref(&self) -> &C {
+    pub fn value_ref(&self) -> &T {
         &self.value
     }
     pub fn extension_ref(&self) -> &X {
         &self.extension
     }
 
-    pub fn value_mut(&mut self) -> &mut C {
+    pub fn value_mut(&mut self) -> &mut T {
         &mut self.value
     }
     pub fn extension_mut(&mut self) -> &mut X {
         &mut self.extension
     }
 }
-impl<C, X> Deref for Extended<C, X> {
-    type Target = C;
+impl<T, X> Deref for Extension<T, X> {
+    type Target = T;
     fn deref(&self) -> &Self::Target {
         self.value_ref()
     }
 }
-impl<C, X> DerefMut for Extended<C, X> {
+impl<T, X> DerefMut for Extension<T, X> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.value_mut()
     }
 }
-impl<T: Extension, X> Coalesce for Extended<T, X> {
+impl<T: CoalesceExtension, X> Coalesce for Extension<T, X> {
     fn prior(self, other: Self) -> Self {
         T::ex_prior(self, other)
     }
