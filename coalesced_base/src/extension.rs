@@ -10,17 +10,18 @@ pub trait CoalesceExtension: Sized {
         Extension {
             value: self,
             extension,
+            _priv: (),
         }
     }
 }
 impl<T: CoalesceExtension> Coalesce for T {
     fn prior(self, other: Self) -> Self {
         let (s, o) = (self.with_extension(()), other.with_extension(()));
-        s.prior(o).into()
+        s.prior(o).value
     }
     fn posterior(self, other: Self) -> Self {
         let (s, o) = (self.with_extension(()), other.with_extension(()));
-        s.posterior(o).into()
+        s.posterior(o).value
     }
 }
 enum ExEither<T> {
@@ -78,45 +79,42 @@ impl<T, E> CoalesceExtension for Result<T, E> {
     }
 }
 
+/// A value with an extension
+///
+/// # Examples
+/// An instance can be created with [CoalesceExtension::with_extension].
+/// ```
+/// use coalesced_base::extension::CoalesceExtension;
+/// let ext = Some(100).with_extension("ext");
+/// assert_eq!(*ext, Some(100));
+/// assert_eq!(ext.extension, "ext");
+/// ```
+///
+/// Any instance cannot be created directly.
+/// ```compile_fail
+/// use coalesced_base::extension::Extension;
+/// let ext = Extension {
+///     value: Some(100),
+///     extension: "ext",
+///     _priv: (),
+/// };
+/// assert_eq!(*ext, Some(100));
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct Extension<T, X> {
-    value: T,
-    extension: X,
-}
-impl<T, X> Extension<T, X> {
-    pub fn into(self) -> T {
-        self.value
-    }
-    pub fn into_extension(self) -> X {
-        self.extension
-    }
-    pub fn into_parts(self) -> (T, X) {
-        (self.value, self.extension)
-    }
-
-    pub fn value_ref(&self) -> &T {
-        &self.value
-    }
-    pub fn extension_ref(&self) -> &X {
-        &self.extension
-    }
-
-    pub fn value_mut(&mut self) -> &mut T {
-        &mut self.value
-    }
-    pub fn extension_mut(&mut self) -> &mut X {
-        &mut self.extension
-    }
+    pub value: T,
+    pub extension: X,
+    _priv: (),
 }
 impl<T, X> Deref for Extension<T, X> {
     type Target = T;
     fn deref(&self) -> &Self::Target {
-        self.value_ref()
+        &self.value
     }
 }
 impl<T, X> DerefMut for Extension<T, X> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        self.value_mut()
+        &mut self.value
     }
 }
 impl<T: CoalesceExtension, X> Coalesce for Extension<T, X> {
@@ -141,7 +139,7 @@ mod tests {
         let coalesced = file.prior(env).prior(cli);
         assert_eq!(*coalesced, Some(10));
         assert_eq!(coalesced.unwrap(), 10);
-        assert_eq!(coalesced.extension_ref(), &"env");
+        assert_eq!(coalesced.extension, "env");
     }
 
     #[test]
@@ -153,7 +151,7 @@ mod tests {
         let coalesced = file.posterior(env).posterior(cli);
         assert_eq!(*coalesced, Some(1));
         assert_eq!(coalesced.unwrap(), 1);
-        assert_eq!(coalesced.extension_ref(), &"file");
+        assert_eq!(coalesced.extension, "file");
     }
 
     #[test]
@@ -165,7 +163,7 @@ mod tests {
         let coalesced = file.prior(env).prior(cli);
         assert_eq!(*coalesced, Ok(10));
         assert_eq!(coalesced.unwrap(), 10);
-        assert_eq!(coalesced.extension_ref(), &"env");
+        assert_eq!(coalesced.extension, "env");
     }
 
     #[test]
@@ -177,6 +175,6 @@ mod tests {
         let coalesced = file.posterior(env).posterior(cli);
         assert_eq!(*coalesced, Ok(1));
         assert_eq!(coalesced.unwrap(), 1);
-        assert_eq!(coalesced.extension_ref(), &"file");
+        assert_eq!(coalesced.extension, "file");
     }
 }
