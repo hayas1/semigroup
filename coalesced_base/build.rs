@@ -1,18 +1,18 @@
+use std::{fs, path::Path, process::Command};
+
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
-use std::fs;
-use std::path::Path;
-use std::process::Command;
 use syn::{parse_quote, Type};
 
 const GENERATED_RS: &str = "src/generated.rs";
 const RUSTFMT: &str = "rustfmt";
 
-fn main() {
-    let generated_impl = Implementor::default().gen();
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let generated_impl = Implementor::default().implement();
     let generated_rs = Path::new(GENERATED_RS);
-    fs::write(&generated_rs, generated_impl.to_string()).unwrap();
-    Command::new(RUSTFMT).arg(&generated_rs).status().unwrap();
+    fs::write(&generated_rs, generated_impl.to_string())?;
+    Command::new(RUSTFMT).arg(&generated_rs).status()?;
+    Ok(())
 }
 
 struct Implementor {
@@ -45,11 +45,11 @@ impl Default for Implementor {
     }
 }
 impl Implementor {
-    fn gen(&self) -> TokenStream {
-        let impl_primitive = self.gen_primitive_owned();
-        let impl_primitive_ref = self.gen_primitive_ref();
-        let impl_primitive_mut = self.gen_primitive_mut();
-        let impl_ref = self.gen_ref();
+    fn implement(&self) -> TokenStream {
+        let impl_primitive = self.impl_primitive_owned();
+        let impl_primitive_ref = self.impl_primitive_ref();
+        let impl_primitive_mut = self.impl_primitive_mut();
+        let impl_ref = self.impl_ref();
         quote! {
             use crate::extension::{Extension, WithExt};
             #(#impl_primitive)*
@@ -58,30 +58,30 @@ impl Implementor {
             #(#impl_ref)*
         }
     }
-    fn gen_primitive_owned<'a>(&'a self) -> impl 'a + Iterator<Item = TokenStream> {
+    fn impl_primitive_owned<'a>(&'a self) -> impl 'a + Iterator<Item = TokenStream> {
         self.primitives
             .iter()
-            .map(Self::impl_coalesce_extension_primitive)
+            .map(Self::coalesce_extension_primitive)
     }
-    fn gen_primitive_ref<'a>(&'a self) -> impl 'a + Iterator<Item = TokenStream> {
+    fn impl_primitive_ref<'a>(&'a self) -> impl 'a + Iterator<Item = TokenStream> {
         self.primitives
             .iter()
             .map(|t| Type::Reference(parse_quote! {&#t}))
-            .map(Self::impl_coalesce_extension_primitive)
+            .map(Self::coalesce_extension_primitive)
     }
-    fn gen_primitive_mut<'a>(&'a self) -> impl 'a + Iterator<Item = TokenStream> {
+    fn impl_primitive_mut<'a>(&'a self) -> impl 'a + Iterator<Item = TokenStream> {
         self.primitives
             .iter()
             .map(|t| Type::Reference(parse_quote! {&mut #t}))
-            .map(Self::impl_coalesce_extension_primitive)
+            .map(Self::coalesce_extension_primitive)
     }
-    fn gen_ref<'a>(&'a self) -> impl 'a + Iterator<Item = TokenStream> {
+    fn impl_ref<'a>(&'a self) -> impl 'a + Iterator<Item = TokenStream> {
         self.reference
             .iter()
-            .map(Self::impl_coalesce_extension_primitive)
+            .map(Self::coalesce_extension_primitive)
     }
 
-    fn impl_coalesce_extension_primitive<T: ToTokens>(ident: T) -> TokenStream {
+    fn coalesce_extension_primitive<T: ToTokens>(ident: T) -> TokenStream {
         quote! {
             #[doc = "Generated implementation"]
             impl Extension for #ident {
