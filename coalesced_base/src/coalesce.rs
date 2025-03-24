@@ -1,31 +1,26 @@
+use crate::extension::{Extended, Extension};
+
 pub trait Coalesce {
     fn prior(self, other: Self) -> Self;
     fn posterior(self, other: Self) -> Self;
 }
 
-impl<T> Coalesce for Option<T> {
-    fn prior(self, other: Self) -> Self {
-        other.or(self)
-    }
-    fn posterior(self, other: Self) -> Self {
-        self.or(other)
-    }
-}
-impl<T, E> Coalesce for Result<T, E> {
-    fn prior(self, other: Self) -> Self {
-        other.or(self)
-    }
-    fn posterior(self, other: Self) -> Self {
-        self.or(other)
-    }
-}
-
 pub trait CoalesceOther {}
-impl<T: CoalesceOther> Coalesce for T {
-    fn prior(self, other: Self) -> Self {
+impl<T: CoalesceOther> Extension for T {
+    fn extension_prior<X>(_base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X> {
         other
     }
-    fn posterior(self, _other: Self) -> Self {
+    fn extension_posterior<X>(
+        base: Extended<Self, X>,
+        _other: Extended<Self, X>,
+    ) -> Extended<Self, X> {
+        base
+    }
+
+    fn ex_prior(self, other: Self) -> Self {
+        other
+    }
+    fn ex_posterior(self, _other: Self) -> Self {
         self
     }
 }

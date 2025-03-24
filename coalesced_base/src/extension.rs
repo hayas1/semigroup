@@ -1,29 +1,95 @@
-use std::{
-    ops::{Deref, DerefMut},
-    rc::Rc,
-};
+use std::ops::{Deref, DerefMut};
 
 use crate::coalesce::Coalesce;
 
-pub trait Extension<T>: Sized {
-    type Output<X>: Coalesce + Deref<Target = Self> + DerefMut<Target = Self>;
-    fn with_extension<X>(self, extension: X) -> Self::Output<X>;
-}
-impl<T> Extension<T> for Option<T> {
-    type Output<X> = Extended<Self, X>;
-    fn with_extension<X>(self, extension: X) -> Self::Output<X> {
+pub trait Extension: Sized {
+    fn extension_prior<X>(base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X>;
+    fn extension_posterior<X>(
+        base: Extended<Self, X>,
+        other: Extended<Self, X>,
+    ) -> Extended<Self, X>;
+
+    fn with_extension<X>(self, extension: X) -> Extended<Self, X> {
         Extended {
             value: self,
             extension,
         }
     }
+    fn ex_prior(self, other: Self) -> Self {
+        let (s, o) = (self.with_extension(()), other.with_extension(()));
+        Self::extension_prior(s, o).into()
+    }
+    fn ex_posterior(self, other: Self) -> Self {
+        let (s, o) = (self.with_extension(()), other.with_extension(()));
+        Self::extension_posterior(s, o).into()
+    }
 }
-impl<T, E> Extension<T> for Result<T, E> {
-    type Output<X> = Extended<Self, X>;
-    fn with_extension<X>(self, extension: X) -> Self::Output<X> {
-        Extended {
-            value: self,
-            extension,
+impl<T: Extension> Coalesce for T {
+    fn prior(self, other: Self) -> Self {
+        self.ex_prior(other)
+    }
+    fn posterior(self, other: Self) -> Self {
+        self.ex_posterior(other)
+    }
+}
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+enum WrapPrim<T> {
+    Base(T),
+    Other(T),
+}
+impl<T> Extension for Option<T> {
+    fn extension_prior<X>(base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X> {
+        let (s, o) = (
+            base.value.map(WrapPrim::Base),
+            other.value.map(WrapPrim::Other),
+        );
+        match s.or(o) {
+            Some(WrapPrim::Base(v)) => Some(v).with_extension(base.extension),
+            Some(WrapPrim::Other(v)) => Some(v).with_extension(other.extension),
+            None => None.with_extension(other.extension),
+        }
+    }
+    fn extension_posterior<X>(
+        base: Extended<Self, X>,
+        other: Extended<Self, X>,
+    ) -> Extended<Self, X> {
+        let (s, o) = (
+            base.value.map(WrapPrim::Base),
+            other.value.map(WrapPrim::Other),
+        );
+        match s.or(o) {
+            Some(WrapPrim::Base(v)) => Some(v).with_extension(base.extension),
+            Some(WrapPrim::Other(v)) => Some(v).with_extension(other.extension),
+            None => None.with_extension(base.extension),
+        }
+    }
+}
+impl<T, E> Extension for Result<T, E> {
+    fn extension_prior<X>(base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X> {
+        let (s, o) = (
+            base.value.map(WrapPrim::Base).map_err(WrapPrim::Base),
+            other.value.map(WrapPrim::Other).map_err(WrapPrim::Other),
+        );
+        match s.or(o) {
+            Ok(WrapPrim::Base(v)) => Ok(v).with_extension(base.extension),
+            Ok(WrapPrim::Other(v)) => Ok(v).with_extension(other.extension),
+            Err(WrapPrim::Base(e)) => Err(e).with_extension(base.extension),
+            Err(WrapPrim::Other(e)) => Err(e).with_extension(other.extension),
+        }
+    }
+    fn extension_posterior<X>(
+        base: Extended<Self, X>,
+        other: Extended<Self, X>,
+    ) -> Extended<Self, X> {
+        let (s, o) = (
+            base.value.map(WrapPrim::Base).map_err(WrapPrim::Base),
+            other.value.map(WrapPrim::Other).map_err(WrapPrim::Other),
+        );
+        match s.or(o) {
+            Ok(WrapPrim::Base(v)) => Ok(v).with_extension(base.extension),
+            Ok(WrapPrim::Other(v)) => Ok(v).with_extension(other.extension),
+            Err(WrapPrim::Base(e)) => Err(e).with_extension(other.extension),
+            Err(WrapPrim::Other(e)) => Err(e).with_extension(base.extension),
         }
     }
 }
@@ -69,103 +135,12 @@ impl<C, X> DerefMut for Extended<C, X> {
         self.value_mut()
     }
 }
-impl<T, X> Coalesce for Extended<Option<T>, X> {
+impl<T: Extension, X> Coalesce for Extended<T, X> {
     fn prior(self, other: Self) -> Self {
-        let (se, oe) = (Rc::new(self.extension), Rc::new(other.extension));
-        let (s, o) = (
-            self.value.map(|v| (v, se.clone())),
-            other.value.map(|v| (v, oe.clone())),
-        );
-
-        match s.prior(o) {
-            Some((v, x)) => {
-                drop(se);
-                drop(oe);
-                Extended {
-                    value: Some(v),
-                    extension: Rc::try_unwrap(x).unwrap_or_else(|_| unreachable!()),
-                }
-            }
-            None => Extended {
-                value: None,
-                extension: Rc::try_unwrap(oe).unwrap_or_else(|_| unreachable!()),
-            },
-        }
+        T::extension_prior(self, other)
     }
     fn posterior(self, other: Self) -> Self {
-        let (se, oe) = (Rc::new(self.extension), Rc::new(other.extension));
-        let (s, o) = (
-            self.value.map(|v| (v, se.clone())),
-            other.value.map(|v| (v, oe.clone())),
-        );
-
-        match s.posterior(o) {
-            Some((v, x)) => {
-                drop(se);
-                drop(oe);
-                Extended {
-                    value: Some(v),
-                    extension: Rc::try_unwrap(x).unwrap_or_else(|_| unreachable!()),
-                }
-            }
-            None => Extended {
-                value: None,
-                extension: Rc::try_unwrap(se).unwrap_or_else(|_| unreachable!()),
-            },
-        }
-    }
-}
-
-impl<T, E, X> Coalesce for Extended<Result<T, E>, X> {
-    fn prior(self, other: Self) -> Self {
-        let (se, oe) = (Rc::new(self.extension), Rc::new(other.extension));
-        let (s, o) = (
-            self.value
-                .map(|v| (v, se.clone()))
-                .map_err(|e| (e, se.clone())),
-            other
-                .value
-                .map(|v| (v, oe.clone()))
-                .map_err(|e| (e, oe.clone())),
-        );
-        drop(se);
-        drop(oe);
-
-        match s.prior(o) {
-            Ok((v, x)) => Extended {
-                value: Ok(v),
-                extension: Rc::try_unwrap(x).unwrap_or_else(|_| unreachable!()),
-            },
-            Err((e, x)) => Extended {
-                value: Err(e),
-                extension: Rc::try_unwrap(x).unwrap_or_else(|_| unreachable!()),
-            },
-        }
-    }
-    fn posterior(self, other: Self) -> Self {
-        let (se, oe) = (Rc::new(self.extension), Rc::new(other.extension));
-        let (s, o) = (
-            self.value
-                .map(|v| (v, se.clone()))
-                .map_err(|e| (e, se.clone())),
-            other
-                .value
-                .map(|v| (v, oe.clone()))
-                .map_err(|e| (e, oe.clone())),
-        );
-        drop(se);
-        drop(oe);
-
-        match s.posterior(o) {
-            Ok((v, x)) => Extended {
-                value: Ok(v),
-                extension: Rc::try_unwrap(x).unwrap_or_else(|_| unreachable!()),
-            },
-            Err((e, x)) => Extended {
-                value: Err(e),
-                extension: Rc::try_unwrap(x).unwrap_or_else(|_| unreachable!()),
-            },
-        }
+        T::extension_posterior(self, other)
     }
 }
 
