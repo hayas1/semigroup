@@ -7,21 +7,11 @@ pub trait Coalesce {
 
 pub trait CoalesceOther {}
 impl<T: CoalesceOther> Extension for T {
-    fn extension_prior<X>(_base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X> {
+    fn ex_prior<X>(_base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X> {
         other
     }
-    fn extension_posterior<X>(
-        base: Extended<Self, X>,
-        _other: Extended<Self, X>,
-    ) -> Extended<Self, X> {
+    fn ex_posterior<X>(base: Extended<Self, X>, _other: Extended<Self, X>) -> Extended<Self, X> {
         base
-    }
-
-    fn ex_prior(self, other: Self) -> Self {
-        other
-    }
-    fn ex_posterior(self, _other: Self) -> Self {
-        self
     }
 }
 impl CoalesceOther for () {}

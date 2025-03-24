@@ -3,11 +3,8 @@ use std::ops::{Deref, DerefMut};
 use crate::coalesce::Coalesce;
 
 pub trait Extension: Sized {
-    fn extension_prior<X>(base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X>;
-    fn extension_posterior<X>(
-        base: Extended<Self, X>,
-        other: Extended<Self, X>,
-    ) -> Extended<Self, X>;
+    fn ex_prior<X>(base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X>;
+    fn ex_posterior<X>(base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X>;
 
     fn with_extension<X>(self, extension: X) -> Extended<Self, X> {
         Extended {
@@ -15,21 +12,15 @@ pub trait Extension: Sized {
             extension,
         }
     }
-    fn ex_prior(self, other: Self) -> Self {
-        let (s, o) = (self.with_extension(()), other.with_extension(()));
-        Self::extension_prior(s, o).into()
-    }
-    fn ex_posterior(self, other: Self) -> Self {
-        let (s, o) = (self.with_extension(()), other.with_extension(()));
-        Self::extension_posterior(s, o).into()
-    }
 }
 impl<T: Extension> Coalesce for T {
     fn prior(self, other: Self) -> Self {
-        self.ex_prior(other)
+        let (s, o) = (self.with_extension(()), other.with_extension(()));
+        s.prior(o).into()
     }
     fn posterior(self, other: Self) -> Self {
-        self.ex_posterior(other)
+        let (s, o) = (self.with_extension(()), other.with_extension(()));
+        s.posterior(o).into()
     }
 }
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -38,21 +29,18 @@ enum WrapPrim<T> {
     Other(T),
 }
 impl<T> Extension for Option<T> {
-    fn extension_prior<X>(base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X> {
+    fn ex_prior<X>(base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X> {
         let (s, o) = (
             base.value.map(WrapPrim::Base),
             other.value.map(WrapPrim::Other),
         );
-        match s.or(o) {
+        match o.or(s) {
             Some(WrapPrim::Base(v)) => Some(v).with_extension(base.extension),
             Some(WrapPrim::Other(v)) => Some(v).with_extension(other.extension),
             None => None.with_extension(other.extension),
         }
     }
-    fn extension_posterior<X>(
-        base: Extended<Self, X>,
-        other: Extended<Self, X>,
-    ) -> Extended<Self, X> {
+    fn ex_posterior<X>(base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X> {
         let (s, o) = (
             base.value.map(WrapPrim::Base),
             other.value.map(WrapPrim::Other),
@@ -65,22 +53,19 @@ impl<T> Extension for Option<T> {
     }
 }
 impl<T, E> Extension for Result<T, E> {
-    fn extension_prior<X>(base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X> {
+    fn ex_prior<X>(base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X> {
         let (s, o) = (
             base.value.map(WrapPrim::Base).map_err(WrapPrim::Base),
             other.value.map(WrapPrim::Other).map_err(WrapPrim::Other),
         );
-        match s.or(o) {
+        match o.or(s) {
             Ok(WrapPrim::Base(v)) => Ok(v).with_extension(base.extension),
             Ok(WrapPrim::Other(v)) => Ok(v).with_extension(other.extension),
             Err(WrapPrim::Base(e)) => Err(e).with_extension(base.extension),
             Err(WrapPrim::Other(e)) => Err(e).with_extension(other.extension),
         }
     }
-    fn extension_posterior<X>(
-        base: Extended<Self, X>,
-        other: Extended<Self, X>,
-    ) -> Extended<Self, X> {
+    fn ex_posterior<X>(base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X> {
         let (s, o) = (
             base.value.map(WrapPrim::Base).map_err(WrapPrim::Base),
             other.value.map(WrapPrim::Other).map_err(WrapPrim::Other),
@@ -137,10 +122,10 @@ impl<C, X> DerefMut for Extended<C, X> {
 }
 impl<T: Extension, X> Coalesce for Extended<T, X> {
     fn prior(self, other: Self) -> Self {
-        T::extension_prior(self, other)
+        T::ex_prior(self, other)
     }
     fn posterior(self, other: Self) -> Self {
-        T::extension_posterior(self, other)
+        T::ex_posterior(self, other)
     }
 }
 
