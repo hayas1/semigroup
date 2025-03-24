@@ -48,11 +48,13 @@ impl Implementor {
     fn gen(&self) -> TokenStream {
         let impl_primitive = self.gen_primitive_owned();
         let impl_primitive_ref = self.gen_primitive_ref();
+        let impl_primitive_mut = self.gen_primitive_mut();
         let impl_ref = self.gen_ref();
         quote! {
             use crate::extension::{Extension, WithExt};
             #(#impl_primitive)*
             #(#impl_primitive_ref)*
+            #(#impl_primitive_mut)*
             #(#impl_ref)*
         }
     }
@@ -65,6 +67,12 @@ impl Implementor {
         self.primitives
             .iter()
             .map(|t| Type::Reference(parse_quote! {&#t}))
+            .map(Self::impl_coalesce_extension_primitive)
+    }
+    fn gen_primitive_mut<'a>(&'a self) -> impl 'a + Iterator<Item = TokenStream> {
+        self.primitives
+            .iter()
+            .map(|t| Type::Reference(parse_quote! {&mut #t}))
             .map(Self::impl_coalesce_extension_primitive)
     }
     fn gen_ref<'a>(&'a self) -> impl 'a + Iterator<Item = TokenStream> {

@@ -288,6 +288,150 @@ impl Extension for &f64 {
     }
 }
 #[doc = "Generated implementation"]
+impl Extension for &mut () {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut bool {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut char {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut String {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut u8 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut u16 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut u32 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut u64 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut u128 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut i8 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut i16 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut i32 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut i64 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut i128 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut f32 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut f64 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
 impl Extension for &str {
     fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
         other
