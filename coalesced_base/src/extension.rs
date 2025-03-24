@@ -23,31 +23,30 @@ impl<T: Extension> Coalesce for T {
         s.posterior(o).into()
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-enum WrapPrim<T> {
+enum ExEither<T> {
     Base(T),
     Other(T),
 }
 impl<T> Extension for Option<T> {
     fn ex_prior<X>(base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X> {
         let (s, o) = (
-            base.value.map(WrapPrim::Base),
-            other.value.map(WrapPrim::Other),
+            base.value.map(ExEither::Base),
+            other.value.map(ExEither::Other),
         );
         match o.or(s) {
-            Some(WrapPrim::Base(v)) => Some(v).with_extension(base.extension),
-            Some(WrapPrim::Other(v)) => Some(v).with_extension(other.extension),
+            Some(ExEither::Base(v)) => Some(v).with_extension(base.extension),
+            Some(ExEither::Other(v)) => Some(v).with_extension(other.extension),
             None => None.with_extension(other.extension),
         }
     }
     fn ex_posterior<X>(base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X> {
         let (s, o) = (
-            base.value.map(WrapPrim::Base),
-            other.value.map(WrapPrim::Other),
+            base.value.map(ExEither::Base),
+            other.value.map(ExEither::Other),
         );
         match s.or(o) {
-            Some(WrapPrim::Base(v)) => Some(v).with_extension(base.extension),
-            Some(WrapPrim::Other(v)) => Some(v).with_extension(other.extension),
+            Some(ExEither::Base(v)) => Some(v).with_extension(base.extension),
+            Some(ExEither::Other(v)) => Some(v).with_extension(other.extension),
             None => None.with_extension(base.extension),
         }
     }
@@ -55,26 +54,26 @@ impl<T> Extension for Option<T> {
 impl<T, E> Extension for Result<T, E> {
     fn ex_prior<X>(base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X> {
         let (s, o) = (
-            base.value.map(WrapPrim::Base).map_err(WrapPrim::Base),
-            other.value.map(WrapPrim::Other).map_err(WrapPrim::Other),
+            base.value.map(ExEither::Base).map_err(ExEither::Base),
+            other.value.map(ExEither::Other).map_err(ExEither::Other),
         );
         match o.or(s) {
-            Ok(WrapPrim::Base(v)) => Ok(v).with_extension(base.extension),
-            Ok(WrapPrim::Other(v)) => Ok(v).with_extension(other.extension),
-            Err(WrapPrim::Base(e)) => Err(e).with_extension(base.extension),
-            Err(WrapPrim::Other(e)) => Err(e).with_extension(other.extension),
+            Ok(ExEither::Base(v)) => Ok(v).with_extension(base.extension),
+            Ok(ExEither::Other(v)) => Ok(v).with_extension(other.extension),
+            Err(ExEither::Base(e)) => Err(e).with_extension(base.extension),
+            Err(ExEither::Other(e)) => Err(e).with_extension(other.extension),
         }
     }
     fn ex_posterior<X>(base: Extended<Self, X>, other: Extended<Self, X>) -> Extended<Self, X> {
         let (s, o) = (
-            base.value.map(WrapPrim::Base).map_err(WrapPrim::Base),
-            other.value.map(WrapPrim::Other).map_err(WrapPrim::Other),
+            base.value.map(ExEither::Base).map_err(ExEither::Base),
+            other.value.map(ExEither::Other).map_err(ExEither::Other),
         );
         match s.or(o) {
-            Ok(WrapPrim::Base(v)) => Ok(v).with_extension(base.extension),
-            Ok(WrapPrim::Other(v)) => Ok(v).with_extension(other.extension),
-            Err(WrapPrim::Base(e)) => Err(e).with_extension(other.extension),
-            Err(WrapPrim::Other(e)) => Err(e).with_extension(base.extension),
+            Ok(ExEither::Base(v)) => Ok(v).with_extension(base.extension),
+            Ok(ExEither::Other(v)) => Ok(v).with_extension(other.extension),
+            Err(ExEither::Base(e)) => Err(e).with_extension(other.extension),
+            Err(ExEither::Other(e)) => Err(e).with_extension(base.extension),
         }
     }
 }
