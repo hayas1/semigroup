@@ -1,4 +1,4 @@
-use crate::extension::{CoalesceExtension, Extension};
+use crate::extension::{Extension, WithExt};
 
 pub trait Coalesce {
     fn prior(self, other: Self) -> Self;
@@ -6,11 +6,11 @@ pub trait Coalesce {
 }
 
 pub trait CoalesceOther {}
-impl<T: CoalesceOther> CoalesceExtension for T {
-    fn ex_prior<X>(_base: Extension<Self, X>, other: Extension<Self, X>) -> Extension<Self, X> {
+impl<T: CoalesceOther> Extension for T {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
         other
     }
-    fn ex_posterior<X>(base: Extension<Self, X>, _other: Extension<Self, X>) -> Extension<Self, X> {
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
         base
     }
 }
