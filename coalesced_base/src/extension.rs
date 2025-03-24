@@ -10,7 +10,7 @@ pub trait Extension<T>: Sized {
     fn with_extension<X>(self, extension: X) -> Self::Output<X>;
 }
 impl<T> Extension<T> for Option<T> {
-    type Output<X> = Extended<Option<T>, X>;
+    type Output<X> = Extended<Self, X>;
     fn with_extension<X>(self, extension: X) -> Self::Output<X> {
         Extended {
             value: self,
@@ -19,7 +19,7 @@ impl<T> Extension<T> for Option<T> {
     }
 }
 impl<T, E> Extension<T> for Result<T, E> {
-    type Output<X> = Extended<Result<T, E>, X>;
+    type Output<X> = Extended<Self, X>;
     fn with_extension<X>(self, extension: X) -> Self::Output<X> {
         Extended {
             value: self,
