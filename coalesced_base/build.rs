@@ -2,7 +2,7 @@ use std::{fs, path::Path, process::Command};
 
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
-use syn::{parse_quote, Type};
+use syn::{parse_quote, Generics, Type};
 
 const GENERATED_RS: &str = "src/generated.rs";
 const RUSTFMT: &str = "rustfmt";
@@ -46,7 +46,7 @@ impl Implementor {
 }
 struct Target {
     ident: Type,
-    generics: TokenStream,
+    generics: Option<Generics>,
     owned: bool,
     reference: bool,
     mutable: bool,
@@ -97,7 +97,7 @@ impl Target {
     fn extension(ty: Type) -> Self {
         Self {
             ident: ty,
-            generics: TokenStream::new(),
+            generics: None,
             owned: true,
             reference: true,
             mutable: true,
@@ -107,7 +107,7 @@ impl Target {
     fn extension_ref_only(ty: Type) -> Self {
         Self {
             ident: ty,
-            generics: TokenStream::new(),
+            generics: None,
             owned: false,
             reference: true,
             mutable: false,
@@ -117,7 +117,7 @@ impl Target {
     fn extension_with_generics(ty: Type) -> Self {
         Self {
             ident: ty,
-            generics: parse_quote! {<T>},
+            generics: Some(parse_quote! {<T>}),
             owned: true,
             reference: true,
             mutable: true,
