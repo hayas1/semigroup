@@ -10,7 +10,6 @@ pub trait Extension: Sized {
         WithExt {
             value: self,
             extension,
-            _priv: (),
         }
     }
 }
@@ -89,22 +88,10 @@ impl<T, E> Extension for Result<T, E> {
 /// assert_eq!(*ext, Some(100));
 /// assert_eq!(ext.extension, "ext");
 /// ```
-///
-/// Any instance cannot be created directly.
-/// ```compile_fail
-/// use coalesced_base::extension::WithExt;
-/// let ext = WithExt {
-///     value: Some(100),
-///     extension: "ext",
-///     _priv: (),
-/// };
-/// assert_eq!(*ext, Some(100));
-/// ```
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct WithExt<T, X> {
     pub value: T,
     pub extension: X,
-    _priv: (),
 }
 impl<T, X> Deref for WithExt<T, X> {
     type Target = T;
