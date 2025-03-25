@@ -8,7 +8,7 @@ const GENERATED_RS: &str = "src/generated.rs";
 const RUSTFMT: &str = "rustfmt";
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let targets = Target::targets().map(Target::implement);
+    let targets = Target::targets().into_iter().map(Target::implement);
     let generated_impl = Implementor::generate(targets);
     let generated_rs = Path::new(GENERATED_RS);
     fs::write(generated_rs, generated_impl.to_string())?;
@@ -87,108 +87,239 @@ impl Target {
             #mut_impl
         }
     }
-    fn targets() -> impl Iterator<Item = Self> {
-        let primitives = Self::primitives().into_iter().map(Self::extension);
-        let reference = Self::reference().into_iter().map(Self::extension_ref_only);
-        let wrap = Self::wrap().into_iter().map(Self::extension_with_generics);
-        let std = Self::std().into_iter().map(Self::extension);
-        primitives.chain(reference).chain(wrap).chain(std)
-    }
-    fn extension(ty: Type) -> Self {
+
+    fn new_extension(
+        ident: Type,
+        generics: Option<Generics>,
+        owned: bool,
+        reference: bool,
+        mutable: bool,
+    ) -> Self {
+        let implementor = Implementor::Extension;
         Self {
-            ident: ty,
-            generics: None,
-            owned: true,
-            reference: true,
-            mutable: true,
-            implementor: Implementor::Extension,
+            ident,
+            generics,
+            owned,
+            reference,
+            mutable,
+            implementor,
         }
     }
-    fn extension_ref_only(ty: Type) -> Self {
-        Self {
-            ident: ty,
-            generics: None,
-            owned: false,
-            reference: true,
-            mutable: false,
-            implementor: Implementor::Extension,
-        }
-    }
-    fn extension_with_generics(ty: Type) -> Self {
-        Self {
-            ident: ty,
-            generics: Some(parse_quote! {<T>}),
-            owned: true,
-            reference: true,
-            mutable: true,
-            implementor: Implementor::Extension,
-        }
-    }
-    fn primitives() -> Vec<Type> {
+
+    fn targets() -> Vec<Self> {
         vec![
-            parse_quote! {()},
-            parse_quote! {bool},
-            parse_quote! {char},
-            parse_quote! {String},
-            parse_quote! {u8},
-            parse_quote! {u16},
-            parse_quote! {u32},
-            parse_quote! {u64},
-            parse_quote! {u128},
-            parse_quote! {i8},
-            parse_quote! {i16},
-            parse_quote! {i32},
-            parse_quote! {i64},
-            parse_quote! {i128},
-            parse_quote! {f32},
-            parse_quote! {f64},
-        ]
-    }
-    fn reference() -> Vec<Type> {
-        vec![parse_quote! {str}, parse_quote! {std::path::Path}]
-    }
-    fn wrap() -> Vec<Type> {
-        vec![
-            parse_quote! {std::marker::PhantomData},
-            parse_quote! {Box},
-            parse_quote! {std::rc::Rc},
-            parse_quote! {std::rc::Weak},
-            parse_quote! {std::sync::Arc},
-            parse_quote! {std::sync::Weak},
-            parse_quote! {std::sync::Mutex},
-            parse_quote! {std::sync::RwLock},
-            parse_quote! {std::cell::Cell},
-            parse_quote! {std::cell::RefCell},
-            parse_quote! {std::num::Saturating},
-            parse_quote! {std::num::Wrapping},
-            parse_quote! {std::cmp::Reverse},
-        ]
-    }
-    fn std() -> Vec<Type> {
-        vec![
-            parse_quote! {std::time::Duration},
-            parse_quote! {std::time::Instant},
-            parse_quote! {std::time::SystemTime},
-            parse_quote! {std::net::IpAddr},
-            parse_quote! {std::net::Ipv4Addr},
-            parse_quote! {std::net::Ipv6Addr},
-            parse_quote! {std::net::SocketAddr},
-            parse_quote! {std::net::SocketAddrV4},
-            parse_quote! {std::net::SocketAddrV6},
-            parse_quote! {std::path::PathBuf},
-            parse_quote! {std::sync::atomic::AtomicBool},
-            parse_quote! {std::sync::atomic::AtomicIsize},
-            parse_quote! {std::sync::atomic::AtomicI8},
-            parse_quote! {std::sync::atomic::AtomicI16},
-            parse_quote! {std::sync::atomic::AtomicI32},
-            parse_quote! {std::sync::atomic::AtomicI64},
-            parse_quote! {std::sync::atomic::AtomicUsize},
-            parse_quote! {std::sync::atomic::AtomicU8},
-            parse_quote! {std::sync::atomic::AtomicU16},
-            parse_quote! {std::sync::atomic::AtomicU32},
-            parse_quote! {std::sync::atomic::AtomicU64},
-            parse_quote! {std::ffi::OsString},
-            parse_quote! {std::ffi::CString},
+            Self::new_extension(parse_quote! {()}, None, true, true, true),
+            Self::new_extension(parse_quote! {bool}, None, true, true, true),
+            Self::new_extension(parse_quote! {char}, None, true, true, true),
+            Self::new_extension(parse_quote! {String}, None, true, true, true),
+            Self::new_extension(parse_quote! {u8}, None, true, true, true),
+            Self::new_extension(parse_quote! {u16}, None, true, true, true),
+            Self::new_extension(parse_quote! {u32}, None, true, true, true),
+            Self::new_extension(parse_quote! {u64}, None, true, true, true),
+            Self::new_extension(parse_quote! {u128}, None, true, true, true),
+            Self::new_extension(parse_quote! {i8}, None, true, true, true),
+            Self::new_extension(parse_quote! {i16}, None, true, true, true),
+            Self::new_extension(parse_quote! {i32}, None, true, true, true),
+            Self::new_extension(parse_quote! {i64}, None, true, true, true),
+            Self::new_extension(parse_quote! {i128}, None, true, true, true),
+            Self::new_extension(parse_quote! {f32}, None, true, true, true),
+            Self::new_extension(parse_quote! {f64}, None, true, true, true),
+            Self::new_extension(parse_quote! {str}, None, false, true, false),
+            Self::new_extension(parse_quote! {std::path::Path}, None, false, true, false),
+            Self::new_extension(parse_quote! {std::path::PathBuf}, None, true, true, true),
+            Self::new_extension(parse_quote! {std::time::Duration}, None, true, true, true),
+            Self::new_extension(parse_quote! {std::time::Instant}, None, true, true, true),
+            Self::new_extension(parse_quote! {std::time::SystemTime}, None, true, true, true),
+            Self::new_extension(parse_quote! {std::net::IpAddr}, None, true, true, true),
+            Self::new_extension(parse_quote! {std::net::Ipv4Addr}, None, true, true, true),
+            Self::new_extension(parse_quote! {std::net::Ipv6Addr}, None, true, true, true),
+            Self::new_extension(parse_quote! {std::net::SocketAddr}, None, true, true, true),
+            Self::new_extension(
+                parse_quote! {std::net::SocketAddrV4},
+                None,
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {std::net::SocketAddrV6},
+                None,
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {std::sync::atomic::AtomicBool},
+                None,
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {std::sync::atomic::AtomicIsize},
+                None,
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {std::sync::atomic::AtomicI8},
+                None,
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {std::sync::atomic::AtomicI16},
+                None,
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {std::sync::atomic::AtomicI32},
+                None,
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {std::sync::atomic::AtomicI64},
+                None,
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {std::sync::atomic::AtomicUsize},
+                None,
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {std::sync::atomic::AtomicU8},
+                None,
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {std::sync::atomic::AtomicU16},
+                None,
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {std::sync::atomic::AtomicU32},
+                None,
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {std::sync::atomic::AtomicU64},
+                None,
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(parse_quote! {std::ffi::OsStr}, None, false, true, false),
+            Self::new_extension(parse_quote! {std::ffi::OsString}, None, true, true, true),
+            Self::new_extension(parse_quote! {std::ffi::CStr}, None, false, true, false),
+            Self::new_extension(parse_quote! {std::ffi::CString}, None, true, true, true),
+            Self::new_extension(
+                parse_quote! {std::marker::PhantomData},
+                Some(parse_quote! {<T>}),
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {Box},
+                Some(parse_quote! {<T>}),
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {std::rc::Rc},
+                Some(parse_quote! {<T>}),
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {std::rc::Weak},
+                Some(parse_quote! {<T>}),
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {std::sync::Arc},
+                Some(parse_quote! {<T>}),
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {std::sync::Weak},
+                Some(parse_quote! {<T>}),
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {std::sync::Mutex},
+                Some(parse_quote! {<T>}),
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {std::sync::RwLock},
+                Some(parse_quote! {<T>}),
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {std::cell::Cell},
+                Some(parse_quote! {<T>}),
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {std::cell::RefCell},
+                Some(parse_quote! {<T>}),
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {std::num::Saturating},
+                Some(parse_quote! {<T>}),
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {std::num::Wrapping},
+                Some(parse_quote! {<T>}),
+                true,
+                true,
+                true,
+            ),
+            Self::new_extension(
+                parse_quote! {std::cmp::Reverse},
+                Some(parse_quote! {<T>}),
+                true,
+                true,
+                true,
+            ),
         ]
     }
 }

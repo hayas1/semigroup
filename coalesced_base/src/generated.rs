@@ -450,6 +450,645 @@ impl Extension for &std::path::Path {
     }
 }
 #[doc = "Generated implementation"]
+impl Extension for std::path::PathBuf {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::path::PathBuf {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut std::path::PathBuf {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for std::time::Duration {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::time::Duration {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut std::time::Duration {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for std::time::Instant {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::time::Instant {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut std::time::Instant {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for std::time::SystemTime {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::time::SystemTime {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut std::time::SystemTime {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for std::net::IpAddr {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::net::IpAddr {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut std::net::IpAddr {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for std::net::Ipv4Addr {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::net::Ipv4Addr {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut std::net::Ipv4Addr {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for std::net::Ipv6Addr {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::net::Ipv6Addr {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut std::net::Ipv6Addr {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for std::net::SocketAddr {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::net::SocketAddr {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut std::net::SocketAddr {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for std::net::SocketAddrV4 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::net::SocketAddrV4 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut std::net::SocketAddrV4 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for std::net::SocketAddrV6 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::net::SocketAddrV6 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut std::net::SocketAddrV6 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for std::sync::atomic::AtomicBool {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::sync::atomic::AtomicBool {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut std::sync::atomic::AtomicBool {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for std::sync::atomic::AtomicIsize {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::sync::atomic::AtomicIsize {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut std::sync::atomic::AtomicIsize {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for std::sync::atomic::AtomicI8 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::sync::atomic::AtomicI8 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut std::sync::atomic::AtomicI8 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for std::sync::atomic::AtomicI16 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::sync::atomic::AtomicI16 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut std::sync::atomic::AtomicI16 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for std::sync::atomic::AtomicI32 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::sync::atomic::AtomicI32 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut std::sync::atomic::AtomicI32 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for std::sync::atomic::AtomicI64 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::sync::atomic::AtomicI64 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut std::sync::atomic::AtomicI64 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for std::sync::atomic::AtomicUsize {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::sync::atomic::AtomicUsize {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut std::sync::atomic::AtomicUsize {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for std::sync::atomic::AtomicU8 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::sync::atomic::AtomicU8 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut std::sync::atomic::AtomicU8 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for std::sync::atomic::AtomicU16 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::sync::atomic::AtomicU16 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut std::sync::atomic::AtomicU16 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for std::sync::atomic::AtomicU32 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::sync::atomic::AtomicU32 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut std::sync::atomic::AtomicU32 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for std::sync::atomic::AtomicU64 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::sync::atomic::AtomicU64 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut std::sync::atomic::AtomicU64 {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::ffi::OsStr {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for std::ffi::OsString {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::ffi::OsString {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut std::ffi::OsString {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::ffi::CStr {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for std::ffi::CString {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &std::ffi::CString {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl Extension for &mut std::ffi::CString {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
 impl<T> Extension for std::marker::PhantomData<T> {
     fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
         other
@@ -793,627 +1432,6 @@ impl<T> Extension for &std::cmp::Reverse<T> {
 }
 #[doc = "Generated implementation"]
 impl<T> Extension for &mut std::cmp::Reverse<T> {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for std::time::Duration {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &std::time::Duration {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &mut std::time::Duration {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for std::time::Instant {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &std::time::Instant {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &mut std::time::Instant {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for std::time::SystemTime {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &std::time::SystemTime {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &mut std::time::SystemTime {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for std::net::IpAddr {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &std::net::IpAddr {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &mut std::net::IpAddr {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for std::net::Ipv4Addr {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &std::net::Ipv4Addr {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &mut std::net::Ipv4Addr {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for std::net::Ipv6Addr {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &std::net::Ipv6Addr {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &mut std::net::Ipv6Addr {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for std::net::SocketAddr {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &std::net::SocketAddr {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &mut std::net::SocketAddr {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for std::net::SocketAddrV4 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &std::net::SocketAddrV4 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &mut std::net::SocketAddrV4 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for std::net::SocketAddrV6 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &std::net::SocketAddrV6 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &mut std::net::SocketAddrV6 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for std::path::PathBuf {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &std::path::PathBuf {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &mut std::path::PathBuf {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for std::sync::atomic::AtomicBool {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &std::sync::atomic::AtomicBool {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &mut std::sync::atomic::AtomicBool {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for std::sync::atomic::AtomicIsize {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &std::sync::atomic::AtomicIsize {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &mut std::sync::atomic::AtomicIsize {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for std::sync::atomic::AtomicI8 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &std::sync::atomic::AtomicI8 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &mut std::sync::atomic::AtomicI8 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for std::sync::atomic::AtomicI16 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &std::sync::atomic::AtomicI16 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &mut std::sync::atomic::AtomicI16 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for std::sync::atomic::AtomicI32 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &std::sync::atomic::AtomicI32 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &mut std::sync::atomic::AtomicI32 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for std::sync::atomic::AtomicI64 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &std::sync::atomic::AtomicI64 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &mut std::sync::atomic::AtomicI64 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for std::sync::atomic::AtomicUsize {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &std::sync::atomic::AtomicUsize {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &mut std::sync::atomic::AtomicUsize {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for std::sync::atomic::AtomicU8 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &std::sync::atomic::AtomicU8 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &mut std::sync::atomic::AtomicU8 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for std::sync::atomic::AtomicU16 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &std::sync::atomic::AtomicU16 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &mut std::sync::atomic::AtomicU16 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for std::sync::atomic::AtomicU32 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &std::sync::atomic::AtomicU32 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &mut std::sync::atomic::AtomicU32 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for std::sync::atomic::AtomicU64 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &std::sync::atomic::AtomicU64 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &mut std::sync::atomic::AtomicU64 {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for std::ffi::OsString {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &std::ffi::OsString {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &mut std::ffi::OsString {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for std::ffi::CString {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &std::ffi::CString {
-    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
-        other
-    }
-    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
-        base
-    }
-}
-#[doc = "Generated implementation"]
-impl Extension for &mut std::ffi::CString {
     fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
         other
     }
