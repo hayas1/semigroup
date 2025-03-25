@@ -91,7 +91,8 @@ impl Target {
         let primitives = Self::primitives().into_iter().map(Self::extension);
         let reference = Self::reference().into_iter().map(Self::extension_ref_only);
         let wrap = Self::wrap().into_iter().map(Self::extension_with_generics);
-        primitives.chain(reference).chain(wrap)
+        let std = Self::std().into_iter().map(Self::extension);
+        primitives.chain(reference).chain(wrap).chain(std)
     }
     fn extension(ty: Type) -> Self {
         Self {
@@ -161,6 +162,33 @@ impl Target {
             parse_quote! {std::num::Saturating},
             parse_quote! {std::num::Wrapping},
             parse_quote! {std::cmp::Reverse},
+        ]
+    }
+    fn std() -> Vec<Type> {
+        vec![
+            parse_quote! {std::time::Duration},
+            parse_quote! {std::time::Instant},
+            parse_quote! {std::time::SystemTime},
+            parse_quote! {std::net::IpAddr},
+            parse_quote! {std::net::Ipv4Addr},
+            parse_quote! {std::net::Ipv6Addr},
+            parse_quote! {std::net::SocketAddr},
+            parse_quote! {std::net::SocketAddrV4},
+            parse_quote! {std::net::SocketAddrV6},
+            parse_quote! {std::path::PathBuf},
+            parse_quote! {std::sync::atomic::AtomicBool},
+            parse_quote! {std::sync::atomic::AtomicIsize},
+            parse_quote! {std::sync::atomic::AtomicI8},
+            parse_quote! {std::sync::atomic::AtomicI16},
+            parse_quote! {std::sync::atomic::AtomicI32},
+            parse_quote! {std::sync::atomic::AtomicI64},
+            parse_quote! {std::sync::atomic::AtomicUsize},
+            parse_quote! {std::sync::atomic::AtomicU8},
+            parse_quote! {std::sync::atomic::AtomicU16},
+            parse_quote! {std::sync::atomic::AtomicU32},
+            parse_quote! {std::sync::atomic::AtomicU64},
+            parse_quote! {std::ffi::OsString},
+            parse_quote! {std::ffi::CString},
         ]
     }
 }
