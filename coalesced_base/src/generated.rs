@@ -449,3 +449,354 @@ impl Extension for &std::path::Path {
         base
     }
 }
+#[doc = "Generated implementation"]
+impl<T> Extension for std::marker::PhantomData<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for Box<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for std::rc::Rc<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for std::rc::Weak<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for std::sync::Arc<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for std::sync::Weak<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for std::sync::Mutex<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for std::sync::RwLock<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for std::cell::Cell<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for std::cell::RefCell<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for std::num::Saturating<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for std::num::Wrapping<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for std::cmp::Reverse<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &std::marker::PhantomData<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &Box<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &std::rc::Rc<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &std::rc::Weak<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &std::sync::Arc<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &std::sync::Weak<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &std::sync::Mutex<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &std::sync::RwLock<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &std::cell::Cell<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &std::cell::RefCell<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &std::num::Saturating<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &std::num::Wrapping<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &std::cmp::Reverse<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &mut std::marker::PhantomData<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &mut Box<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &mut std::rc::Rc<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &mut std::rc::Weak<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &mut std::sync::Arc<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &mut std::sync::Weak<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &mut std::sync::Mutex<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &mut std::sync::RwLock<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &mut std::cell::Cell<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &mut std::cell::RefCell<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &mut std::num::Saturating<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &mut std::num::Wrapping<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<T> Extension for &mut std::cmp::Reverse<T> {
+    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+        other
+    }
+    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+        base
+    }
+}

@@ -22,12 +22,18 @@ impl ExtensionImplementor {
         let impl_primitive_ref = targets.primitive_ref().map(Self::basic_priority);
         let impl_primitive_mut = targets.primitive_mut().map(Self::basic_priority);
         let impl_slice_ref = targets.slice_ref().map(Self::basic_priority);
+        let impl_wrap_owned = targets.wrap_owned().map(Self::basic_generics_priority);
+        let impl_wrap_ref = targets.wrap_ref().map(Self::basic_generics_priority);
+        let impl_wrap_mut = targets.wrap_mut().map(Self::basic_generics_priority);
         quote! {
             use crate::extension::{Extension, WithExt};
             #(#impl_primitive)*
             #(#impl_primitive_ref)*
             #(#impl_primitive_mut)*
             #(#impl_slice_ref)*
+            #(#impl_wrap_owned)*
+            #(#impl_wrap_ref)*
+            #(#impl_wrap_mut)*
         }
     }
     fn basic_priority<T: ToTokens>(ident: T) -> TokenStream {
@@ -43,11 +49,25 @@ impl ExtensionImplementor {
             }
         }
     }
+    fn basic_generics_priority<T: ToTokens>(ident: T) -> TokenStream {
+        quote! {
+            #[doc = "Generated implementation"]
+            impl<T> Extension for #ident<T> {
+                fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+                    other
+                }
+                fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+                    base
+                }
+            }
+        }
+    }
 }
 
 struct ExtensionTargets {
     primitives: Vec<Type>,
     reference: Vec<Type>,
+    wrap: Vec<Type>,
 }
 impl Default for ExtensionTargets {
     fn default() -> Self {
@@ -71,6 +91,21 @@ impl Default for ExtensionTargets {
                 parse_quote! {f64},
             ],
             reference: vec![parse_quote! {str}, parse_quote! {std::path::Path}],
+            wrap: vec![
+                parse_quote! {std::marker::PhantomData},
+                parse_quote! {Box},
+                parse_quote! {std::rc::Rc},
+                parse_quote! {std::rc::Weak},
+                parse_quote! {std::sync::Arc},
+                parse_quote! {std::sync::Weak},
+                parse_quote! {std::sync::Mutex},
+                parse_quote! {std::sync::RwLock},
+                parse_quote! {std::cell::Cell},
+                parse_quote! {std::cell::RefCell},
+                parse_quote! {std::num::Saturating},
+                parse_quote! {std::num::Wrapping},
+                parse_quote! {std::cmp::Reverse},
+            ],
         }
     }
 }
@@ -92,5 +127,18 @@ impl ExtensionTargets {
         self.reference
             .iter()
             .map(|t| Type::Reference(parse_quote! {&#t}))
+    }
+    fn wrap_owned<'a>(&'a self) -> impl 'a + Iterator<Item = &Type> {
+        self.wrap.iter()
+    }
+    fn wrap_ref<'a>(&'a self) -> impl 'a + Iterator<Item = Type> {
+        self.wrap
+            .iter()
+            .map(|t| Type::Reference(parse_quote! {&#t}))
+    }
+    fn wrap_mut<'a>(&'a self) -> impl 'a + Iterator<Item = Type> {
+        self.wrap
+            .iter()
+            .map(|t| Type::Reference(parse_quote! {&mut #t}))
     }
 }
