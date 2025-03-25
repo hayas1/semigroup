@@ -100,5 +100,6 @@ mod tests {
     fn test_coalesce_ref() {
         assert_eq!(&0, (&0).prior(&0));
         assert_eq!(&false, (&false).posterior(&true));
+        assert_eq!(&"str", &(&"string").prior(&"str"));
     }
 }
