@@ -10,8 +10,8 @@ const RUSTFMT: &str = "rustfmt";
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let generated_impl = ExtensionImplementor::implement(&ExtensionTargets::default());
     let generated_rs = Path::new(GENERATED_RS);
-    fs::write(&generated_rs, generated_impl.to_string())?;
-    Command::new(RUSTFMT).arg(&generated_rs).status()?;
+    fs::write(generated_rs, generated_impl.to_string())?;
+    Command::new(RUSTFMT).arg(generated_rs).status()?;
     Ok(())
 }
 
@@ -110,33 +110,33 @@ impl Default for ExtensionTargets {
     }
 }
 impl ExtensionTargets {
-    fn primitive_owned<'a>(&'a self) -> impl 'a + Iterator<Item = &Type> {
+    fn primitive_owned(&self) -> impl '_ + Iterator<Item = &Type> {
         self.primitives.iter()
     }
-    fn primitive_ref<'a>(&'a self) -> impl 'a + Iterator<Item = Type> {
+    fn primitive_ref(&self) -> impl '_ + Iterator<Item = Type> {
         self.primitives
             .iter()
             .map(|t| Type::Reference(parse_quote! {&#t}))
     }
-    fn primitive_mut<'a>(&'a self) -> impl 'a + Iterator<Item = Type> {
+    fn primitive_mut(&self) -> impl '_ + Iterator<Item = Type> {
         self.primitives
             .iter()
             .map(|t| Type::Reference(parse_quote! {&mut #t}))
     }
-    fn slice_ref<'a>(&'a self) -> impl 'a + Iterator<Item = Type> {
+    fn slice_ref(&self) -> impl '_ + Iterator<Item = Type> {
         self.reference
             .iter()
             .map(|t| Type::Reference(parse_quote! {&#t}))
     }
-    fn wrap_owned<'a>(&'a self) -> impl 'a + Iterator<Item = &Type> {
+    fn wrap_owned(&self) -> impl '_ + Iterator<Item = &Type> {
         self.wrap.iter()
     }
-    fn wrap_ref<'a>(&'a self) -> impl 'a + Iterator<Item = Type> {
+    fn wrap_ref(&self) -> impl '_ + Iterator<Item = Type> {
         self.wrap
             .iter()
             .map(|t| Type::Reference(parse_quote! {&#t}))
     }
-    fn wrap_mut<'a>(&'a self) -> impl 'a + Iterator<Item = Type> {
+    fn wrap_mut(&self) -> impl '_ + Iterator<Item = Type> {
         self.wrap
             .iter()
             .map(|t| Type::Reference(parse_quote! {&mut #t}))
