@@ -9,7 +9,7 @@ license-file = "LICENSE"
 readme = "README.md"
 
 [workspace]
-members = ["coalesced_core", "coalesced_derive", "coalesced_base"]
+members = ["coalesced_derive", "coalesced_base"]
 
 [package]
 name = "coalesced"
