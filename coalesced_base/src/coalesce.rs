@@ -3,6 +3,15 @@ pub trait Coalesce {
     fn posterior(self, other: Self) -> Self;
 }
 
+// impl<T> Coalesce for T {
+//     default fn prior(self, other: Self) -> Self {
+//         self
+//     }
+//     default fn posterior(self, other: Self) -> Self {
+//         other
+//     }
+// }
+
 #[cfg(test)]
 mod tests {
     use super::*;

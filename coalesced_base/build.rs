@@ -7,6 +7,7 @@ use syn::{parse_quote, Generics, Type};
 const GENERATED_RS: &str = "src/generated.rs";
 const RUSTFMT: &str = "rustfmt";
 
+// TODO specialization https://rust-lang.github.io/rfcs/1210-impl-specialization.html
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let targets = Target::targets().into_iter().map(Target::implement);
     let generated_impl = Implementor::generate(targets);
