@@ -29,6 +29,19 @@ impl Coalesce for UnnamedStruct {
 }
 
 // #[derive(Coalesce)]
+struct UnitStruct;
+impl Coalesce for UnitStruct {
+    fn prior(self, other: Self) -> Self {
+        let _ = self;
+        other
+    }
+    fn posterior(self, other: Self) -> Self {
+        let _ = other;
+        self
+    }
+}
+
+// #[derive(Coalesce)]
 enum CompoundEnum {
     Unit,
     Named { value: i32 },
@@ -71,6 +84,13 @@ fn test_unnamed_struct() {
     let a = UnnamedStruct(1);
     let b = UnnamedStruct(2);
     assert!(matches!(a.prior(b), UnnamedStruct(2)));
+}
+
+#[test]
+fn test_unit_struct() {
+    let a = UnitStruct;
+    let b = UnitStruct;
+    assert!(matches!(a.prior(b), UnitStruct));
 }
 
 #[test]
