@@ -28,7 +28,7 @@ impl Implementor {
         }
     }
 
-    fn basic_implement<I: ToTokens, G: ToTokens>(&self, ident: I, generics: G) -> TokenStream {
+    fn basic_implement(&self, ident: impl ToTokens, generics: impl ToTokens) -> TokenStream {
         match self {
             Self::Extension => quote! {
                 #[doc = "Generated implementation"]
