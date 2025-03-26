@@ -7,7 +7,7 @@ struct Config {
 }
 
 #[test]
-fn test_derive_compile() {
+fn test_derive_named_fields_struct() {
     let config = Config {
         name: "c1",
         value: Some(1),
