@@ -1,13 +1,13 @@
 use coalesced::Coalesce;
 
 #[derive(Coalesce)]
-struct Config {
+struct Config<T> {
     name: &'static str,
-    value: Option<u32>,
+    value: Option<T>,
 }
 
 #[test]
-fn test_derive_named_fields_struct() {
+fn test_derive_generics_named_fields_struct() {
     let config = Config {
         name: "c1",
         value: Some(1),

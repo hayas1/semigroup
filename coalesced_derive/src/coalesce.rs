@@ -25,15 +25,17 @@ impl CoalesceImplementor {
     }
 
     fn implement_struct(&self, s: &DataStruct) -> TokenStream {
+        let DeriveInput {
+            ident, generics, ..
+        } = &self.input;
         match &s.fields {
             Fields::Named(f) => {
-                let DeriveInput { ident, .. } = &self.input;
                 let (prior, posterior) = (
                     self.implement_named_prior_snippet(f),
                     self.implement_named_posterior_snippet(f),
                 );
                 quote! {
-                    impl ::coalesced::Coalesce for #ident {
+                    impl #generics ::coalesced::Coalesce for #ident #generics {
                         fn prior(self, other: Self) -> Self {
                             Self { #prior }
                         }
