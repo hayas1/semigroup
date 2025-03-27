@@ -30,54 +30,62 @@ impl CoalesceImplementor {
         } = &self.input;
         let (g_impl, g_type, g_where) = generics.split_for_impl();
 
-        match &s.fields {
-            Fields::Named(f) => {
-                let (prior, posterior) = (
-                    self.implement_named_prior_snippet(f),
-                    self.implement_named_posterior_snippet(f),
-                );
-                quote! {
-                    impl #g_impl ::coalesced::Coalesce for #ident #g_type #g_where {
-                        fn prior(self, other: Self) -> Self {
-                            Self { #prior }
-                        }
-                        fn posterior(self, other: Self) -> Self {
-                            Self { #posterior }
-                        }
-                    }
+        let (prior, posterior) = (
+            self.implement_struct_prior(s),
+            self.implement_struct_posterior(s),
+        );
+        quote! {
+            impl #g_impl ::coalesced::Coalesce for #ident #g_type #g_where {
+                fn prior(self, other: Self) -> Self {
+                    #prior
+                }
+                fn posterior(self, other: Self) -> Self {
+                    #posterior
                 }
             }
-            Fields::Unnamed(f) => {
-                let (prior, posterior) = (
-                    self.implement_unnamed_prior_snippet(f),
-                    self.implement_unnamed_posterior_snippet(f),
-                );
-                quote! {
-                    impl #g_impl ::coalesced::Coalesce for #ident #g_type #g_where {
-                        fn prior(self, other: Self) -> Self {
-                            Self( #prior )
-                        }
-                        fn posterior(self, other: Self) -> Self {
-                            Self( #posterior )
-                        }
-                    }
-                }
-            }
-            Fields::Unit => quote! {
-                impl #g_impl ::coalesced::Coalesce for #ident #g_type #g_where {
-                    fn prior(self, other: Self) -> Self {
-                        let _ = self;
-                        other
-                    }
-                    fn posterior(self, other: Self) -> Self {
-                        let _ = other;
-                        self
-                    }
-                }
-            },
         }
     }
 
+    fn implement_struct_prior(&self, s: &DataStruct) -> TokenStream {
+        match &s.fields {
+            Fields::Named(f) => {
+                let snippet = self.implement_named_prior_snippet(f);
+                quote! {
+                    Self { #snippet }
+                }
+            }
+            Fields::Unnamed(f) => {
+                let snippet = self.implement_unnamed_prior_snippet(f);
+                quote! {
+                    Self( #snippet )
+                }
+            }
+            Fields::Unit => quote! {
+                let _ = self;
+                other
+            },
+        }
+    }
+    fn implement_struct_posterior(&self, s: &DataStruct) -> TokenStream {
+        match &s.fields {
+            Fields::Named(f) => {
+                let snippet = self.implement_named_posterior_snippet(f);
+                quote! {
+                    Self { #snippet }
+                }
+            }
+            Fields::Unnamed(f) => {
+                let snippet = self.implement_unnamed_posterior_snippet(f);
+                quote! {
+                    Self( #snippet )
+                }
+            }
+            Fields::Unit => quote! {
+                let _ = other;
+                self
+            },
+        }
+    }
     fn implement_named_prior_snippet(&self, f: &FieldsNamed) -> TokenStream {
         let fields: Vec<_> = f.named.iter().map(|f| &f.ident).collect();
         quote! {
