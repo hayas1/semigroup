@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{Data, DataStruct, DeriveInput, Fields, FieldsNamed};
+use syn::{Data, DataStruct, DeriveInput, Fields, FieldsNamed, FieldsUnnamed};
 
 use crate::error::DeriveError;
 
@@ -47,7 +47,22 @@ impl CoalesceImplementor {
                     }
                 }
             }
-            Fields::Unnamed(_) => todo!(),
+            Fields::Unnamed(f) => {
+                let (prior, posterior) = (
+                    self.implement_unnamed_prior_snippet(f),
+                    self.implement_unnamed_posterior_snippet(f),
+                );
+                quote! {
+                    impl #g_impl ::coalesced::Coalesce for #ident #g_type #g_where {
+                        fn prior(self, other: Self) -> Self {
+                            Self( #prior )
+                        }
+                        fn posterior(self, other: Self) -> Self {
+                            Self( #posterior )
+                        }
+                    }
+                }
+            }
             Fields::Unit => todo!(),
         }
     }
@@ -62,6 +77,19 @@ impl CoalesceImplementor {
         let fields: Vec<_> = f.named.iter().map(|f| &f.ident).collect();
         quote! {
             #(#fields: self.#fields.prior(other.#fields)),*
+        }
+    }
+
+    fn implement_unnamed_prior_snippet(&self, f: &FieldsUnnamed) -> TokenStream {
+        let enumerates: Vec<_> = f.unnamed.iter().enumerate().map(|(i, _)| i).collect();
+        quote! {
+            #(self.#enumerates.prior(other.#enumerates)),*
+        }
+    }
+    fn implement_unnamed_posterior_snippet(&self, f: &FieldsUnnamed) -> TokenStream {
+        let enumerates: Vec<_> = f.unnamed.iter().enumerate().map(|(i, _)| i).collect();
+        quote! {
+            #(self.#enumerates.posterior(other.#enumerates)),*
         }
     }
 }
