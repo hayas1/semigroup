@@ -118,6 +118,7 @@ name = "coalesced_derive"
 version = "0.1.0"
 dependencies = [
  "coalesced",
+ "proc-macro2",
  "quote",
  "syn",
  "trybuild",

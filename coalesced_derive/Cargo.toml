@@ -14,6 +14,7 @@ proc-macro = true
 default = ["syn/extra-traits"] # TODO developing
 
 [dependencies]
+proc-macro2 = "1.0.94"
 quote = "1.0.39"
 syn = "2.0.100"
 
