@@ -14,30 +14,27 @@ enum Method {
 impl ToTokens for Method {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let ident: Ident = match self {
-            Method::Prior => parse_quote! { prior },
-            Method::Posterior => parse_quote! { posterior },
+            Self::Prior => parse_quote! { prior },
+            Self::Posterior => parse_quote! { posterior },
         };
         tokens.extend(ident.into_token_stream())
     }
 }
 enum Target {
-    Base(Ident),
-    Other(Ident),
+    Base,
+    Other,
 }
 impl ToTokens for Target {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let ident: Ident = match self {
-            Target::Base(ident) => ident.clone(),
-            Target::Other(ident) => ident.clone(),
-        };
-        tokens.extend(ident.into_token_stream())
+        tokens.extend(self.ident().into_token_stream())
     }
 }
 impl Target {
-    fn ident(&self) -> &Ident {
+    fn ident(&self) -> TokenStream {
+        // Ident
         match self {
-            Target::Base(ident) => ident,
-            Target::Other(ident) => ident,
+            Self::Base => parse_quote! { self }, // TODO keyword `self` cannot be used as Ident
+            Self::Other => parse_quote! { other },
         }
     }
 }
@@ -119,14 +116,8 @@ impl CoalesceImplementor {
                 Fields::Named(f) => {
                     // let snippet = self.snippet_fields_named(f, p);
                     let ((base, base_fields, base_var), (other, _other_fields, other_var)) = (
-                        self.snippet_fields_named_binding(
-                            f,
-                            &Target::Base(Ident::new("base", f.span())),
-                        ),
-                        self.snippet_fields_named_binding(
-                            f,
-                            &Target::Other(Ident::new("other", f.span())),
-                        ),
+                        self.snippet_fields_named_binding(f, &Target::Base),
+                        self.snippet_fields_named_binding(f, &Target::Other),
                     );
                     quote! {
                         (Self::#ident { #base }, Self::#ident { #other }) => { Self::#ident { #(#base_fields: #base_var.#p(#other_var)),* } }
@@ -135,14 +126,8 @@ impl CoalesceImplementor {
                 Fields::Unnamed(f) => {
                     // let snippet = self.snippet_fields_unnamed(f, p);
                     let ((base, base_var), (other, other_var)) = (
-                        self.snippet_fields_unnamed_binding(
-                            f,
-                            &Target::Base(Ident::new("base", f.span())),
-                        ),
-                        self.snippet_fields_unnamed_binding(
-                            f,
-                            &Target::Other(Ident::new("other", f.span())),
-                        ),
+                        self.snippet_fields_unnamed_binding(f, &Target::Base),
+                        self.snippet_fields_unnamed_binding(f, &Target::Other),
                     );
                     quote! {
                         (Self::#ident( #base ), Self::#ident( #other )) => { Self::#ident( #(#base_var.#p(#other_var)),* ) }

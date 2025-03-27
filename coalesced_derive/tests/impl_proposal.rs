@@ -52,12 +52,12 @@ impl Coalesce for CompoundEnum {
     fn prior(self, other: Self) -> Self {
         match (self, other) {
             (Self::Unit, Self::Unit) => Self::Unit,
-            (Self::Named { value: base_value }, Self::Named { value: other_value }) => {
+            (Self::Named { value: self_value }, Self::Named { value: other_value }) => {
                 Self::Named {
-                    value: base_value.prior(other_value),
+                    value: self_value.prior(other_value),
                 }
             }
-            (Self::Unnamed(base_0), Self::Unnamed(other_0)) => Self::Unnamed(base_0.prior(other_0)),
+            (Self::Unnamed(self_0), Self::Unnamed(other_0)) => Self::Unnamed(self_0.prior(other_0)),
             (_, o) => o,
         }
     }
@@ -65,13 +65,13 @@ impl Coalesce for CompoundEnum {
     fn posterior(self, other: Self) -> Self {
         match (self, other) {
             (Self::Unit, Self::Unit) => Self::Unit,
-            (Self::Named { value: base_value }, Self::Named { value: other_value }) => {
+            (Self::Named { value: self_value }, Self::Named { value: other_value }) => {
                 Self::Named {
-                    value: base_value.posterior(other_value),
+                    value: self_value.posterior(other_value),
                 }
             }
-            (Self::Unnamed(base_0), Self::Unnamed(other_0)) => {
-                Self::Unnamed(base_0.posterior(other_0))
+            (Self::Unnamed(self_0), Self::Unnamed(other_0)) => {
+                Self::Unnamed(self_0.posterior(other_0))
             }
             (b, _) => b,
         }
