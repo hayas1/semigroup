@@ -2,6 +2,8 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{Data, DataStruct, DeriveInput, Fields, FieldsNamed};
 
+use crate::error::DeriveError;
+
 pub struct CoalesceImplementor {
     input: DeriveInput,
 }
@@ -17,8 +19,7 @@ impl CoalesceImplementor {
             Data::Enum(_) => todo!(),
             Data::Struct(s) => self.implement_struct(s),
             Data::Union(_) => {
-                syn::Error::new(ident.span(), "derive Coalesce for union is not supported")
-                    .to_compile_error()
+                syn::Error::new_spanned(ident, DeriveError::UnsupportedUnion).to_compile_error()
             }
         }
     }
