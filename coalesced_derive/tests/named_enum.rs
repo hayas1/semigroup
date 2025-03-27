@@ -4,7 +4,7 @@ use coalesced::Coalesce;
 enum Config {
     Unit,
     Named { value: i32 },
-    // Unnamed(String),
+    Unnamed(String),
 }
 
 #[test]
