@@ -12,7 +12,7 @@ where
 }
 
 #[test]
-fn test_derive_generics_named_fields_struct() {
+fn test_derive_named_fields_struct_constraint_generics() {
     let config = Config {
         name: "c1",
         value: Some(1),

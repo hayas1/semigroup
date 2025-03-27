@@ -4,7 +4,7 @@ use coalesced::Coalesce;
 struct Config(&'static str, Option<u32>);
 
 #[test]
-fn test_derive_named_fields_struct() {
+fn test_derive_unnamed_fields_struct() {
     let config = Config("c1", Some(1));
     let config2 = Config("c2", None);
 
