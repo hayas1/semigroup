@@ -150,7 +150,7 @@ impl CoalesceImplementor {
                 }
                 Fields::Unit => {
                     quote! {
-                        (Self::#ident, Self::#ident) => Self::#ident,
+                        (Self::#ident, Self::#ident) => { Self::#ident }
                     }
                 }
             })
