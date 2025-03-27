@@ -81,13 +81,13 @@ impl CoalesceImplementor {
     }
 
     fn implement_unnamed_prior_snippet(&self, f: &FieldsUnnamed) -> TokenStream {
-        let enumerates: Vec<_> = f.unnamed.iter().enumerate().map(|(i, _)| i).collect();
+        let enumerates: Vec<_> = (0..f.unnamed.len()).map(syn::Index::from).collect();
         quote! {
             #(self.#enumerates.prior(other.#enumerates)),*
         }
     }
     fn implement_unnamed_posterior_snippet(&self, f: &FieldsUnnamed) -> TokenStream {
-        let enumerates: Vec<_> = f.unnamed.iter().enumerate().map(|(i, _)| i).collect();
+        let enumerates: Vec<_> = (0..f.unnamed.len()).map(syn::Index::from).collect();
         quote! {
             #(self.#enumerates.posterior(other.#enumerates)),*
         }
