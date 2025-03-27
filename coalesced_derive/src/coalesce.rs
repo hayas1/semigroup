@@ -28,6 +28,8 @@ impl CoalesceImplementor {
         let DeriveInput {
             ident, generics, ..
         } = &self.input;
+        let (g_impl, g_type, g_where) = generics.split_for_impl();
+
         match &s.fields {
             Fields::Named(f) => {
                 let (prior, posterior) = (
@@ -35,7 +37,7 @@ impl CoalesceImplementor {
                     self.implement_named_posterior_snippet(f),
                 );
                 quote! {
-                    impl #generics ::coalesced::Coalesce for #ident #generics {
+                    impl #g_impl ::coalesced::Coalesce for #ident #g_type #g_where {
                         fn prior(self, other: Self) -> Self {
                             Self { #prior }
                         }
