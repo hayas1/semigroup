@@ -19,3 +19,4 @@ syn = "2.0.100"
 
 [dev-dependencies]
 coalesced = { path = "../", features = ["derive"] }
+trybuild = { version = "1.0.104", features = ["diff"] }

@@ -29,17 +29,10 @@ pub fn derive_coalesce(input: TokenStream) -> TokenStream {
             Fields::Unnamed(_) => todo!(),
             Fields::Unit => todo!(),
         },
-        Data::Union(_) => todo!(),
+        Data::Union(_) => {
+            syn::Error::new(ident.span(), "derive Coalesce for union is not supported")
+                .to_compile_error()
+        }
     };
-    // let expand = quote! {
-    //     impl<A, E, L> ::coalesced::Coalesce<A, E, L> for #ident
-    //     where
-    //         L: ::coalesced::ext::Length,
-    //     {
-    //         fn order(&self, other: &Self) -> std::cmp::Ordering {
-    //             std::cmp::Ordering::Less
-    //         }
-    //     }
-    // };
     proc_macro::TokenStream::from(expand)
 }
