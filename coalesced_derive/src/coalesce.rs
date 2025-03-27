@@ -63,7 +63,18 @@ impl CoalesceImplementor {
                     }
                 }
             }
-            Fields::Unit => todo!(),
+            Fields::Unit => quote! {
+                impl #g_impl ::coalesced::Coalesce for #ident #g_type #g_where {
+                    fn prior(self, other: Self) -> Self {
+                        let _ = self;
+                        other
+                    }
+                    fn posterior(self, other: Self) -> Self {
+                        let _ = other;
+                        self
+                    }
+                }
+            },
         }
     }
 
