@@ -46,20 +46,19 @@ enum Target {
 //     }
 // }
 impl Target {
-    fn ident(&self) -> TokenStream {
-        // Ident
+    fn prefix(&self) -> &str {
         match self {
-            Self::Base => parse_quote! { self }, // TODO keyword `self` cannot be used as Ident
-            Self::Other => parse_quote! { other },
+            Self::Base => "self",
+            Self::Other => "other",
         }
     }
     fn field_varname(&self, field: &Field, span: Span) -> Ident {
         let target = field.ident.as_ref().map(ToString::to_string);
-        let var = &format!("{}_{}", self.ident(), target.unwrap_or_default());
+        let var = &format!("{}_{}", self.prefix(), target.unwrap_or_default());
         Ident::new(var, span)
     }
     fn index_varname(&self, index: impl Display, span: Span) -> Ident {
-        let var = &format!("{}_{}", self.ident(), index);
+        let var = &format!("{}_{}", self.prefix(), index);
         Ident::new(var, span)
     }
 }
