@@ -1,8 +1,10 @@
-use proc_macro2::TokenStream;
+use std::fmt::Display;
+
+use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::{
-    parse_quote, spanned::Spanned, Data, DataEnum, DataStruct, DeriveInput, Fields, FieldsNamed,
-    FieldsUnnamed, Ident, Variant,
+    parse_quote, spanned::Spanned, Data, DataEnum, DataStruct, DeriveInput, Field, Fields,
+    FieldsNamed, FieldsUnnamed, Ident, Variant,
 };
 
 use crate::error::DeriveError;
@@ -38,11 +40,11 @@ enum Target {
     Base,
     Other,
 }
-impl ToTokens for Target {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.extend(self.ident().into_token_stream())
-    }
-}
+// impl ToTokens for Target {
+//     fn to_tokens(&self, tokens: &mut TokenStream) {
+//         tokens.extend(self.ident().into_token_stream())
+//     }
+// }
 impl Target {
     fn ident(&self) -> TokenStream {
         // Ident
@@ -50,6 +52,15 @@ impl Target {
             Self::Base => parse_quote! { self }, // TODO keyword `self` cannot be used as Ident
             Self::Other => parse_quote! { other },
         }
+    }
+    fn field_varname(&self, field: &Field, span: Span) -> Ident {
+        let target = field.ident.as_ref().map(ToString::to_string);
+        let var = &format!("{}_{}", self.ident(), target.unwrap_or_default());
+        Ident::new(var, span)
+    }
+    fn index_varname(&self, index: impl Display, span: Span) -> Ident {
+        let var = &format!("{}_{}", self.ident(), index);
+        Ident::new(var, span)
     }
 }
 
@@ -178,18 +189,10 @@ impl CoalesceImplementor {
         f: &'a FieldsNamed,
         t: &Target,
     ) -> (TokenStream, Vec<&'a Option<Ident>>, Vec<Ident>) {
-        let fields: Vec<_> = f.named.iter().map(|f| &f.ident).collect();
-        let binding: Vec<_> = f
+        let (fields, binding): (Vec<_>, Vec<_>) = f
             .named
             .iter()
-            .map(|f| {
-                let target = f
-                    .ident
-                    .as_ref()
-                    .map(ToString::to_string)
-                    .unwrap_or_default();
-                Ident::new(&format!("{}_{}", t.ident(), target), f.span())
-            })
+            .map(|fi| (&fi.ident, t.field_varname(fi, f.span())))
             .collect();
         let snippet = quote! {
             #(#fields: #binding),*
@@ -202,7 +205,7 @@ impl CoalesceImplementor {
         t: &Target,
     ) -> (TokenStream, Vec<Ident>) {
         let binding: Vec<_> = (0..f.unnamed.len())
-            .map(|i| Ident::new(&format!("{}_{}", t.ident(), i), f.span()))
+            .map(|i| t.index_varname(i, f.span()))
             .collect();
         let snippet = quote! {
             #(#binding),*
