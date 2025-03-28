@@ -173,24 +173,22 @@ impl CoalesceImplementor {
             Fields::Unit => p.snippet_unit(),
         }
     }
-    fn snippet_fields_named_binding(
+    fn snippet_fields_named_binding<'a>(
         &self,
-        f: &FieldsNamed,
+        f: &'a FieldsNamed,
         t: &Target,
-    ) -> (TokenStream, Vec<Ident>, Vec<Ident>) {
-        let fields: Vec<_> = f
-            .named
-            .iter()
-            .map(|f| f.ident.clone().expect("# TODO"))
-            .collect();
+    ) -> (TokenStream, Vec<&'a Option<Ident>>, Vec<Ident>) {
+        let fields: Vec<_> = f.named.iter().map(|f| &f.ident).collect();
         let binding: Vec<_> = f
             .named
             .iter()
             .map(|f| {
-                Ident::new(
-                    &format!("{}_{}", t.ident(), f.ident.as_ref().expect("# TODO")),
-                    f.span(),
-                )
+                let target = f
+                    .ident
+                    .as_ref()
+                    .map(ToString::to_string)
+                    .unwrap_or_default();
+                Ident::new(&format!("{}_{}", t.ident(), target), f.span())
             })
             .collect();
         let snippet = quote! {
