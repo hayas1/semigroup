@@ -139,20 +139,26 @@ impl CoalesceImplementor {
             .iter()
             .map(|Variant { fields, ident, .. }| match &fields {
                 Fields::Named(f) => {
-                    // let snippet = self.snippet_fields_named(f, p);
-                    let ((base, base_fields, base_var), (other, _other_fields, other_var)) = (
-                        self.snippet_fields_named_binding(f, &Target::Base),
-                        self.snippet_fields_named_binding(f, &Target::Other),
+                    let ((base_fields, base_var), (other_fields, other_var)) = (
+                        self.fields_named_binding(f, &Target::Base),
+                        self.fields_named_binding(f, &Target::Other),
+                    );
+                    let (base, other) = (
+                        self.snippet_fields_named_binding(&base_fields, &base_var),
+                        self.snippet_fields_named_binding(&other_fields, &other_var),
                     );
                     quote! {
                         (Self::#ident { #base }, Self::#ident { #other }) => { Self::#ident { #(#base_fields: #base_var.#p(#other_var)),* } }
                     }
                 }
                 Fields::Unnamed(f) => {
-                    // let snippet = self.snippet_fields_unnamed(f, p);
-                    let ((base, base_var), (other, other_var)) = (
-                        self.snippet_fields_unnamed_binding(f, &Target::Base),
-                        self.snippet_fields_unnamed_binding(f, &Target::Other),
+                    let (base_var, other_var) = (
+                        self.fields_unnamed_binding(f, &Target::Base),
+                        self.fields_unnamed_binding(f, &Target::Other),
+                    );
+                    let (base, other) = (
+                        self.snippet_fields_unnamed_binding(&base_var),
+                        self.snippet_fields_unnamed_binding(&other_var),
                     );
                     quote! {
                         (Self::#ident( #base ), Self::#ident( #other )) => { Self::#ident( #(#base_var.#p(#other_var)),* ) }
@@ -184,33 +190,39 @@ impl CoalesceImplementor {
             Fields::Unit => p.snippet_unit(),
         }
     }
-    fn snippet_fields_named_binding<'a>(
+    fn fields_named_binding<'a>(
         &self,
         f: &'a FieldsNamed,
         t: &Target,
-    ) -> (TokenStream, Vec<&'a Option<Ident>>, Vec<Ident>) {
-        let (fields, binding): (Vec<_>, Vec<_>) = f
-            .named
+    ) -> (Vec<&'a Option<Ident>>, Vec<Ident>) {
+        f.named
             .iter()
             .map(|fi| (&fi.ident, t.field_varname(fi, f.span())))
-            .collect();
-        let snippet = quote! {
-            #(#fields: #binding),*
-        };
-        (snippet, fields, binding)
+            .collect()
     }
-    fn snippet_fields_unnamed_binding(
-        &self,
-        f: &FieldsUnnamed,
-        t: &Target,
-    ) -> (TokenStream, Vec<Ident>) {
-        let binding: Vec<_> = (0..f.unnamed.len())
+    fn snippet_fields_named_binding<'a>(
+        &'a self,
+        f: impl IntoIterator<Item = &'a &'a Option<Ident>>,
+        b: impl IntoIterator<Item = &'a Ident>,
+    ) -> TokenStream {
+        let (fields, binging) = (f.into_iter(), b.into_iter());
+        quote! {
+            #(#fields: #binging),*
+        }
+    }
+    fn fields_unnamed_binding(&self, f: &FieldsUnnamed, t: &Target) -> Vec<Ident> {
+        (0..f.unnamed.len())
             .map(|i| t.index_varname(i, f.span()))
-            .collect();
-        let snippet = quote! {
+            .collect()
+    }
+    fn snippet_fields_unnamed_binding<'a>(
+        &self,
+        b: impl IntoIterator<Item = &'a Ident>,
+    ) -> TokenStream {
+        let binding = b.into_iter();
+        quote! {
             #(#binding),*
-        };
-        (snippet, binding)
+        }
     }
 
     fn snippet_fields_named(&self, f: &FieldsNamed, p: &Method) -> TokenStream {
