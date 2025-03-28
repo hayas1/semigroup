@@ -20,6 +20,20 @@ impl ToTokens for Method {
         tokens.extend(ident.into_token_stream())
     }
 }
+impl Method {
+    fn snippet_unit(&self) -> TokenStream {
+        match self {
+            Self::Prior => quote! {
+               let _ = self;
+               other
+            },
+            Self::Posterior => quote! {
+               let _ = other;
+               self
+            },
+        }
+    }
+}
 enum Target {
     Base,
     Other,
@@ -156,10 +170,7 @@ impl CoalesceImplementor {
                     Self( #snippet )
                 }
             }
-            Fields::Unit => quote! {
-                let _ = self;
-                other
-            },
+            Fields::Unit => p.snippet_unit(),
         }
     }
     fn snippet_fields_named_binding(
