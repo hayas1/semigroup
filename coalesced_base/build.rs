@@ -39,23 +39,20 @@ impl Implementor {
             Self::Extension => quote! {
                 #[doc = "Generated implementation"]
                 impl <X, #(#impl_generics),*> Extension<X> for #ident #generics {
-                    type WithExt<'a>
-                        = WithExt<'a, Self, X>
-                    where
-                        X: 'a;
-                    fn with_extension(self, extension: &X) -> Self::WithExt<'_> {
+                    type WithExt = WithExt<Self, X>;
+                    fn with_extension(self, extension: X) -> Self::WithExt {
                         WithExt {
                             value: self,
                             extension,
                         }
                     }
-                    fn from_extension(with_ext: Self::WithExt<'_>) -> Self {
+                    fn from_extension(with_ext: Self::WithExt) -> Self {
                         with_ext.value
                     }
-                    fn ex_prior<'a>(_base: Self::WithExt<'a>, other: Self::WithExt<'a>) -> Self::WithExt<'a> {
+                    fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
                         other
                     }
-                    fn ex_posterior<'a>(base: Self::WithExt<'a>, _other: Self::WithExt<'a>) -> Self::WithExt<'a> {
+                    fn ex_posterior(base: Self::WithExt, _other: Self::WithExt) -> Self::WithExt {
                         base
                     }
                 }
