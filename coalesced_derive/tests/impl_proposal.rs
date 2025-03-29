@@ -2,29 +2,32 @@ use coalesced::Coalesce;
 
 // #[derive(Coalesce)]
 struct NamedStruct {
-    value: i32,
+    u: u32,
+    v: i32,
 }
 impl Coalesce for NamedStruct {
     fn prior(self, other: Self) -> Self {
         Self {
-            value: self.value.prior(other.value),
+            u: self.u.prior(other.u),
+            v: self.v.prior(other.v),
         }
     }
     fn posterior(self, other: Self) -> Self {
         Self {
-            value: self.value.posterior(other.value),
+            u: self.u.posterior(other.u),
+            v: self.v.posterior(other.v),
         }
     }
 }
 
 // #[derive(Coalesce)]
-struct UnnamedStruct(i32);
+struct UnnamedStruct(u32, i32);
 impl Coalesce for UnnamedStruct {
     fn prior(self, other: Self) -> Self {
-        Self(self.0.prior(other.0))
+        Self(self.0.prior(other.0), self.1.prior(other.1))
     }
     fn posterior(self, other: Self) -> Self {
-        Self(self.0.posterior(other.0))
+        Self(self.0.posterior(other.0), self.1.posterior(other.1))
     }
 }
 
@@ -44,20 +47,30 @@ impl Coalesce for UnitStruct {
 // #[derive(Coalesce)]
 enum CompoundEnum {
     Unit,
-    Named { value: i32 },
-    Unnamed(String),
+    Named { u: u32, v: i32 },
+    Unnamed(&'static str, String),
 }
 
 impl Coalesce for CompoundEnum {
     fn prior(self, other: Self) -> Self {
         match (self, other) {
             (Self::Unit, Self::Unit) => Self::Unit,
-            (Self::Named { value: self_value }, Self::Named { value: other_value }) => {
+            (
                 Self::Named {
-                    value: self_value.prior(other_value),
-                }
+                    u: self_u,
+                    v: self_v,
+                },
+                Self::Named {
+                    u: other_u,
+                    v: other_v,
+                },
+            ) => Self::Named {
+                u: self_u.prior(other_u),
+                v: self_v.prior(other_v),
+            },
+            (Self::Unnamed(self_0, self_1), Self::Unnamed(other_0, other_1)) => {
+                Self::Unnamed(self_0.prior(other_0), self_1.prior(other_1))
             }
-            (Self::Unnamed(self_0), Self::Unnamed(other_0)) => Self::Unnamed(self_0.prior(other_0)),
             (_, o) => o,
         }
     }
@@ -65,13 +78,21 @@ impl Coalesce for CompoundEnum {
     fn posterior(self, other: Self) -> Self {
         match (self, other) {
             (Self::Unit, Self::Unit) => Self::Unit,
-            (Self::Named { value: self_value }, Self::Named { value: other_value }) => {
+            (
                 Self::Named {
-                    value: self_value.posterior(other_value),
-                }
-            }
-            (Self::Unnamed(self_0), Self::Unnamed(other_0)) => {
-                Self::Unnamed(self_0.posterior(other_0))
+                    u: self_u,
+                    v: self_v,
+                },
+                Self::Named {
+                    u: other_u,
+                    v: other_v,
+                },
+            ) => Self::Named {
+                u: self_u.posterior(other_u),
+                v: self_v.posterior(other_v),
+            },
+            (Self::Unnamed(self_0, self_1), Self::Unnamed(other_0, other_1)) => {
+                Self::Unnamed(self_0.posterior(other_0), self_1.posterior(other_1))
             }
             (b, _) => b,
         }
@@ -80,16 +101,16 @@ impl Coalesce for CompoundEnum {
 
 #[test]
 fn test_named_struct() {
-    let a = NamedStruct { value: 1 };
-    let b = NamedStruct { value: 2 };
-    assert!(matches!(a.prior(b), NamedStruct { value: 2 }));
+    let a = NamedStruct { u: 1, v: -1 };
+    let b = NamedStruct { u: 2, v: -2 };
+    assert!(matches!(a.prior(b), NamedStruct { u: 2, v: -2 }));
 }
 
 #[test]
 fn test_unnamed_struct() {
-    let a = UnnamedStruct(1);
-    let b = UnnamedStruct(2);
-    assert!(matches!(a.prior(b), UnnamedStruct(2)));
+    let a = UnnamedStruct(1, -1);
+    let b = UnnamedStruct(2, -2);
+    assert!(matches!(a.prior(b), UnnamedStruct(2, -2)));
 }
 
 #[test]
@@ -101,7 +122,7 @@ fn test_unit_struct() {
 
 #[test]
 fn test_compound_enum() {
-    let a = CompoundEnum::Named { value: 1 };
-    let b = CompoundEnum::Named { value: 2 };
-    assert!(matches!(a.prior(b), CompoundEnum::Named { value: 2 }));
+    let a = CompoundEnum::Named { u: 1, v: -1 };
+    let b = CompoundEnum::Named { u: 2, v: -2 };
+    assert!(matches!(a.prior(b), CompoundEnum::Named { u: 2, v: -2 }));
 }
