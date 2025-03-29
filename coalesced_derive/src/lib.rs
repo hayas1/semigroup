@@ -1,5 +1,6 @@
 mod coalesce;
 mod error;
+mod extension;
 
 use proc_macro::TokenStream;
 

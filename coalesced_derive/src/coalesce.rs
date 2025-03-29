@@ -9,7 +9,7 @@ use syn::{
 
 use crate::error::DeriveError;
 
-enum Method {
+pub enum Method {
     Prior,
     Posterior,
 }
@@ -23,7 +23,7 @@ impl ToTokens for Method {
     }
 }
 impl Method {
-    fn snippet_unit(&self) -> ExprBlock {
+    pub fn snippet_unit(&self) -> ExprBlock {
         match self {
             Self::Prior => parse_quote! {
                 {
