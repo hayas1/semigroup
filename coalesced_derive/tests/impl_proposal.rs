@@ -13,11 +13,11 @@ impl<X: Clone> Extension<X> for NamedStruct {
             v: self.v.with_extension(extension.clone()),
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         let Self::WithExt { u, v } = with_ext;
         Self {
-            u: Extension::from_extension(u),
-            v: Extension::from_extension(v),
+            u: Extension::unwrap_extension(u),
+            v: Extension::unwrap_extension(v),
         }
     }
     fn ex_prior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -45,9 +45,9 @@ impl<X> Coalesce for NamedStructWithExt<X> {
         }
     }
 }
-impl<X> From<NamedStructWithExt<X>> for NamedStruct {
+impl<X: Clone> From<NamedStructWithExt<X>> for NamedStruct {
     fn from(with_ext: NamedStructWithExt<X>) -> Self {
-        Extension::from_extension(with_ext)
+        Extension::unwrap_extension(with_ext)
     }
 }
 

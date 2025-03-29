@@ -8,7 +8,7 @@ impl<X> Extension<X> for () {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -27,7 +27,7 @@ impl<X> Extension<X> for &() {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -46,7 +46,7 @@ impl<X> Extension<X> for &mut () {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -65,7 +65,7 @@ impl<X> Extension<X> for bool {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -84,7 +84,7 @@ impl<X> Extension<X> for &bool {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -103,7 +103,7 @@ impl<X> Extension<X> for &mut bool {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -122,7 +122,7 @@ impl<X> Extension<X> for char {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -141,7 +141,7 @@ impl<X> Extension<X> for &char {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -160,7 +160,7 @@ impl<X> Extension<X> for &mut char {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -179,7 +179,7 @@ impl<X> Extension<X> for String {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -198,7 +198,7 @@ impl<X> Extension<X> for &String {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -217,7 +217,7 @@ impl<X> Extension<X> for &mut String {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -236,7 +236,7 @@ impl<X> Extension<X> for u8 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -255,7 +255,7 @@ impl<X> Extension<X> for &u8 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -274,7 +274,7 @@ impl<X> Extension<X> for &mut u8 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -293,7 +293,7 @@ impl<X> Extension<X> for u16 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -312,7 +312,7 @@ impl<X> Extension<X> for &u16 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -331,7 +331,7 @@ impl<X> Extension<X> for &mut u16 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -350,7 +350,7 @@ impl<X> Extension<X> for u32 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -369,7 +369,7 @@ impl<X> Extension<X> for &u32 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -388,7 +388,7 @@ impl<X> Extension<X> for &mut u32 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -407,7 +407,7 @@ impl<X> Extension<X> for u64 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -426,7 +426,7 @@ impl<X> Extension<X> for &u64 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -445,7 +445,7 @@ impl<X> Extension<X> for &mut u64 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -464,7 +464,7 @@ impl<X> Extension<X> for u128 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -483,7 +483,7 @@ impl<X> Extension<X> for &u128 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -502,7 +502,7 @@ impl<X> Extension<X> for &mut u128 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -521,7 +521,7 @@ impl<X> Extension<X> for i8 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -540,7 +540,7 @@ impl<X> Extension<X> for &i8 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -559,7 +559,7 @@ impl<X> Extension<X> for &mut i8 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -578,7 +578,7 @@ impl<X> Extension<X> for i16 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -597,7 +597,7 @@ impl<X> Extension<X> for &i16 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -616,7 +616,7 @@ impl<X> Extension<X> for &mut i16 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -635,7 +635,7 @@ impl<X> Extension<X> for i32 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -654,7 +654,7 @@ impl<X> Extension<X> for &i32 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -673,7 +673,7 @@ impl<X> Extension<X> for &mut i32 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -692,7 +692,7 @@ impl<X> Extension<X> for i64 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -711,7 +711,7 @@ impl<X> Extension<X> for &i64 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -730,7 +730,7 @@ impl<X> Extension<X> for &mut i64 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -749,7 +749,7 @@ impl<X> Extension<X> for i128 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -768,7 +768,7 @@ impl<X> Extension<X> for &i128 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -787,7 +787,7 @@ impl<X> Extension<X> for &mut i128 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -806,7 +806,7 @@ impl<X> Extension<X> for f32 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -825,7 +825,7 @@ impl<X> Extension<X> for &f32 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -844,7 +844,7 @@ impl<X> Extension<X> for &mut f32 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -863,7 +863,7 @@ impl<X> Extension<X> for f64 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -882,7 +882,7 @@ impl<X> Extension<X> for &f64 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -901,7 +901,7 @@ impl<X> Extension<X> for &mut f64 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -920,7 +920,7 @@ impl<X> Extension<X> for &str {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -939,7 +939,7 @@ impl<X> Extension<X> for &std::path::Path {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -958,7 +958,7 @@ impl<X> Extension<X> for std::path::PathBuf {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -977,7 +977,7 @@ impl<X> Extension<X> for &std::path::PathBuf {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -996,7 +996,7 @@ impl<X> Extension<X> for &mut std::path::PathBuf {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1015,7 +1015,7 @@ impl<X> Extension<X> for std::time::Duration {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1034,7 +1034,7 @@ impl<X> Extension<X> for &std::time::Duration {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1053,7 +1053,7 @@ impl<X> Extension<X> for &mut std::time::Duration {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1072,7 +1072,7 @@ impl<X> Extension<X> for std::time::Instant {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1091,7 +1091,7 @@ impl<X> Extension<X> for &std::time::Instant {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1110,7 +1110,7 @@ impl<X> Extension<X> for &mut std::time::Instant {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1129,7 +1129,7 @@ impl<X> Extension<X> for std::time::SystemTime {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1148,7 +1148,7 @@ impl<X> Extension<X> for &std::time::SystemTime {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1167,7 +1167,7 @@ impl<X> Extension<X> for &mut std::time::SystemTime {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1186,7 +1186,7 @@ impl<X> Extension<X> for std::net::IpAddr {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1205,7 +1205,7 @@ impl<X> Extension<X> for &std::net::IpAddr {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1224,7 +1224,7 @@ impl<X> Extension<X> for &mut std::net::IpAddr {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1243,7 +1243,7 @@ impl<X> Extension<X> for std::net::Ipv4Addr {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1262,7 +1262,7 @@ impl<X> Extension<X> for &std::net::Ipv4Addr {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1281,7 +1281,7 @@ impl<X> Extension<X> for &mut std::net::Ipv4Addr {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1300,7 +1300,7 @@ impl<X> Extension<X> for std::net::Ipv6Addr {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1319,7 +1319,7 @@ impl<X> Extension<X> for &std::net::Ipv6Addr {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1338,7 +1338,7 @@ impl<X> Extension<X> for &mut std::net::Ipv6Addr {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1357,7 +1357,7 @@ impl<X> Extension<X> for std::net::SocketAddr {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1376,7 +1376,7 @@ impl<X> Extension<X> for &std::net::SocketAddr {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1395,7 +1395,7 @@ impl<X> Extension<X> for &mut std::net::SocketAddr {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1414,7 +1414,7 @@ impl<X> Extension<X> for std::net::SocketAddrV4 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1433,7 +1433,7 @@ impl<X> Extension<X> for &std::net::SocketAddrV4 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1452,7 +1452,7 @@ impl<X> Extension<X> for &mut std::net::SocketAddrV4 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1471,7 +1471,7 @@ impl<X> Extension<X> for std::net::SocketAddrV6 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1490,7 +1490,7 @@ impl<X> Extension<X> for &std::net::SocketAddrV6 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1509,7 +1509,7 @@ impl<X> Extension<X> for &mut std::net::SocketAddrV6 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1528,7 +1528,7 @@ impl<X> Extension<X> for std::sync::atomic::AtomicBool {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1547,7 +1547,7 @@ impl<X> Extension<X> for &std::sync::atomic::AtomicBool {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1566,7 +1566,7 @@ impl<X> Extension<X> for &mut std::sync::atomic::AtomicBool {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1585,7 +1585,7 @@ impl<X> Extension<X> for std::sync::atomic::AtomicIsize {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1604,7 +1604,7 @@ impl<X> Extension<X> for &std::sync::atomic::AtomicIsize {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1623,7 +1623,7 @@ impl<X> Extension<X> for &mut std::sync::atomic::AtomicIsize {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1642,7 +1642,7 @@ impl<X> Extension<X> for std::sync::atomic::AtomicI8 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1661,7 +1661,7 @@ impl<X> Extension<X> for &std::sync::atomic::AtomicI8 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1680,7 +1680,7 @@ impl<X> Extension<X> for &mut std::sync::atomic::AtomicI8 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1699,7 +1699,7 @@ impl<X> Extension<X> for std::sync::atomic::AtomicI16 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1718,7 +1718,7 @@ impl<X> Extension<X> for &std::sync::atomic::AtomicI16 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1737,7 +1737,7 @@ impl<X> Extension<X> for &mut std::sync::atomic::AtomicI16 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1756,7 +1756,7 @@ impl<X> Extension<X> for std::sync::atomic::AtomicI32 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1775,7 +1775,7 @@ impl<X> Extension<X> for &std::sync::atomic::AtomicI32 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1794,7 +1794,7 @@ impl<X> Extension<X> for &mut std::sync::atomic::AtomicI32 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1813,7 +1813,7 @@ impl<X> Extension<X> for std::sync::atomic::AtomicI64 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1832,7 +1832,7 @@ impl<X> Extension<X> for &std::sync::atomic::AtomicI64 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1851,7 +1851,7 @@ impl<X> Extension<X> for &mut std::sync::atomic::AtomicI64 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1870,7 +1870,7 @@ impl<X> Extension<X> for std::sync::atomic::AtomicUsize {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1889,7 +1889,7 @@ impl<X> Extension<X> for &std::sync::atomic::AtomicUsize {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1908,7 +1908,7 @@ impl<X> Extension<X> for &mut std::sync::atomic::AtomicUsize {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1927,7 +1927,7 @@ impl<X> Extension<X> for std::sync::atomic::AtomicU8 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1946,7 +1946,7 @@ impl<X> Extension<X> for &std::sync::atomic::AtomicU8 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1965,7 +1965,7 @@ impl<X> Extension<X> for &mut std::sync::atomic::AtomicU8 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -1984,7 +1984,7 @@ impl<X> Extension<X> for std::sync::atomic::AtomicU16 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2003,7 +2003,7 @@ impl<X> Extension<X> for &std::sync::atomic::AtomicU16 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2022,7 +2022,7 @@ impl<X> Extension<X> for &mut std::sync::atomic::AtomicU16 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2041,7 +2041,7 @@ impl<X> Extension<X> for std::sync::atomic::AtomicU32 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2060,7 +2060,7 @@ impl<X> Extension<X> for &std::sync::atomic::AtomicU32 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2079,7 +2079,7 @@ impl<X> Extension<X> for &mut std::sync::atomic::AtomicU32 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2098,7 +2098,7 @@ impl<X> Extension<X> for std::sync::atomic::AtomicU64 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2117,7 +2117,7 @@ impl<X> Extension<X> for &std::sync::atomic::AtomicU64 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2136,7 +2136,7 @@ impl<X> Extension<X> for &mut std::sync::atomic::AtomicU64 {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2155,7 +2155,7 @@ impl<X> Extension<X> for &std::ffi::OsStr {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2174,7 +2174,7 @@ impl<X> Extension<X> for std::ffi::OsString {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2193,7 +2193,7 @@ impl<X> Extension<X> for &std::ffi::OsString {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2212,7 +2212,7 @@ impl<X> Extension<X> for &mut std::ffi::OsString {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2231,7 +2231,7 @@ impl<X> Extension<X> for &std::ffi::CStr {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2250,7 +2250,7 @@ impl<X> Extension<X> for std::ffi::CString {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2269,7 +2269,7 @@ impl<X> Extension<X> for &std::ffi::CString {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2288,7 +2288,7 @@ impl<X> Extension<X> for &mut std::ffi::CString {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2307,7 +2307,7 @@ impl<X, T> Extension<X> for std::marker::PhantomData<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2326,7 +2326,7 @@ impl<X, T> Extension<X> for &std::marker::PhantomData<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2345,7 +2345,7 @@ impl<X, T> Extension<X> for &mut std::marker::PhantomData<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2364,7 +2364,7 @@ impl<X, T> Extension<X> for Box<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2383,7 +2383,7 @@ impl<X, T> Extension<X> for &Box<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2402,7 +2402,7 @@ impl<X, T> Extension<X> for &mut Box<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2421,7 +2421,7 @@ impl<X, T> Extension<X> for std::rc::Rc<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2440,7 +2440,7 @@ impl<X, T> Extension<X> for &std::rc::Rc<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2459,7 +2459,7 @@ impl<X, T> Extension<X> for &mut std::rc::Rc<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2478,7 +2478,7 @@ impl<X, T> Extension<X> for std::rc::Weak<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2497,7 +2497,7 @@ impl<X, T> Extension<X> for &std::rc::Weak<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2516,7 +2516,7 @@ impl<X, T> Extension<X> for &mut std::rc::Weak<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2535,7 +2535,7 @@ impl<X, T> Extension<X> for std::sync::Arc<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2554,7 +2554,7 @@ impl<X, T> Extension<X> for &std::sync::Arc<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2573,7 +2573,7 @@ impl<X, T> Extension<X> for &mut std::sync::Arc<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2592,7 +2592,7 @@ impl<X, T> Extension<X> for std::sync::Weak<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2611,7 +2611,7 @@ impl<X, T> Extension<X> for &std::sync::Weak<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2630,7 +2630,7 @@ impl<X, T> Extension<X> for &mut std::sync::Weak<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2649,7 +2649,7 @@ impl<X, T> Extension<X> for std::sync::Mutex<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2668,7 +2668,7 @@ impl<X, T> Extension<X> for &std::sync::Mutex<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2687,7 +2687,7 @@ impl<X, T> Extension<X> for &mut std::sync::Mutex<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2706,7 +2706,7 @@ impl<X, T> Extension<X> for std::sync::RwLock<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2725,7 +2725,7 @@ impl<X, T> Extension<X> for &std::sync::RwLock<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2744,7 +2744,7 @@ impl<X, T> Extension<X> for &mut std::sync::RwLock<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2763,7 +2763,7 @@ impl<X, T> Extension<X> for std::cell::Cell<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2782,7 +2782,7 @@ impl<X, T> Extension<X> for &std::cell::Cell<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2801,7 +2801,7 @@ impl<X, T> Extension<X> for &mut std::cell::Cell<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2820,7 +2820,7 @@ impl<X, T> Extension<X> for std::cell::RefCell<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2839,7 +2839,7 @@ impl<X, T> Extension<X> for &std::cell::RefCell<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2858,7 +2858,7 @@ impl<X, T> Extension<X> for &mut std::cell::RefCell<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2877,7 +2877,7 @@ impl<X, T> Extension<X> for std::num::Saturating<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2896,7 +2896,7 @@ impl<X, T> Extension<X> for &std::num::Saturating<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2915,7 +2915,7 @@ impl<X, T> Extension<X> for &mut std::num::Saturating<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2934,7 +2934,7 @@ impl<X, T> Extension<X> for std::num::Wrapping<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2953,7 +2953,7 @@ impl<X, T> Extension<X> for &std::num::Wrapping<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2972,7 +2972,7 @@ impl<X, T> Extension<X> for &mut std::num::Wrapping<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -2991,7 +2991,7 @@ impl<X, T> Extension<X> for std::cmp::Reverse<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -3010,7 +3010,7 @@ impl<X, T> Extension<X> for &std::cmp::Reverse<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -3029,7 +3029,7 @@ impl<X, T> Extension<X> for &mut std::cmp::Reverse<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {

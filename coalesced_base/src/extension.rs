@@ -5,7 +5,7 @@ use crate::coalesce::Coalesce;
 pub trait Extension<X>: Sized {
     type WithExt;
     fn with_extension(self, extension: X) -> Self::WithExt;
-    fn from_extension(with_ext: Self::WithExt) -> Self;
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self;
     fn ex_prior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt;
     fn ex_posterior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt;
 }
@@ -16,11 +16,11 @@ where
 {
     fn prior(self, other: Self) -> Self {
         let (s, o) = (self.with_extension(()), other.with_extension(()));
-        Self::from_extension(s.prior(o))
+        Self::unwrap_extension(s.prior(o))
     }
     fn posterior(self, other: Self) -> Self {
         let (s, o) = (self.with_extension(()), other.with_extension(()));
-        Self::from_extension(s.posterior(o))
+        Self::unwrap_extension(s.posterior(o))
     }
 }
 enum ExEither<T> {
@@ -35,7 +35,7 @@ impl<T, X> Extension<X> for Option<T> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -69,7 +69,7 @@ impl<T, E, X> Extension<X> for Result<T, E> {
             extension,
         }
     }
-    fn from_extension(with_ext: Self::WithExt) -> Self {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
     fn ex_prior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {

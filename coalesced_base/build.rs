@@ -46,7 +46,7 @@ impl Implementor {
                             extension,
                         }
                     }
-                    fn from_extension(with_ext: Self::WithExt) -> Self {
+                    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
                         with_ext.value
                     }
                     fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
