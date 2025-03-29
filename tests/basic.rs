@@ -91,13 +91,13 @@ fn test_extension_prior() {
     let from_cli = None;
 
     let (file, env, cli) = (
-        from_file.with_extension("file"),
-        from_env.with_extension("env"),
-        from_cli.with_extension("cli"),
+        from_file.with_extension(&"file"),
+        from_env.with_extension(&"env"),
+        from_cli.with_extension(&"cli"),
     );
 
     let config = file.prior(env).prior(cli);
-    assert_eq!(config.extension, "env");
+    assert_eq!(config.extension, &"env");
     assert!(matches!(
         config.as_ref().unwrap(),
         ConfigBlock {

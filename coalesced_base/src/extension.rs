@@ -2,35 +2,47 @@ use std::ops::{Deref, DerefMut};
 
 use crate::coalesce::Coalesce;
 
-pub trait Extension: Sized {
-    type WithExt<X>;
-    fn with_extension<X>(self, extension: X) -> Self::WithExt<X>;
-    fn ex_prior<X>(base: Self::WithExt<X>, other: Self::WithExt<X>) -> Self::WithExt<X>;
-    fn ex_posterior<X>(base: Self::WithExt<X>, other: Self::WithExt<X>) -> Self::WithExt<X>;
+pub trait Extension<X>: Sized {
+    type WithExt<'a>
+    where
+        X: 'a;
+    fn with_extension(self, extension: &X) -> Self::WithExt<'_>;
+    fn from_extension(with_ext: Self::WithExt<'_>) -> Self;
+    fn ex_prior<'a>(base: Self::WithExt<'a>, other: Self::WithExt<'a>) -> Self::WithExt<'a>;
+    fn ex_posterior<'a>(base: Self::WithExt<'a>, other: Self::WithExt<'a>) -> Self::WithExt<'a>;
 }
-impl<T: Extension<WithExt<()> = WithExt<T, ()>>> Coalesce for T {
+impl<'a, T: Extension<()>> Coalesce for T
+where
+    T::WithExt<'a>: Coalesce,
+{
     fn prior(self, other: Self) -> Self {
-        let (s, o) = (self.with_extension(()), other.with_extension(()));
-        s.prior(o).value
+        let (s, o) = (self.with_extension(&()), other.with_extension(&()));
+        Self::from_extension(s.prior(o))
     }
     fn posterior(self, other: Self) -> Self {
-        let (s, o) = (self.with_extension(()), other.with_extension(()));
-        s.posterior(o).value
+        let (s, o) = (self.with_extension(&()), other.with_extension(&()));
+        Self::from_extension(s.posterior(o))
     }
 }
 enum ExEither<T> {
     Base(T),
     Other(T),
 }
-impl<T> Extension for Option<T> {
-    type WithExt<X> = WithExt<Self, X>;
-    fn with_extension<X>(self, extension: X) -> Self::WithExt<X> {
+impl<T, X> Extension<X> for Option<T> {
+    type WithExt<'a>
+        = WithExt<'a, Self, X>
+    where
+        X: 'a;
+    fn with_extension(self, extension: &X) -> Self::WithExt<'_> {
         WithExt {
             value: self,
             extension,
         }
     }
-    fn ex_prior<X>(base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+    fn from_extension(with_ext: Self::WithExt<'_>) -> Self {
+        with_ext.value
+    }
+    fn ex_prior<'a>(base: Self::WithExt<'a>, other: Self::WithExt<'a>) -> Self::WithExt<'a> {
         let (s, o) = (
             base.value.map(ExEither::Base),
             other.value.map(ExEither::Other),
@@ -41,7 +53,7 @@ impl<T> Extension for Option<T> {
             None => None.with_extension(other.extension),
         }
     }
-    fn ex_posterior<X>(base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+    fn ex_posterior<'a>(base: Self::WithExt<'a>, other: Self::WithExt<'a>) -> Self::WithExt<'a> {
         let (s, o) = (
             base.value.map(ExEither::Base),
             other.value.map(ExEither::Other),
@@ -53,15 +65,21 @@ impl<T> Extension for Option<T> {
         }
     }
 }
-impl<T, E> Extension for Result<T, E> {
-    type WithExt<X> = WithExt<Self, X>;
-    fn with_extension<X>(self, extension: X) -> Self::WithExt<X> {
+impl<T, E, X> Extension<X> for Result<T, E> {
+    type WithExt<'a>
+        = WithExt<'a, Self, X>
+    where
+        X: 'a;
+    fn with_extension(self, extension: &X) -> Self::WithExt<'_> {
         WithExt {
             value: self,
             extension,
         }
     }
-    fn ex_prior<X>(base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+    fn from_extension(with_ext: Self::WithExt<'_>) -> Self {
+        with_ext.value
+    }
+    fn ex_prior<'a>(base: Self::WithExt<'a>, other: Self::WithExt<'a>) -> Self::WithExt<'a> {
         let (s, o) = (
             base.value.map(ExEither::Base).map_err(ExEither::Base),
             other.value.map(ExEither::Other).map_err(ExEither::Other),
@@ -73,7 +91,7 @@ impl<T, E> Extension for Result<T, E> {
             Err(ExEither::Other(e)) => Err(e).with_extension(other.extension),
         }
     }
-    fn ex_posterior<X>(base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+    fn ex_posterior<'a>(base: Self::WithExt<'a>, other: Self::WithExt<'a>) -> Self::WithExt<'a> {
         let (s, o) = (
             base.value.map(ExEither::Base).map_err(ExEither::Base),
             other.value.map(ExEither::Other).map_err(ExEither::Other),
@@ -93,32 +111,32 @@ impl<T, E> Extension for Result<T, E> {
 /// An instance can be created with [Extension::with_extension].
 /// ```
 /// use coalesced_base::extension::Extension;
-/// let ext = Some(100).with_extension("ext");
+/// let ext = Some(100).with_extension(&"ext");
 /// assert_eq!(*ext, Some(100));
-/// assert_eq!(ext.extension, "ext");
+/// assert_eq!(ext.extension, &"ext");
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-pub struct WithExt<T, X> {
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct WithExt<'a, T, X> {
     pub value: T,
-    pub extension: X,
+    pub extension: &'a X,
 }
-impl<T, X> Deref for WithExt<T, X> {
+impl<T, X> Deref for WithExt<'_, T, X> {
     type Target = T;
     fn deref(&self) -> &Self::Target {
         &self.value
     }
 }
-impl<T, X> DerefMut for WithExt<T, X> {
+impl<T, X> DerefMut for WithExt<'_, T, X> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.value
     }
 }
-impl<T: Extension<WithExt<X> = Self>, X> Coalesce for WithExt<T, X> {
+impl<'a, T: Extension<X, WithExt<'a> = Self>, X> Coalesce for WithExt<'a, T, X> {
     fn prior(self, other: Self) -> Self {
-        T::ex_prior::<X>(self, other)
+        T::ex_prior(self, other)
     }
     fn posterior(self, other: Self) -> Self {
-        T::ex_posterior::<X>(self, other)
+        T::ex_posterior(self, other)
     }
 }
 
@@ -128,49 +146,49 @@ mod tests {
 
     #[test]
     fn test_option_prior_extension() {
-        let file = Some(1).with_extension("file");
-        let env = Some(10).with_extension("env");
-        let cli = None.with_extension("cli");
+        let file = Some(1).with_extension(&"file");
+        let env = Some(10).with_extension(&"env");
+        let cli = None.with_extension(&"cli");
 
         let coalesced = file.prior(env).prior(cli);
         assert_eq!(*coalesced, Some(10));
         assert_eq!(coalesced.unwrap(), 10);
-        assert_eq!(coalesced.extension, "env");
+        assert_eq!(coalesced.extension, &"env");
     }
 
     #[test]
     fn test_option_posterior_extension() {
-        let file = Some(1).with_extension("file");
-        let env = Some(10).with_extension("env");
-        let cli = None.with_extension("cli");
+        let file = Some(1).with_extension(&"file");
+        let env = Some(10).with_extension(&"env");
+        let cli = None.with_extension(&"cli");
 
         let coalesced = file.posterior(env).posterior(cli);
         assert_eq!(*coalesced, Some(1));
         assert_eq!(coalesced.unwrap(), 1);
-        assert_eq!(coalesced.extension, "file");
+        assert_eq!(coalesced.extension, &"file");
     }
 
     #[test]
     fn test_result_prior_extension() {
-        let file = Ok(1).with_extension("file");
-        let env = Ok(10).with_extension("env");
-        let cli = Err(1).with_extension("cli");
+        let file = Ok(1).with_extension(&"file");
+        let env = Ok(10).with_extension(&"env");
+        let cli = Err(1).with_extension(&"cli");
 
         let coalesced = file.prior(env).prior(cli);
         assert_eq!(*coalesced, Ok(10));
         assert_eq!(coalesced.unwrap(), 10);
-        assert_eq!(coalesced.extension, "env");
+        assert_eq!(coalesced.extension, &"env");
     }
 
     #[test]
     fn test_result_posterior_extension() {
-        let file = Ok(1).with_extension("file");
-        let env = Ok(10).with_extension("env");
-        let cli = Err(1).with_extension("cli");
+        let file = Ok(1).with_extension(&"file");
+        let env = Ok(10).with_extension(&"env");
+        let cli = Err(1).with_extension(&"cli");
 
         let coalesced = file.posterior(env).posterior(cli);
         assert_eq!(*coalesced, Ok(1));
         assert_eq!(coalesced.unwrap(), 1);
-        assert_eq!(coalesced.extension, "file");
+        assert_eq!(coalesced.extension, &"file");
     }
 }

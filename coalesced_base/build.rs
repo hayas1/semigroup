@@ -29,22 +29,33 @@ impl Implementor {
         }
     }
 
-    fn basic_implement(&self, ident: impl ToTokens, generics: impl ToTokens) -> TokenStream {
+    fn basic_implement(&self, ident: impl ToTokens, generics: &Option<Generics>) -> TokenStream {
+        let impl_generics = generics
+            .as_ref()
+            .map(|g| g.params.clone())
+            .unwrap_or_default()
+            .into_iter();
         match self {
             Self::Extension => quote! {
                 #[doc = "Generated implementation"]
-                impl #generics Extension for #ident #generics {
-                    type WithExt<X> = WithExt<Self, X>;
-                    fn with_extension<X>(self, extension: X) -> Self::WithExt<X> {
+                impl <X, #(#impl_generics),*> Extension<X> for #ident #generics {
+                    type WithExt<'a>
+                        = WithExt<'a, Self, X>
+                    where
+                        X: 'a;
+                    fn with_extension(self, extension: &X) -> Self::WithExt<'_> {
                         WithExt {
                             value: self,
                             extension,
                         }
                     }
-                    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+                    fn from_extension(with_ext: Self::WithExt<'_>) -> Self {
+                        with_ext.value
+                    }
+                    fn ex_prior<'a>(_base: Self::WithExt<'a>, other: Self::WithExt<'a>) -> Self::WithExt<'a> {
                         other
                     }
-                    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+                    fn ex_posterior<'a>(base: Self::WithExt<'a>, _other: Self::WithExt<'a>) -> Self::WithExt<'a> {
                         base
                     }
                 }
