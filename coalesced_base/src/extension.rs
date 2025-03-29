@@ -108,7 +108,7 @@ impl<T, E, X> Extension<X> for Result<T, E> {
 /// assert_eq!(*ext, Some(100));
 /// assert_eq!(ext.extension, &"ext");
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct WithExt<T, X> {
     pub value: T,
     pub extension: X,
