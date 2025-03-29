@@ -27,6 +27,7 @@ impl<X: Clone> Extension<X> for NamedStruct {
         base.posterior(other)
     }
 }
+#[derive()]
 struct NamedStructWithExt<X> {
     u: WithExt<u32, X>,
     v: WithExt<i32, X>,
