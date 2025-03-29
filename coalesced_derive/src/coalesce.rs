@@ -67,11 +67,11 @@ impl Target {
     }
 }
 
-pub struct CoalesceImplementor {
+pub struct Implementor {
     input: DeriveInput,
 }
 
-impl CoalesceImplementor {
+impl Implementor {
     pub fn new(input: DeriveInput) -> Self {
         Self { input }
     }
