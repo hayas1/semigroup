@@ -3,17 +3,12 @@ use std::ops::{Deref, DerefMut};
 use crate::coalesce::Coalesce;
 
 pub trait Extension: Sized {
-    fn ex_prior<X>(base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X>;
-    fn ex_posterior<X>(base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X>;
-
-    fn with_extension<X>(self, extension: X) -> WithExt<Self, X> {
-        WithExt {
-            value: self,
-            extension,
-        }
-    }
+    type WithExt<X>;
+    fn with_extension<X>(self, extension: X) -> Self::WithExt<X>;
+    fn ex_prior<X>(base: Self::WithExt<X>, other: Self::WithExt<X>) -> Self::WithExt<X>;
+    fn ex_posterior<X>(base: Self::WithExt<X>, other: Self::WithExt<X>) -> Self::WithExt<X>;
 }
-impl<T: Extension> Coalesce for T {
+impl<T: Extension<WithExt<()> = WithExt<T, ()>>> Coalesce for T {
     fn prior(self, other: Self) -> Self {
         let (s, o) = (self.with_extension(()), other.with_extension(()));
         s.prior(o).value
@@ -28,6 +23,13 @@ enum ExEither<T> {
     Other(T),
 }
 impl<T> Extension for Option<T> {
+    type WithExt<X> = WithExt<Self, X>;
+    fn with_extension<X>(self, extension: X) -> Self::WithExt<X> {
+        WithExt {
+            value: self,
+            extension,
+        }
+    }
     fn ex_prior<X>(base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
         let (s, o) = (
             base.value.map(ExEither::Base),
@@ -52,6 +54,13 @@ impl<T> Extension for Option<T> {
     }
 }
 impl<T, E> Extension for Result<T, E> {
+    type WithExt<X> = WithExt<Self, X>;
+    fn with_extension<X>(self, extension: X) -> Self::WithExt<X> {
+        WithExt {
+            value: self,
+            extension,
+        }
+    }
     fn ex_prior<X>(base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
         let (s, o) = (
             base.value.map(ExEither::Base).map_err(ExEither::Base),
@@ -104,12 +113,12 @@ impl<T, X> DerefMut for WithExt<T, X> {
         &mut self.value
     }
 }
-impl<T: Extension, X> Coalesce for WithExt<T, X> {
+impl<T: Extension<WithExt<X> = Self>, X> Coalesce for WithExt<T, X> {
     fn prior(self, other: Self) -> Self {
-        T::ex_prior(self, other)
+        T::ex_prior::<X>(self, other)
     }
     fn posterior(self, other: Self) -> Self {
-        T::ex_posterior(self, other)
+        T::ex_posterior::<X>(self, other)
     }
 }
 

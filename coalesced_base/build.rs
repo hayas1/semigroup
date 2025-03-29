@@ -34,6 +34,13 @@ impl Implementor {
             Self::Extension => quote! {
                 #[doc = "Generated implementation"]
                 impl #generics Extension for #ident #generics {
+                    type WithExt<X> = WithExt<Self, X>;
+                    fn with_extension<X>(self, extension: X) -> Self::WithExt<X> {
+                        WithExt {
+                            value: self,
+                            extension,
+                        }
+                    }
                     fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
                         other
                     }
