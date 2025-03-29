@@ -1,11 +1,40 @@
-use coalesced::Coalesce;
+use coalesced::{Coalesce, Extension, WithExt};
 
 // #[derive(Coalesce)]
 struct NamedStruct {
     u: u32,
     v: i32,
 }
-impl Coalesce for NamedStruct {
+impl<X> Extension<X> for NamedStruct {
+    type WithExt<'a>
+        = NamedStructWithExt<'a, X>
+    where
+        X: 'a;
+    fn with_extension(self, extension: &X) -> Self::WithExt<'_> {
+        NamedStructWithExt {
+            u: self.u.with_extension(extension),
+            v: self.v.with_extension(extension),
+        }
+    }
+    fn from_extension(with_ext: Self::WithExt<'_>) -> Self {
+        let Self::WithExt { u, v } = with_ext;
+        Self {
+            u: Extension::from_extension(u),
+            v: Extension::from_extension(v),
+        }
+    }
+    fn ex_prior<'a>(base: Self::WithExt<'a>, other: Self::WithExt<'a>) -> Self::WithExt<'a> {
+        base.prior(other)
+    }
+    fn ex_posterior<'a>(base: Self::WithExt<'a>, other: Self::WithExt<'a>) -> Self::WithExt<'a> {
+        base.posterior(other)
+    }
+}
+struct NamedStructWithExt<'a, X> {
+    u: WithExt<'a, u32, X>,
+    v: WithExt<'a, i32, X>,
+}
+impl<X> Coalesce for NamedStructWithExt<'_, X> {
     fn prior(self, other: Self) -> Self {
         Self {
             u: self.u.prior(other.u),
@@ -111,6 +140,13 @@ fn test_unnamed_struct() {
     let a = UnnamedStruct(1, -1);
     let b = UnnamedStruct(2, -2);
     assert!(matches!(a.prior(b), UnnamedStruct(2, -2)));
+
+    let ae = NamedStruct { u: 1, v: -1 }.with_extension(&"a");
+    let be = NamedStruct { u: 2, v: -2 }.with_extension(&"b");
+    let posterior = ae.posterior(be);
+    assert_eq!(posterior.u.extension, &"a");
+    assert_eq!(posterior.v.extension, &"a");
+    // assert!(matches!(*posterior, NamedStruct { u: 2, v: -2 }));
 }
 
 #[test]
