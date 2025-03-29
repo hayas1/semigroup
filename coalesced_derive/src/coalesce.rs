@@ -1,10 +1,10 @@
 use std::fmt::Display;
 
 use proc_macro2::{Span, TokenStream};
-use quote::{quote, ToTokens};
+use quote::ToTokens;
 use syn::{
-    parse_quote, spanned::Spanned, Data, DataEnum, DataStruct, DeriveInput, Field, Fields,
-    FieldsNamed, FieldsUnnamed, Ident, Variant,
+    parse_quote, spanned::Spanned, Arm, Data, DataEnum, DataStruct, DeriveInput, Expr, Field,
+    Fields, FieldsNamed, FieldsUnnamed, Ident, ItemImpl, Variant,
 };
 
 use crate::error::DeriveError;
@@ -23,15 +23,19 @@ impl ToTokens for Method {
     }
 }
 impl Method {
-    fn snippet_unit(&self) -> TokenStream {
+    fn snippet_unit(&self) -> Expr {
         match self {
-            Self::Prior => quote! {
-               let _ = self;
-               other
+            Self::Prior => parse_quote! {
+                {
+                    let _ = self;
+                    other
+                }
             },
-            Self::Posterior => quote! {
-               let _ = other;
-               self
+            Self::Posterior => parse_quote! {
+                {
+                    let _ = other;
+                    self
+                }
             },
         }
     }
@@ -75,15 +79,15 @@ impl CoalesceImplementor {
     pub fn implement(&self) -> TokenStream {
         let DeriveInput { ident, data, .. } = &self.input;
         match &data {
-            Data::Enum(e) => self.implement_enum(e),
-            Data::Struct(s) => self.implement_struct(s),
+            Data::Enum(e) => self.implement_enum(e).into_token_stream(),
+            Data::Struct(s) => self.implement_struct(s).into_token_stream(),
             Data::Union(_) => {
                 syn::Error::new_spanned(ident, DeriveError::UnsupportedUnion).to_compile_error()
             }
         }
     }
 
-    fn implement_enum(&self, e: &DataEnum) -> TokenStream {
+    fn implement_enum(&self, e: &DataEnum) -> ItemImpl {
         let DeriveInput {
             ident, generics, ..
         } = &self.input;
@@ -93,17 +97,17 @@ impl CoalesceImplementor {
             self.snippet_enum(e, &Method::Prior),
             self.snippet_enum(e, &Method::Posterior),
         );
-        quote! {
+        parse_quote! {
             impl #g_impl ::coalesced::Coalesce for #ident #g_type #g_where {
                 fn prior(self, other: Self) -> Self {
                     match (self, other) {
-                        #prior,
+                        #(#prior),*
                         (_, o) => o,
                     }
                 }
                 fn posterior(self, other: Self) -> Self {
                     match (self, other) {
-                        #posterior,
+                        #(#posterior),*
                         (s, _) => s,
                     }
                 }
@@ -111,7 +115,7 @@ impl CoalesceImplementor {
         }
     }
 
-    fn implement_struct(&self, s: &DataStruct) -> TokenStream {
+    fn implement_struct(&self, s: &DataStruct) -> ItemImpl {
         let DeriveInput {
             ident, generics, ..
         } = &self.input;
@@ -121,7 +125,7 @@ impl CoalesceImplementor {
             self.snippet_struct(s, &Method::Prior),
             self.snippet_struct(s, &Method::Posterior),
         );
-        quote! {
+        parse_quote! {
             impl #g_impl ::coalesced::Coalesce for #ident #g_type #g_where {
                 fn prior(self, other: Self) -> Self {
                     #prior
@@ -133,7 +137,7 @@ impl CoalesceImplementor {
         }
     }
 
-    fn snippet_enum(&self, e: &DataEnum, p: &Method) -> TokenStream {
+    fn snippet_enum(&self, e: &DataEnum, p: &Method) -> Vec<Arm> {
         e.variants
             .iter()
             .map(|Variant { fields, ident, .. }| match &fields {
@@ -142,7 +146,7 @@ impl CoalesceImplementor {
                         self.fields_named_binding(f, &Target::Base),
                         self.fields_named_binding(f, &Target::Other),
                     );
-                    quote! {
+                    parse_quote! {
                         (
                             Self::#ident { #(#base_fields: #base_binding),* },
                             Self::#ident { #(#other_fields: #other_binding),* },
@@ -154,7 +158,7 @@ impl CoalesceImplementor {
                         self.fields_unnamed_binding(f, &Target::Base),
                         self.fields_unnamed_binding(f, &Target::Other),
                     );
-                    quote! {
+                    parse_quote! {
                         (
                             Self::#ident( #(#base_binding),* ),
                             Self::#ident( #(#other_binding),* )
@@ -162,7 +166,7 @@ impl CoalesceImplementor {
                     }
                 }
                 Fields::Unit => {
-                    quote! {
+                    parse_quote! {
                         (Self::#ident, Self::#ident) => { Self::#ident }
                     }
                 }
@@ -170,17 +174,17 @@ impl CoalesceImplementor {
             .collect()
     }
 
-    fn snippet_struct(&self, s: &DataStruct, p: &Method) -> TokenStream {
+    fn snippet_struct(&self, s: &DataStruct, p: &Method) -> Expr {
         match &s.fields {
             Fields::Named(f) => {
                 let fields = self.fields_named(f);
-                quote! {
+                parse_quote! {
                     Self { #(#fields: self.#fields.#p(other.#fields)),* }
                 }
             }
             Fields::Unnamed(f) => {
                 let indices = self.fields_unnamed(f);
-                quote! {
+                parse_quote! {
                     Self( #(self.#indices.#p(other.#indices)),* )
                 }
             }
