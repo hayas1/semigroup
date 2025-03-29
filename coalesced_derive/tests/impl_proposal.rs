@@ -45,6 +45,11 @@ impl<X> Coalesce for NamedStructWithExt<X> {
         }
     }
 }
+impl<X> From<NamedStructWithExt<X>> for NamedStruct {
+    fn from(with_ext: NamedStructWithExt<X>) -> Self {
+        Extension::from_extension(with_ext)
+    }
+}
 
 // #[derive(Coalesce)]
 struct UnnamedStruct(u32, i32);
@@ -136,7 +141,7 @@ fn test_named_struct() {
     let posterior = ae.posterior(be);
     assert_eq!(posterior.u.extension, "a");
     assert_eq!(posterior.v.extension, "a");
-    // assert!(matches!(*posterior, NamedStruct { u: 2, v: -2 }));
+    assert!(matches!(posterior.into(), NamedStruct { u: 1, v: -1 }));
 }
 
 #[test]
