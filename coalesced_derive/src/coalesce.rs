@@ -142,15 +142,15 @@ impl Implementor {
             .iter()
             .map(|Variant { fields, ident, .. }| match &fields {
                 Fields::Named(f) => {
-                    let ((base_fields, base_binding), (other_fields, other_binding)) = (
+                    let ((fields, base_binding), (_, other_binding)) = (
                         self.fields_named_binding(f, &Target::Base),
                         self.fields_named_binding(f, &Target::Other),
                     );
                     parse_quote! {
                         (
-                            Self::#ident { #(#base_fields: #base_binding),* },
-                            Self::#ident { #(#other_fields: #other_binding),* },
-                        ) => { Self::#ident { #(#base_fields: #base_binding.#p(#other_binding)),* } }
+                            Self::#ident { #(#fields: #base_binding),* },
+                            Self::#ident { #(#fields: #other_binding),* },
+                        ) => { Self::#ident { #(#fields: #base_binding.#p(#other_binding)),* } }
                     }
                 }
                 Fields::Unnamed(f) => {
