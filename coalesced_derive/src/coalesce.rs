@@ -3,8 +3,8 @@ use std::fmt::Display;
 use proc_macro2::{Span, TokenStream};
 use quote::ToTokens;
 use syn::{
-    parse_quote, spanned::Spanned, Arm, Data, DataEnum, DataStruct, DeriveInput, Expr, Field,
-    Fields, FieldsNamed, FieldsUnnamed, Ident, ItemImpl, Variant,
+    parse_quote, spanned::Spanned, Arm, Data, DataEnum, DataStruct, DeriveInput, Expr, ExprBlock,
+    Field, Fields, FieldsNamed, FieldsUnnamed, Ident, ItemImpl, Variant,
 };
 
 use crate::error::DeriveError;
@@ -23,7 +23,7 @@ impl ToTokens for Method {
     }
 }
 impl Method {
-    fn snippet_unit(&self) -> Expr {
+    fn snippet_unit(&self) -> ExprBlock {
         match self {
             Self::Prior => parse_quote! {
                 {
@@ -188,7 +188,7 @@ impl CoalesceImplementor {
                     Self( #(self.#indices.#p(other.#indices)),* )
                 }
             }
-            Fields::Unit => p.snippet_unit(),
+            Fields::Unit => p.snippet_unit().into(),
         }
     }
 
