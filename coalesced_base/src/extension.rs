@@ -3,7 +3,7 @@ use std::ops::{Deref, DerefMut};
 use crate::coalesce::Coalesce;
 
 pub trait Extension<X>: Sized {
-    type WithExt;
+    type WithExt: Coalesce;
     fn with_extension(self, extension: X) -> Self::WithExt;
     fn unwrap_extension(with_ext: Self::WithExt) -> Self;
     fn ex_prior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt;
@@ -12,7 +12,6 @@ pub trait Extension<X>: Sized {
 impl<T> Coalesce for T
 where
     T: Extension<()>,
-    T::WithExt: Coalesce,
 {
     fn prior(self, other: Self) -> Self {
         let (s, o) = (self.with_extension(()), other.with_extension(()));
@@ -124,6 +123,11 @@ impl<T, X> DerefMut for WithExt<T, X> {
         &mut self.value
     }
 }
+impl<T, X> AsRef<T> for WithExt<T, X> {
+    fn as_ref(&self) -> &T {
+        &self.value
+    }
+}
 impl<T: Extension<X, WithExt = Self>, X> Coalesce for WithExt<T, X> {
     fn prior(self, other: Self) -> Self {
         T::ex_prior(self, other)
@@ -132,6 +136,12 @@ impl<T: Extension<X, WithExt = Self>, X> Coalesce for WithExt<T, X> {
         T::ex_posterior(self, other)
     }
 }
+// cannot implement `From` because of orphan rule
+// impl<T: Extension<X, WithExt = Self>, X> From<WithExt<T, X>> for T {
+//     fn from(with_ext: WithExt<T, X>) -> Self {
+//         with_ext.value
+//     }
+// }
 
 #[cfg(test)]
 mod tests {
