@@ -10,3 +10,10 @@ pub fn derive_coalesce(input: TokenStream) -> TokenStream {
     let implementor = coalesce::Implementor::new(derive_input);
     implementor.implement().into()
 }
+
+#[proc_macro_derive(Extension)]
+pub fn derive_extension(input: TokenStream) -> TokenStream {
+    let derive_input = syn::parse_macro_input!(input);
+    let implementor = extension::Implementor::new(derive_input);
+    implementor.implement().into()
+}
