@@ -31,12 +31,12 @@ impl Implementor {
 
         let extension = self.implement_struct_extension(s);
         let with_ext_def = self.definition_struct_with_ext(s);
-        let with_ext_impl = self.implement_struct_with_ext(s);
+        let coalesce_with_ext = self.implement_struct_coalesce_with_ext(s);
         let from_with_ext = self.implement_struct_from_with_ext();
         parse_quote! {
             #extension
             #with_ext_def
-            #with_ext_impl
+            #coalesce_with_ext
             #from_with_ext
         }
     }
@@ -104,7 +104,7 @@ impl Implementor {
             Fields::Unit => todo!(),
         }
     }
-    fn implement_struct_with_ext(&self, s: &DataStruct) -> ItemImpl {
+    fn implement_struct_coalesce_with_ext(&self, s: &DataStruct) -> ItemImpl {
         let DeriveInput {
             ident, generics, ..
         } = &self.input;
