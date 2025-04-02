@@ -119,7 +119,7 @@ impl Implementor {
                     f.named.iter().map(|f| (&f.ident, &f.ty)).unzip();
                 parse_quote! {
                     #[doc(hidden)]
-                    struct #with_ext #g_type #g_where {
+                    struct #g_impl #with_ext #g_type #g_where {
                         #(#fields: ::coalesced::WithExt<#types, X>),*
                     }
                 }
