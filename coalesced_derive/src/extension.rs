@@ -81,7 +81,7 @@ impl Implementor {
                     f.named.iter().map(|f| (&f.ident, &f.ty)).unzip();
                 let with_ext = self.ident_with_ext();
                 parse_quote! {
-                    impl #g_impl <#x_impl> ::coalesced::Extension<#x_param> for #ident #g_type #g_where {
+                    impl <#g_impl #x_impl> ::coalesced::Extension<#x_param> for #ident #g_type #g_where {
                         type WithExt = #with_ext<#x_param>;
                         fn with_extension(self, extension: #x_param) -> Self::WithExt {
                             #with_ext {
