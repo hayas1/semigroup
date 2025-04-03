@@ -118,6 +118,7 @@ impl Implementor {
                 let (fields, types): (Vec<_>, Vec<_>) =
                     f.named.iter().map(|f| (&f.ident, &f.ty)).unzip();
                 parse_quote! {
+                    #[derive()]
                     #[doc(hidden)]
                     struct #g_impl #with_ext #g_type #g_where {
                         #(#fields: ::coalesced::WithExt<#types, X>),*
