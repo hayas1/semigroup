@@ -1,8 +1,8 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, ToTokens};
 use syn::{
-    parse_quote, Data, DataStruct, DeriveInput, Fields, GenericParam, Generics, Ident,
-    ImplGenerics, ItemImpl, ItemStruct, TypeGenerics, TypeParam, TypeParamBound, WhereClause,
+    parse_quote, Data, DataStruct, DeriveInput, Fields, GenericParam, Ident, ItemImpl, ItemStruct,
+    TypeGenerics, TypeParam, TypeParamBound, WhereClause,
 };
 
 use crate::error::DeriveError;
@@ -12,10 +12,7 @@ pub struct Implementor {
 }
 impl Implementor {
     pub fn new(input: DeriveInput) -> Self {
-        let mut s = Self { input };
-        // let extension_generic = s.extension_generic();
-        // s.input.generics.params.push(extension_generic);
-        s
+        Self { input }
     }
 
     pub fn implement(&self) -> TokenStream {
@@ -73,9 +70,7 @@ impl Implementor {
     }
 
     fn implement_struct_extension(&self, s: &DataStruct) -> ItemImpl {
-        let DeriveInput {
-            ident, generics, ..
-        } = &self.input;
+        let DeriveInput { ident, .. } = &self.input;
         let (g_impl, g_ext, g_type, g_where) = self.split_with_extension_generics();
         let x_param = g_ext.param();
 
@@ -112,9 +107,6 @@ impl Implementor {
         }
     }
     fn definition_struct_with_ext(&self, s: &DataStruct) -> ItemStruct {
-        let DeriveInput {
-            ident, generics, ..
-        } = &self.input;
         let (_, g_ext, _, g_where) = self.split_with_extension_generics();
         let x_param = g_ext.param();
         let with_ext = self.ident_with_ext();
@@ -135,10 +127,7 @@ impl Implementor {
         }
     }
     fn implement_struct_coalesce_with_ext(&self, s: &DataStruct) -> ItemImpl {
-        let DeriveInput {
-            ident, generics, ..
-        } = &self.input;
-        let (g_impl, g_ext, g_type, g_where) = self.split_with_extension_generics();
+        let (g_impl, g_ext, _, g_where) = self.split_with_extension_generics();
         let with_ext = self.ident_with_ext();
 
         match &s.fields {
@@ -165,11 +154,8 @@ impl Implementor {
         }
     }
     fn implement_struct_from_with_ext(&self) -> ItemImpl {
-        let DeriveInput {
-            ident, generics, ..
-        } = &self.input;
+        let DeriveInput { ident, .. } = &self.input;
         let (g_impl, g_ext, g_type, g_where) = self.split_with_extension_generics();
-        let x_param = g_ext.param();
         let with_ext = self.ident_with_ext();
         parse_quote! {
             impl #g_impl From<#with_ext #g_ext> for #ident #g_type #g_where {
