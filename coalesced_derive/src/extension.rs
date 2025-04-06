@@ -34,25 +34,29 @@ impl Implementor {
         format_ident!("{}WithExt", ident)
     }
 
-    fn extension_generic(&self) -> (GenericParam, GenericParam) {
+    fn extension_generic(&self) -> GenericParam {
         let clone_bound = TypeParamBound::Trait(parse_quote! {Clone});
-        let g_impl = GenericParam::Type(TypeParam {
+        GenericParam::Type(TypeParam {
             attrs: Vec::new(),
             ident: format_ident!("X"),
             colon_token: Some(Default::default()),
             bounds: vec![clone_bound].into_iter().collect(),
             eq_token: None,
             default: None,
-        });
-        let g_type = GenericParam::Type(TypeParam {
-            attrs: Vec::new(),
-            ident: format_ident!("X"),
-            colon_token: None,
-            bounds: Default::default(),
-            eq_token: None,
-            default: None,
-        });
-        (g_impl, g_type)
+        })
+    }
+    fn split_with_extension_generics(
+        &self,
+    ) -> (
+        ExImplGenerics,
+        ExTypeGenerics,
+        TypeGenerics,
+        Option<&WhereClause>,
+    ) {
+        let ex_impl = ExImplGenerics(self);
+        let ex_type = ExTypeGenerics(self);
+        let (_, g_type, g_where) = self.input.generics.split_for_impl();
+        (ex_impl, ex_type, g_type, g_where)
     }
 
     fn implement_struct(&self, s: &DataStruct) -> TokenStream {
@@ -72,8 +76,8 @@ impl Implementor {
         let DeriveInput {
             ident, generics, ..
         } = &self.input;
-        let (g_impl, g_type, g_where) = generics.split_for_impl();
-        let (x_impl, x_param) = self.extension_generic();
+        let (g_impl, g_ext, g_type, g_where) = self.split_with_extension_generics();
+        let x_param = g_ext.param();
 
         match &s.fields {
             Fields::Named(f) => {
@@ -81,7 +85,7 @@ impl Implementor {
                     f.named.iter().map(|f| (&f.ident, &f.ty)).unzip();
                 let with_ext = self.ident_with_ext();
                 parse_quote! {
-                    impl <#g_impl #x_impl> ::coalesced::Extension<#x_param> for #ident #g_type #g_where {
+                    impl #g_impl ::coalesced::Extension<#x_param> for #ident #g_type #g_where {
                         type WithExt = #with_ext<#x_param>;
                         fn with_extension(self, extension: #x_param) -> Self::WithExt {
                             #with_ext {
@@ -175,16 +179,34 @@ impl Implementor {
     }
 }
 
-struct ExImplGenerics<'a>(&'a Generics);
+struct ExImplGenerics<'a>(&'a Implementor);
 impl ToTokens for ExImplGenerics<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        todo!()
+        let x = self.0.extension_generic();
+        let mut generics = self.0.input.generics.clone();
+        generics.params.push(x);
+        let (g_impl, _, _) = generics.split_for_impl();
+        g_impl.to_tokens(tokens);
     }
 }
 
-struct ExTypeGenerics<'a>(&'a Generics);
+struct ExTypeGenerics<'a>(&'a Implementor);
 impl ToTokens for ExTypeGenerics<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        todo!()
+        let x = self.0.extension_generic();
+        let mut generics = self.0.input.generics.clone();
+        generics.params.push(x);
+        let (_, g_type, _) = generics.split_for_impl();
+        g_type.to_tokens(tokens);
+    }
+}
+impl ExTypeGenerics<'_> {
+    fn param(&self) -> Ident {
+        // TODO remove this method ?
+        let x = self.0.extension_generic();
+        match x {
+            GenericParam::Type(t) => t.ident,
+            _ => unreachable!(),
+        }
     }
 }
