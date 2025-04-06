@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use quote::format_ident;
+use quote::{format_ident, ToTokens};
 use syn::{
     parse_quote, Data, DataStruct, DeriveInput, Fields, GenericParam, Generics, Ident,
     ImplGenerics, ItemImpl, ItemStruct, TypeGenerics, TypeParam, TypeParamBound, WhereClause,
@@ -172,5 +172,19 @@ impl Implementor {
                 }
             }
         }
+    }
+}
+
+struct ExImplGenerics<'a>(&'a Generics);
+impl ToTokens for ExImplGenerics<'_> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        todo!()
+    }
+}
+
+struct ExTypeGenerics<'a>(&'a Generics);
+impl ToTokens for ExTypeGenerics<'_> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        todo!()
     }
 }

@@ -1,7 +1,6 @@
 mod coalesce;
 mod error;
 mod extension;
-mod generics;
 
 use proc_macro::TokenStream;
 
