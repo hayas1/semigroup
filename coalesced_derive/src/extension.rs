@@ -76,7 +76,7 @@ impl Implementor {
 
         match &s.fields {
             Fields::Named(f) => {
-                let (fields, types): (Vec<_>, Vec<_>) =
+                let (fields, _types): (Vec<_>, Vec<_>) =
                     f.named.iter().map(|f| (&f.ident, &f.ty)).unzip();
                 let with_ext = self.ident_with_ext();
                 parse_quote! {
@@ -132,7 +132,7 @@ impl Implementor {
 
         match &s.fields {
             Fields::Named(f) => {
-                let (fields, types): (Vec<_>, Vec<_>) =
+                let (fields, _types): (Vec<_>, Vec<_>) =
                     f.named.iter().map(|f| (&f.ident, &f.ty)).unzip();
                 parse_quote! {
                     impl #g_impl ::coalesced::Coalesce for #with_ext #g_ext #g_where {
