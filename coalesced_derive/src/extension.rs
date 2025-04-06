@@ -115,7 +115,8 @@ impl Implementor {
         let DeriveInput {
             ident, generics, ..
         } = &self.input;
-        let (g_impl, g_type, g_where) = generics.split_for_impl();
+        let (_, g_ext, g_type, g_where) = self.split_with_extension_generics();
+        let x_param = g_ext.param();
         let with_ext = self.ident_with_ext();
         match &s.fields {
             Fields::Named(f) => {
@@ -124,8 +125,8 @@ impl Implementor {
                 parse_quote! {
                     #[derive()]
                     #[doc(hidden)]
-                    struct #g_impl #with_ext #g_type #g_where {
-                        #(#fields: ::coalesced::WithExt<#types, X>),*
+                    struct #with_ext<#x_param> #g_type #g_where {
+                        #(#fields: ::coalesced::WithExt<#types, #x_param>),*
                     }
                 }
             }
@@ -137,7 +138,8 @@ impl Implementor {
         let DeriveInput {
             ident, generics, ..
         } = &self.input;
-        let (g_impl, g_type, g_where) = generics.split_for_impl();
+        let (g_impl, g_ext, g_type, g_where) = self.split_with_extension_generics();
+        let x_param = g_ext.param();
         let with_ext = self.ident_with_ext();
 
         match &s.fields {
@@ -145,7 +147,7 @@ impl Implementor {
                 let (fields, types): (Vec<_>, Vec<_>) =
                     f.named.iter().map(|f| (&f.ident, &f.ty)).unzip();
                 parse_quote! {
-                    impl #g_impl ::coalesced::Coalesce for #with_ext #g_type #g_where {
+                    impl #g_impl ::coalesced::Coalesce for #with_ext<#x_param> #g_type #g_where {
                         fn prior(self, other: Self) -> Self {
                             Self {
                                 #(#fields: self.#fields.prior(other.#fields)),*
@@ -167,11 +169,12 @@ impl Implementor {
         let DeriveInput {
             ident, generics, ..
         } = &self.input;
-        let (g_impl, g_type, g_where) = generics.split_for_impl();
+        let (g_impl, g_ext, g_type, g_where) = self.split_with_extension_generics();
+        let x_param = g_ext.param();
         let with_ext = self.ident_with_ext();
         parse_quote! {
-            impl #g_impl From<#with_ext #g_type> for #ident #g_type #g_where {
-                fn from(with_ext: #with_ext<X>) -> Self {
+            impl #g_impl From<#with_ext<#x_param>> for #ident #g_type #g_where {
+                fn from(with_ext: #with_ext<#x_param>) -> Self {
                     ::coalesced::Extension::unwrap_extension(with_ext)
                 }
             }
