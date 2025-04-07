@@ -31,12 +31,15 @@ impl Implementor {
         format_ident!("{}WithExt", ident)
     }
 
+    fn x_param(&self) -> Ident {
+        parse_quote! { X }
+    }
     fn extension_generic(&self) -> GenericParam {
         let clone_bound = TypeParamBound::Trait(parse_quote! {Clone});
         GenericParam::Type(TypeParam {
             attrs: Vec::new(),
-            ident: format_ident!("X"),
-            colon_token: Some(Default::default()),
+            ident: self.x_param(),
+            colon_token: Some(parse_quote! { : }),
             bounds: vec![clone_bound].into_iter().collect(),
             eq_token: None,
             default: None,
@@ -72,7 +75,7 @@ impl Implementor {
     fn implement_struct_extension(&self, s: &DataStruct) -> ItemImpl {
         let DeriveInput { ident, .. } = &self.input;
         let (g_impl, g_ext, g_type, g_where) = self.split_with_extension_generics();
-        let x_param = g_ext.param();
+        let x_param = self.x_param();
 
         match &s.fields {
             Fields::Named(f) => {
@@ -108,7 +111,7 @@ impl Implementor {
     }
     fn definition_struct_with_ext(&self, s: &DataStruct) -> ItemStruct {
         let (_, g_ext, _, g_where) = self.split_with_extension_generics();
-        let x_param = g_ext.param();
+        let x_param = self.x_param();
         let with_ext = self.ident_with_ext();
         match &s.fields {
             Fields::Named(f) => {
@@ -186,15 +189,5 @@ impl ToTokens for ExTypeGenerics<'_> {
         generics.params.push(x);
         let (_, g_type, _) = generics.split_for_impl();
         g_type.to_tokens(tokens);
-    }
-}
-impl ExTypeGenerics<'_> {
-    fn param(&self) -> Ident {
-        // TODO remove this method ?
-        let x = self.0.extension_generic();
-        match x {
-            GenericParam::Type(t) => t.ident,
-            _ => unreachable!(),
-        }
     }
 }
