@@ -110,6 +110,7 @@ impl Implementor {
         }
     }
     fn definition_struct_with_ext(&self, s: &DataStruct) -> ItemStruct {
+        let DeriveInput { vis, .. } = &self.input;
         let (_, g_ext, _, g_where) = self.split_with_extension_generics();
         let x_param = self.x_param();
         let with_ext = self.ident_with_ext();
@@ -120,7 +121,7 @@ impl Implementor {
                 parse_quote! {
                     #[derive()]
                     #[doc(hidden)]
-                    struct #with_ext #g_ext #g_where {
+                    #vis struct #with_ext #g_ext #g_where {
                         #(#fields: ::coalesced::WithExt<#types, #x_param>),*
                     }
                 }
