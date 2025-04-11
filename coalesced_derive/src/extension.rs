@@ -1,8 +1,8 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, ToTokens};
 use syn::{
-    parse_quote, Data, DataStruct, DeriveInput, Fields, GenericParam, Ident, ItemImpl, ItemStruct,
-    TypeGenerics, TypeParam, TypeParamBound, WhereClause,
+    parse_quote, Data, DataStruct, DeriveInput, ExprStruct, Fields, GenericParam, Ident, ItemImpl,
+    ItemStruct, TypeGenerics, TypeParam, TypeParamBound, WhereClause,
 };
 
 use crate::error::DeriveError;
@@ -77,31 +77,52 @@ impl Implementor {
         let (g_impl, g_ext, g_type, g_where) = self.split_with_extension_generics();
         let x_param = self.x_param();
 
-        match &s.fields {
-            Fields::Named(f) => {
+        let with_ext = self.ident_with_ext();
+        let (ex, we) = (parse_quote! { extension }, parse_quote! { with_ext });
+        let with_extension = self.implement_struct_extension_with_extension(&s.fields, &ex);
+        let unwrap_extension = self.implement_struct_extension_unwrap_extension(&s.fields, &we);
+        parse_quote! {
+            impl #g_impl ::coalesced::Extension<#x_param> for #ident #g_type #g_where {
+                type WithExt = #with_ext #g_ext;
+                fn with_extension(self, #ex: #x_param) -> Self::WithExt {
+                    #with_extension
+                }
+                fn unwrap_extension(#we: Self::WithExt) -> Self {
+                    #unwrap_extension
+                }
+                fn ex_prior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
+                    base.prior(other)
+                }
+                fn ex_posterior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
+                    base.posterior(other)
+                }
+            }
+        }
+    }
+    fn implement_struct_extension_with_extension(&self, f: &Fields, ex: &Ident) -> ExprStruct {
+        let with_ext = self.ident_with_ext();
+        match f {
+            Fields::Named(n) => {
                 let (fields, _types): (Vec<_>, Vec<_>) =
-                    f.named.iter().map(|f| (&f.ident, &f.ty)).unzip();
-                let with_ext = self.ident_with_ext();
+                    n.named.iter().map(|f| (&f.ident, &f.ty)).unzip();
                 parse_quote! {
-                    impl #g_impl ::coalesced::Extension<#x_param> for #ident #g_type #g_where {
-                        type WithExt = #with_ext #g_ext;
-                        fn with_extension(self, extension: #x_param) -> Self::WithExt {
-                            #with_ext {
-                                #(#fields: self.#fields.with_extension(extension.clone())),*
-                            }
-                        }
-                        fn unwrap_extension(with_ext: Self::WithExt) -> Self {
-                            let Self::WithExt { #(#fields),* } = with_ext;
-                            Self {
-                                #(#fields: Extension::unwrap_extension(#fields)),*
-                            }
-                        }
-                        fn ex_prior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
-                            base.prior(other)
-                        }
-                        fn ex_posterior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
-                            base.posterior(other)
-                        }
+                    #with_ext {
+                        #(#fields: self.#fields.with_extension(#ex.clone())),*
+                    }
+                }
+            }
+            Fields::Unnamed(_) => todo!(),
+            Fields::Unit => todo!(),
+        }
+    }
+    fn implement_struct_extension_unwrap_extension(&self, f: &Fields, we: &Ident) -> ExprStruct {
+        match f {
+            Fields::Named(n) => {
+                let (fields, _types): (Vec<_>, Vec<_>) =
+                    n.named.iter().map(|f| (&f.ident, &f.ty)).unzip();
+                parse_quote! {
+                    Self {
+                        #(#fields: Extension::unwrap_extension(#we.#fields)),*
                     }
                 }
             }
