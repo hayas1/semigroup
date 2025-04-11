@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, ToTokens};
 use syn::{
-    parse_quote, Data, DataStruct, DeriveInput, ExprStruct, Fields, GenericParam, Ident, ItemImpl,
+    parse_quote, Data, DataStruct, DeriveInput, Expr, Fields, GenericParam, Ident, ItemImpl,
     ItemStruct, TypeGenerics, TypeParam, TypeParamBound, WhereClause,
 };
 
@@ -99,34 +99,40 @@ impl Implementor {
             }
         }
     }
-    fn implement_struct_extension_with_extension(&self, f: &Fields, ex: &Ident) -> ExprStruct {
+    fn implement_struct_extension_with_extension(&self, f: &Fields, ex: &Ident) -> Expr {
         let with_ext = self.ident_with_ext();
         match f {
             Fields::Named(n) => {
                 let (fields, _types): (Vec<_>, Vec<_>) =
                     n.named.iter().map(|f| (&f.ident, &f.ty)).unzip();
                 parse_quote! {
-                    #with_ext {
-                        #(#fields: self.#fields.with_extension(#ex.clone())),*
-                    }
+                    #with_ext { #(#fields: self.#fields.with_extension(#ex.clone())),* }
                 }
             }
-            Fields::Unnamed(_) => todo!(),
+            Fields::Unnamed(u) => {
+                let indices = (0..u.unnamed.len()).map(syn::Index::from);
+                parse_quote! {
+                    #with_ext( #(self.#indices.with_extension(#ex.clone())),* )
+                }
+            }
             Fields::Unit => todo!(),
         }
     }
-    fn implement_struct_extension_unwrap_extension(&self, f: &Fields, we: &Ident) -> ExprStruct {
+    fn implement_struct_extension_unwrap_extension(&self, f: &Fields, we: &Ident) -> Expr {
         match f {
             Fields::Named(n) => {
                 let (fields, _types): (Vec<_>, Vec<_>) =
                     n.named.iter().map(|f| (&f.ident, &f.ty)).unzip();
                 parse_quote! {
-                    Self {
-                        #(#fields: Extension::unwrap_extension(#we.#fields)),*
-                    }
+                    Self { #(#fields: Extension::unwrap_extension(#we.#fields)),* }
                 }
             }
-            Fields::Unnamed(_) => todo!(),
+            Fields::Unnamed(u) => {
+                let indices = (0..u.unnamed.len()).map(syn::Index::from);
+                parse_quote! {
+                    Self( #(Extension::unwrap_extension(#we.#indices)),* )
+                }
+            }
             Fields::Unit => todo!(),
         }
     }
@@ -146,7 +152,20 @@ impl Implementor {
                     }
                 }
             }
-            Fields::Unnamed(_) => todo!(),
+            Fields::Unnamed(u) => {
+                let (_indices, types): (Vec<_>, Vec<_>) = u
+                    .unnamed
+                    .iter()
+                    .enumerate()
+                    .map(|(i, f)| (syn::Index::from(i), &f.ty))
+                    .unzip();
+                parse_quote! {
+                    #[doc(hidden)]
+                    #vis struct #with_ext #g_ext #g_where (
+                        #(::coalesced::WithExt<#types, #x_param>),*
+                    );
+                }
+            }
             Fields::Unit => todo!(),
         }
     }
@@ -173,7 +192,24 @@ impl Implementor {
                     }
                 }
             }
-            Fields::Unnamed(_) => todo!(),
+            Fields::Unnamed(u) => {
+                let (indices, _types): (Vec<_>, Vec<_>) = u
+                    .unnamed
+                    .iter()
+                    .enumerate()
+                    .map(|(i, f)| (syn::Index::from(i), &f.ty))
+                    .unzip();
+                parse_quote! {
+                    impl #g_impl ::coalesced::Coalesce for #with_ext #g_ext #g_where {
+                        fn prior(self, other: Self) -> Self {
+                            Self( #(self.#indices.prior(other.#indices)),* )
+                        }
+                        fn posterior(self, other: Self) -> Self {
+                            Self( #(self.#indices.posterior(other.#indices)),* )
+                        }
+                    }
+                }
+            }
             Fields::Unit => todo!(),
         }
     }
