@@ -161,9 +161,9 @@ impl Implementor {
                     .unzip();
                 parse_quote! {
                     #[doc(hidden)]
-                    #vis struct #with_ext #g_ext #g_where (
+                    #vis struct #with_ext #g_ext (
                         #(::coalesced::WithExt<#types, #x_param>),*
-                    );
+                    ) #g_where;
                 }
             }
             Fields::Unit => todo!(),
