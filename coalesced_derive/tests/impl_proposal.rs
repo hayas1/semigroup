@@ -14,10 +14,9 @@ impl<X: Clone> Extension<X> for NamedStruct {
         }
     }
     fn unwrap_extension(with_ext: Self::WithExt) -> Self {
-        let Self::WithExt { u, v } = with_ext;
         Self {
-            u: Extension::unwrap_extension(u),
-            v: Extension::unwrap_extension(v),
+            u: Extension::unwrap_extension(with_ext.u),
+            v: Extension::unwrap_extension(with_ext.v),
         }
     }
     fn ex_prior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -53,7 +52,29 @@ impl<X: Clone> From<NamedStructWithExt<X>> for NamedStruct {
 
 // #[derive(Coalesce)]
 struct UnnamedStruct(u32, i32);
-impl Coalesce for UnnamedStruct {
+impl<X: Clone> Extension<X> for UnnamedStruct {
+    type WithExt = UnnamedStructWithExt<X>;
+    fn with_extension(self, extension: X) -> Self::WithExt {
+        UnnamedStructWithExt(
+            self.0.with_extension(extension.clone()),
+            self.1.with_extension(extension.clone()),
+        )
+    }
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
+        Self(
+            Extension::unwrap_extension(with_ext.0),
+            Extension::unwrap_extension(with_ext.1),
+        )
+    }
+    fn ex_prior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
+        base.prior(other)
+    }
+    fn ex_posterior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
+        base.posterior(other)
+    }
+}
+struct UnnamedStructWithExt<X>(WithExt<u32, X>, WithExt<i32, X>);
+impl<X> Coalesce for UnnamedStructWithExt<X> {
     fn prior(self, other: Self) -> Self {
         Self(self.0.prior(other.0), self.1.prior(other.1))
     }
@@ -61,7 +82,11 @@ impl Coalesce for UnnamedStruct {
         Self(self.0.posterior(other.0), self.1.posterior(other.1))
     }
 }
-
+impl<X: Clone> From<UnnamedStructWithExt<X>> for UnnamedStruct {
+    fn from(with_ext: UnnamedStructWithExt<X>) -> Self {
+        Extension::unwrap_extension(with_ext)
+    }
+}
 // #[derive(Coalesce)]
 struct UnitStruct;
 impl Coalesce for UnitStruct {
