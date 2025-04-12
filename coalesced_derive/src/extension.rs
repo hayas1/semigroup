@@ -1,8 +1,9 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, ToTokens};
 use syn::{
-    parse_quote, Data, DataStruct, DeriveInput, Expr, Fields, GenericParam, Ident, ItemImpl,
-    ItemStruct, TypeGenerics, TypeParam, TypeParamBound, WhereClause,
+    parse_quote, Data, DataStruct, DeriveInput, Expr, Fields, FieldsNamed, FieldsUnnamed,
+    GenericParam, Ident, ItemImpl, ItemStruct, Type, TypeGenerics, TypeParam, TypeParamBound,
+    WhereClause,
 };
 
 use crate::error::DeriveError;
@@ -103,14 +104,13 @@ impl Implementor {
         let with_ext = self.ident_with_ext();
         match f {
             Fields::Named(n) => {
-                let (fields, _types): (Vec<_>, Vec<_>) =
-                    n.named.iter().map(|f| (&f.ident, &f.ty)).unzip();
+                let (fields, _types) = self.fields_types(n);
                 parse_quote! {
                     #with_ext { #(#fields: self.#fields.with_extension(#ex.clone())),* }
                 }
             }
             Fields::Unnamed(u) => {
-                let indices = (0..u.unnamed.len()).map(syn::Index::from);
+                let (indices, _types) = self.indices_types(u);
                 parse_quote! {
                     #with_ext( #(self.#indices.with_extension(#ex.clone())),* )
                 }
@@ -121,14 +121,13 @@ impl Implementor {
     fn implement_struct_extension_unwrap_extension(&self, f: &Fields, we: &Ident) -> Expr {
         match f {
             Fields::Named(n) => {
-                let (fields, _types): (Vec<_>, Vec<_>) =
-                    n.named.iter().map(|f| (&f.ident, &f.ty)).unzip();
+                let (fields, _types) = self.fields_types(n);
                 parse_quote! {
                     Self { #(#fields: Extension::unwrap_extension(#we.#fields)),* }
                 }
             }
             Fields::Unnamed(u) => {
-                let indices = (0..u.unnamed.len()).map(syn::Index::from);
+                let (indices, _types) = self.indices_types(u);
                 parse_quote! {
                     Self( #(Extension::unwrap_extension(#we.#indices)),* )
                 }
@@ -142,9 +141,8 @@ impl Implementor {
         let x_param = self.x_param();
         let with_ext = self.ident_with_ext();
         match &s.fields {
-            Fields::Named(f) => {
-                let (fields, types): (Vec<_>, Vec<_>) =
-                    f.named.iter().map(|f| (&f.ident, &f.ty)).unzip();
+            Fields::Named(n) => {
+                let (fields, types) = self.fields_types(n);
                 parse_quote! {
                     #[doc(hidden)]
                     #vis struct #with_ext #g_ext #g_where {
@@ -153,12 +151,7 @@ impl Implementor {
                 }
             }
             Fields::Unnamed(u) => {
-                let (_indices, types): (Vec<_>, Vec<_>) = u
-                    .unnamed
-                    .iter()
-                    .enumerate()
-                    .map(|(i, f)| (syn::Index::from(i), &f.ty))
-                    .unzip();
+                let (_indices, types) = self.indices_types(u);
                 parse_quote! {
                     #[doc(hidden)]
                     #vis struct #with_ext #g_ext (
@@ -174,9 +167,8 @@ impl Implementor {
         let with_ext = self.ident_with_ext();
 
         match &s.fields {
-            Fields::Named(f) => {
-                let (fields, _types): (Vec<_>, Vec<_>) =
-                    f.named.iter().map(|f| (&f.ident, &f.ty)).unzip();
+            Fields::Named(n) => {
+                let (fields, _types) = self.fields_types(n);
                 parse_quote! {
                     impl #g_impl ::coalesced::Coalesce for #with_ext #g_ext #g_where {
                         fn prior(self, other: Self) -> Self {
@@ -193,12 +185,7 @@ impl Implementor {
                 }
             }
             Fields::Unnamed(u) => {
-                let (indices, _types): (Vec<_>, Vec<_>) = u
-                    .unnamed
-                    .iter()
-                    .enumerate()
-                    .map(|(i, f)| (syn::Index::from(i), &f.ty))
-                    .unzip();
+                let (indices, _types) = self.indices_types(u);
                 parse_quote! {
                     impl #g_impl ::coalesced::Coalesce for #with_ext #g_ext #g_where {
                         fn prior(self, other: Self) -> Self {
@@ -224,6 +211,17 @@ impl Implementor {
                 }
             }
         }
+    }
+
+    fn fields_types<'a>(&self, f: &'a FieldsNamed) -> (Vec<&'a Option<Ident>>, Vec<&'a Type>) {
+        f.named.iter().map(|f| (&f.ident, &f.ty)).unzip()
+    }
+    fn indices_types<'a>(&self, f: &'a FieldsUnnamed) -> (Vec<syn::Index>, Vec<&'a Type>) {
+        f.unnamed
+            .iter()
+            .enumerate()
+            .map(|(i, f)| (i.into(), &f.ty))
+            .unzip()
     }
 }
 
