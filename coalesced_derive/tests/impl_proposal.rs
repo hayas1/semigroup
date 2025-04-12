@@ -87,16 +87,30 @@ impl<X: Clone> From<UnnamedStructWithExt<X>> for UnnamedStruct {
         Extension::unwrap_extension(with_ext)
     }
 }
+
 // #[derive(Coalesce)]
 struct UnitStruct;
-impl Coalesce for UnitStruct {
-    fn prior(self, other: Self) -> Self {
-        let _ = self;
-        other
+impl<X: Clone> Extension<X> for UnitStruct {
+    type WithExt = WithExt<UnitStruct, X>;
+    fn with_extension(self, extension: X) -> Self::WithExt {
+        WithExt {
+            value: self,
+            extension,
+        }
     }
-    fn posterior(self, other: Self) -> Self {
-        let _ = other;
-        self
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
+        with_ext.value
+    }
+    fn ex_prior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
+        base.prior(other)
+    }
+    fn ex_posterior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
+        base.posterior(other)
+    }
+}
+impl<X: Clone> From<WithExt<UnitStruct, X>> for UnitStruct {
+    fn from(with_ext: WithExt<UnitStruct, X>) -> Self {
+        Extension::unwrap_extension(with_ext)
     }
 }
 
