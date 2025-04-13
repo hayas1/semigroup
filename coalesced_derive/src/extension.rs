@@ -29,6 +29,7 @@ impl Implementor {
 
     fn with_ext_path(&self) -> Path {
         match self.input.data {
+            Data::Enum(DataEnum { .. }) => todo!(),
             Data::Struct(DataStruct {
                 fields: Fields::Named(_) | Fields::Unnamed(_),
                 ..
@@ -45,7 +46,6 @@ impl Implementor {
                 let x_param = self.x_param();
                 parse_quote! { ::coalesced::WithExt <#ident, #x_param> }
             }
-            Data::Enum(DataEnum { .. }) => todo!(),
             Data::Union(_) => unreachable!(),
         }
     }
