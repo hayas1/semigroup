@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, ToTokens};
 use syn::{
-    parse_quote, Data, DataStruct, DeriveInput, Expr, Fields, FieldsNamed, FieldsUnnamed,
+    parse_quote, Data, DataEnum, DataStruct, DeriveInput, Expr, Fields, FieldsNamed, FieldsUnnamed,
     GenericParam, Ident, ItemImpl, ItemStruct, Type, TypeGenerics, TypeParam, TypeParamBound,
     WhereClause,
 };
@@ -29,7 +29,20 @@ impl Implementor {
 
     fn ident_with_ext(&self) -> Ident {
         let DeriveInput { ident, .. } = &self.input;
-        format_ident!("{}WithExt", ident)
+        match self.input.data {
+            Data::Struct(DataStruct {
+                fields: Fields::Named(_) | Fields::Unnamed(_),
+                ..
+            }) => {
+                format_ident!("{}WithExt", ident)
+            }
+            Data::Struct(DataStruct {
+                fields: Fields::Unit,
+                ..
+            }) => parse_quote! { ::coalesced::WithExt },
+            Data::Enum(DataEnum { .. }) => todo!(),
+            Data::Union(_) => unreachable!(),
+        }
     }
 
     fn x_param(&self) -> Ident {
@@ -115,7 +128,12 @@ impl Implementor {
                     #with_ext( #(self.#indices.with_extension(#ex.clone())),* )
                 }
             }
-            Fields::Unit => todo!(),
+            Fields::Unit => parse_quote! {
+                ::coalesced::WithExt {
+                    value: self,
+                    extension: #ex
+                }
+            },
         }
     }
     fn implement_struct_extension_unwrap_extension(&self, f: &Fields, we: &Ident) -> Expr {
@@ -132,10 +150,12 @@ impl Implementor {
                     Self( #(Extension::unwrap_extension(#we.#indices)),* )
                 }
             }
-            Fields::Unit => todo!(),
+            Fields::Unit => parse_quote! {
+                #we.value
+            },
         }
     }
-    fn definition_struct_with_ext(&self, s: &DataStruct) -> ItemStruct {
+    fn definition_struct_with_ext(&self, s: &DataStruct) -> Option<ItemStruct> {
         let DeriveInput { vis, .. } = &self.input;
         let (_, g_ext, _, g_where) = self.split_with_extension_generics();
         let x_param = self.x_param();
@@ -143,33 +163,33 @@ impl Implementor {
         match &s.fields {
             Fields::Named(n) => {
                 let (fields, types) = self.fields_types(n);
-                parse_quote! {
+                Some(parse_quote! {
                     #[doc(hidden)]
                     #vis struct #with_ext #g_ext #g_where {
                         #(#fields: ::coalesced::WithExt<#types, #x_param>),*
                     }
-                }
+                })
             }
             Fields::Unnamed(u) => {
                 let (_indices, types) = self.indices_types(u);
-                parse_quote! {
+                Some(parse_quote! {
                     #[doc(hidden)]
                     #vis struct #with_ext #g_ext (
                         #(::coalesced::WithExt<#types, #x_param>),*
                     ) #g_where;
-                }
+                })
             }
-            Fields::Unit => todo!(),
+            Fields::Unit => None,
         }
     }
-    fn implement_struct_coalesce_with_ext(&self, s: &DataStruct) -> ItemImpl {
+    fn implement_struct_coalesce_with_ext(&self, s: &DataStruct) -> Option<ItemImpl> {
         let (g_impl, g_ext, _, g_where) = self.split_with_extension_generics();
         let with_ext = self.ident_with_ext();
 
         match &s.fields {
             Fields::Named(n) => {
                 let (fields, _types) = self.fields_types(n);
-                parse_quote! {
+                Some(parse_quote! {
                     impl #g_impl ::coalesced::Coalesce for #with_ext #g_ext #g_where {
                         fn prior(self, other: Self) -> Self {
                             Self {
@@ -182,11 +202,11 @@ impl Implementor {
                             }
                         }
                     }
-                }
+                })
             }
             Fields::Unnamed(u) => {
                 let (indices, _types) = self.indices_types(u);
-                parse_quote! {
+                Some(parse_quote! {
                     impl #g_impl ::coalesced::Coalesce for #with_ext #g_ext #g_where {
                         fn prior(self, other: Self) -> Self {
                             Self( #(self.#indices.prior(other.#indices)),* )
@@ -195,9 +215,9 @@ impl Implementor {
                             Self( #(self.#indices.posterior(other.#indices)),* )
                         }
                     }
-                }
+                })
             }
-            Fields::Unit => todo!(),
+            Fields::Unit => None,
         }
     }
     fn implement_struct_from_with_ext(&self) -> ItemImpl {
