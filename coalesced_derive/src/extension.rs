@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, ToTokens};
 use syn::{
     parse_quote, Data, DataEnum, DataStruct, DeriveInput, Expr, Fields, FieldsNamed, FieldsUnnamed,
-    GenericParam, Ident, ItemFn, ItemImpl, ItemStruct, Type, TypeGenerics, TypeParam,
+    GenericParam, Ident, ItemFn, ItemImpl, ItemStruct, Path, Type, TypeGenerics, TypeParam,
     TypeParamBound, WhereClause,
 };
 
@@ -27,14 +27,14 @@ impl Implementor {
         }
     }
 
-    fn ident_with_ext(&self) -> Ident {
-        let DeriveInput { ident, .. } = &self.input;
+    fn ident_with_ext(&self) -> Path {
         match self.input.data {
             Data::Struct(DataStruct {
                 fields: Fields::Named(_) | Fields::Unnamed(_),
                 ..
             }) => {
-                format_ident!("{}WithExt", ident)
+                let ident = format_ident!("{}WithExt", self.input.ident);
+                parse_quote! { #ident }
             }
             Data::Struct(DataStruct {
                 fields: Fields::Unit,
