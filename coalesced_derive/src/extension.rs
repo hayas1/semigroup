@@ -76,16 +76,10 @@ impl Implementor {
     }
     fn split_with_extension_generics(
         &self,
-    ) -> (
-        ExImplGenerics,
-        ExTypeGenerics,
-        TypeGenerics,
-        Option<&WhereClause>,
-    ) {
+    ) -> (ExImplGenerics, TypeGenerics, Option<&WhereClause>) {
         let ex_impl = ExImplGenerics(self);
-        let ex_type = ExTypeGenerics(self);
         let (_, g_type, g_where) = self.input.generics.split_for_impl();
-        (ex_impl, ex_type, g_type, g_where)
+        (ex_impl, g_type, g_where)
     }
 
     fn implement_struct(&self, s: &DataStruct) -> TokenStream {
@@ -103,7 +97,7 @@ impl Implementor {
 
     fn implement_struct_extension(&self, s: &DataStruct) -> ItemImpl {
         let DeriveInput { ident, .. } = &self.input;
-        let (g_impl, g_ext, g_type, g_where) = self.split_with_extension_generics();
+        let (g_impl, g_type, g_where) = self.split_with_extension_generics();
         let x_param = self.x_param();
 
         let with_ext = self.with_ext_path();
@@ -202,7 +196,7 @@ impl Implementor {
     }
     fn definition_struct_with_ext(&self, s: &DataStruct) -> Option<ItemStruct> {
         let DeriveInput { vis, .. } = &self.input;
-        let (_, g_ext, _, g_where) = self.split_with_extension_generics();
+        let (_, _, g_where) = self.split_with_extension_generics();
         let x_param = self.x_param();
         let with_ext = self.with_ext_path();
         match &s.fields {
@@ -228,7 +222,7 @@ impl Implementor {
         }
     }
     fn implement_struct_coalesce_with_ext(&self, s: &DataStruct) -> Option<ItemImpl> {
-        let (g_impl, g_ext, _, g_where) = self.split_with_extension_generics();
+        let (g_impl, _, g_where) = self.split_with_extension_generics();
         let with_ext = self.with_ext_path();
 
         match &s.fields {
@@ -267,7 +261,7 @@ impl Implementor {
     }
     fn implement_struct_from_with_ext(&self) -> ItemImpl {
         let DeriveInput { ident, .. } = &self.input;
-        let (g_impl, g_ext, g_type, g_where) = self.split_with_extension_generics();
+        let (g_impl, g_type, g_where) = self.split_with_extension_generics();
         let with_ext = self.with_ext_path();
         parse_quote! {
             impl #g_impl From<#with_ext> for #ident #g_type #g_where {
