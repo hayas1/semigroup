@@ -2,8 +2,8 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, ToTokens};
 use syn::{
     parse_quote, Data, DataEnum, DataStruct, DeriveInput, Expr, Fields, FieldsNamed, FieldsUnnamed,
-    GenericParam, Ident, ItemImpl, ItemStruct, Type, TypeGenerics, TypeParam, TypeParamBound,
-    WhereClause,
+    GenericParam, Ident, ItemFn, ItemImpl, ItemStruct, Type, TypeGenerics, TypeParam,
+    TypeParamBound, WhereClause,
 };
 
 use crate::error::DeriveError;
@@ -93,23 +93,25 @@ impl Implementor {
 
         let with_ext = self.ident_with_ext();
         let (ex, we) = (parse_quote! { extension }, parse_quote! { with_ext });
-        let with_extension = self.implement_struct_extension_with_extension(&s.fields, &ex);
-        let unwrap_extension = self.implement_struct_extension_unwrap_extension(&s.fields, &we);
+        let (block_with_extension, block_unwrap_extension) = (
+            self.implement_struct_extension_with_extension(&s.fields, &ex),
+            self.implement_struct_extension_unwrap_extension(&s.fields, &we),
+        );
+        let (fn_ex_prior, fn_ex_posterior) = (
+            self.implement_struct_extension_ex_prior(&s.fields),
+            self.implement_struct_extension_ex_posterior(&s.fields),
+        );
         parse_quote! {
             impl #g_impl ::coalesced::Extension<#x_param> for #ident #g_type #g_where {
                 type WithExt = #with_ext #g_ext;
                 fn with_extension(self, #ex: #x_param) -> Self::WithExt {
-                    #with_extension
+                    #block_with_extension
                 }
                 fn unwrap_extension(#we: Self::WithExt) -> Self {
-                    #unwrap_extension
+                    #block_unwrap_extension
                 }
-                fn ex_prior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
-                    base.prior(other)
-                }
-                fn ex_posterior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
-                    base.posterior(other)
-                }
+                #fn_ex_prior
+                #fn_ex_posterior
             }
         }
     }
@@ -152,6 +154,34 @@ impl Implementor {
             }
             Fields::Unit => parse_quote! {
                 #we.value
+            },
+        }
+    }
+    fn implement_struct_extension_ex_prior(&self, f: &Fields) -> ItemFn {
+        match f {
+            Fields::Named(_) | Fields::Unnamed(_) => parse_quote! {
+                fn ex_prior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
+                    base.prior(other)
+                }
+            },
+            Fields::Unit => parse_quote! {
+                fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
+                    other
+                }
+            },
+        }
+    }
+    fn implement_struct_extension_ex_posterior(&self, f: &Fields) -> ItemFn {
+        match f {
+            Fields::Named(_) | Fields::Unnamed(_) => parse_quote! {
+                fn ex_posterior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
+                    base.posterior(other)
+                }
+            },
+            Fields::Unit => parse_quote! {
+                fn ex_posterior(base: Self::WithExt, _other: Self::WithExt) -> Self::WithExt {
+                    base
+                }
             },
         }
     }
