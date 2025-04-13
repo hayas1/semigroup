@@ -124,13 +124,55 @@ impl<X: Clone> From<WithExt<UnitStruct, X>> for UnitStruct {
 enum CompoundEnum {
     Unit,
     Named { u: u32, v: i32 },
-    Unnamed(&'static str, String),
+    Unnamed(&'static str, usize),
 }
-
-impl Coalesce for CompoundEnum {
+impl<X: Clone> Extension<X> for CompoundEnum {
+    type WithExt = CompoundEnumWithExt<X>;
+    fn with_extension(self, extension: X) -> Self::WithExt {
+        match self {
+            CompoundEnum::Unit => CompoundEnumWithExt::Unit(().with_extension(extension)),
+            CompoundEnum::Named { u, v } => CompoundEnumWithExt::Named {
+                u: u.with_extension(extension.clone()),
+                v: v.with_extension(extension.clone()),
+            },
+            CompoundEnum::Unnamed(self_0, self_1) => CompoundEnumWithExt::Unnamed(
+                self_0.with_extension(extension.clone()),
+                self_1.with_extension(extension.clone()),
+            ),
+        }
+    }
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
+        match with_ext {
+            CompoundEnumWithExt::Unit(_) => CompoundEnum::Unit,
+            CompoundEnumWithExt::Named { u, v } => CompoundEnum::Named {
+                u: Extension::unwrap_extension(u),
+                v: Extension::unwrap_extension(v),
+            },
+            CompoundEnumWithExt::Unnamed(self_0, self_1) => CompoundEnum::Unnamed(
+                Extension::unwrap_extension(self_0),
+                Extension::unwrap_extension(self_1),
+            ),
+        }
+    }
+    fn ex_prior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
+        base.prior(other)
+    }
+    fn ex_posterior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
+        base.posterior(other)
+    }
+}
+enum CompoundEnumWithExt<X> {
+    Unit(WithExt<(), X>), // TODO ?
+    Named {
+        u: WithExt<u32, X>,
+        v: WithExt<i32, X>,
+    },
+    Unnamed(WithExt<&'static str, X>, WithExt<usize, X>),
+}
+impl<X> Coalesce for CompoundEnumWithExt<X> {
     fn prior(self, other: Self) -> Self {
         match (self, other) {
-            (Self::Unit, Self::Unit) => Self::Unit,
+            (Self::Unit(_), prior @ Self::Unit(_)) => prior,
             (
                 Self::Named {
                     u: self_u,
@@ -150,10 +192,9 @@ impl Coalesce for CompoundEnum {
             (_, o) => o,
         }
     }
-
     fn posterior(self, other: Self) -> Self {
         match (self, other) {
-            (Self::Unit, Self::Unit) => Self::Unit,
+            (posterior @ Self::Unit(_), Self::Unit(_)) => posterior,
             (
                 Self::Named {
                     u: self_u,
@@ -172,6 +213,11 @@ impl Coalesce for CompoundEnum {
             }
             (b, _) => b,
         }
+    }
+}
+impl<X: Clone> From<CompoundEnumWithExt<X>> for CompoundEnum {
+    fn from(with_ext: CompoundEnumWithExt<X>) -> Self {
+        Extension::unwrap_extension(with_ext)
     }
 }
 
@@ -205,7 +251,21 @@ fn test_unit_struct() {
 
 #[test]
 fn test_compound_enum() {
-    let a = CompoundEnum::Named { u: 1, v: -1 };
-    let b = CompoundEnum::Named { u: 2, v: -2 };
-    assert!(matches!(a.prior(b), CompoundEnum::Named { u: 2, v: -2 }));
+    let a_unit = CompoundEnum::Unit;
+    let b_unit = CompoundEnum::Unit;
+    assert!(matches!(a_unit.posterior(b_unit), CompoundEnum::Unit));
+
+    let a_named = CompoundEnum::Named { u: 1, v: -1 };
+    let b_named = CompoundEnum::Named { u: 2, v: -2 };
+    assert!(matches!(
+        a_named.prior(b_named),
+        CompoundEnum::Named { u: 2, v: -2 }
+    ));
+
+    let a_unnamed = CompoundEnum::Unnamed("one", 1);
+    let b_unnamed = CompoundEnum::Unnamed("two", 2);
+    assert!(matches!(
+        a_unnamed.posterior(b_unnamed),
+        CompoundEnum::Unnamed("one", 1)
+    ));
 }
