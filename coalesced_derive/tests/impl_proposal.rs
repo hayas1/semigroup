@@ -101,11 +101,17 @@ impl<X: Clone> Extension<X> for UnitStruct {
     fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         with_ext.value
     }
-    fn ex_prior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
-        base.prior(other)
+    fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
+        WithExt {
+            value: other.value,
+            extension: other.extension,
+        }
     }
-    fn ex_posterior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
-        base.posterior(other)
+    fn ex_posterior(base: Self::WithExt, _other: Self::WithExt) -> Self::WithExt {
+        WithExt {
+            value: base.value,
+            extension: base.extension,
+        }
     }
 }
 impl<X: Clone> From<WithExt<UnitStruct, X>> for UnitStruct {
