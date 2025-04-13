@@ -228,6 +228,63 @@ impl<X> Extension<X> for &mut String {
     }
 }
 #[doc = "Generated implementation"]
+impl<X> Extension<X> for usize {
+    type WithExt = WithExt<Self, X>;
+    fn with_extension(self, extension: X) -> Self::WithExt {
+        WithExt {
+            value: self,
+            extension,
+        }
+    }
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
+        with_ext.value
+    }
+    fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
+        other
+    }
+    fn ex_posterior(base: Self::WithExt, _other: Self::WithExt) -> Self::WithExt {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<X> Extension<X> for &usize {
+    type WithExt = WithExt<Self, X>;
+    fn with_extension(self, extension: X) -> Self::WithExt {
+        WithExt {
+            value: self,
+            extension,
+        }
+    }
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
+        with_ext.value
+    }
+    fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
+        other
+    }
+    fn ex_posterior(base: Self::WithExt, _other: Self::WithExt) -> Self::WithExt {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<X> Extension<X> for &mut usize {
+    type WithExt = WithExt<Self, X>;
+    fn with_extension(self, extension: X) -> Self::WithExt {
+        WithExt {
+            value: self,
+            extension,
+        }
+    }
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
+        with_ext.value
+    }
+    fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
+        other
+    }
+    fn ex_posterior(base: Self::WithExt, _other: Self::WithExt) -> Self::WithExt {
+        base
+    }
+}
+#[doc = "Generated implementation"]
 impl<X> Extension<X> for u8 {
     type WithExt = WithExt<Self, X>;
     fn with_extension(self, extension: X) -> Self::WithExt {
@@ -495,6 +552,63 @@ impl<X> Extension<X> for &u128 {
 }
 #[doc = "Generated implementation"]
 impl<X> Extension<X> for &mut u128 {
+    type WithExt = WithExt<Self, X>;
+    fn with_extension(self, extension: X) -> Self::WithExt {
+        WithExt {
+            value: self,
+            extension,
+        }
+    }
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
+        with_ext.value
+    }
+    fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
+        other
+    }
+    fn ex_posterior(base: Self::WithExt, _other: Self::WithExt) -> Self::WithExt {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<X> Extension<X> for isize {
+    type WithExt = WithExt<Self, X>;
+    fn with_extension(self, extension: X) -> Self::WithExt {
+        WithExt {
+            value: self,
+            extension,
+        }
+    }
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
+        with_ext.value
+    }
+    fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
+        other
+    }
+    fn ex_posterior(base: Self::WithExt, _other: Self::WithExt) -> Self::WithExt {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<X> Extension<X> for &isize {
+    type WithExt = WithExt<Self, X>;
+    fn with_extension(self, extension: X) -> Self::WithExt {
+        WithExt {
+            value: self,
+            extension,
+        }
+    }
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
+        with_ext.value
+    }
+    fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
+        other
+    }
+    fn ex_posterior(base: Self::WithExt, _other: Self::WithExt) -> Self::WithExt {
+        base
+    }
+}
+#[doc = "Generated implementation"]
+impl<X> Extension<X> for &mut isize {
     type WithExt = WithExt<Self, X>;
     fn with_extension(self, extension: X) -> Self::WithExt {
         WithExt {
