@@ -49,7 +49,7 @@ impl Implementor {
             Data::Union(_) => unreachable!(),
         }
     }
-    fn strip_path_argument(&self, path: &Path) -> Path {
+    fn strip_path_argument(path: &Path) -> Path {
         let segments = path.segments.iter().map(|seg| PathSegment {
             ident: seg.ident.clone(),
             arguments: PathArguments::None,
@@ -125,7 +125,7 @@ impl Implementor {
         }
     }
     fn implement_struct_extension_with_extension(&self, f: &Fields, ex: &Ident) -> Expr {
-        let with_ext = self.strip_path_argument(&self.with_ext_path());
+        let with_ext = Self::strip_path_argument(&self.with_ext_path());
         match f {
             Fields::Named(n) => {
                 let (fields, _types) = self.fields_types(n);
