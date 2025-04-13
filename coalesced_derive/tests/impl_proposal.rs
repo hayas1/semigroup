@@ -135,9 +135,9 @@ impl<X: Clone> Extension<X> for CompoundEnum {
                 u: u.with_extension(extension.clone()),
                 v: v.with_extension(extension.clone()),
             },
-            CompoundEnum::Unnamed(self_0, self_1) => CompoundEnumWithExt::Unnamed(
-                self_0.with_extension(extension.clone()),
-                self_1.with_extension(extension.clone()),
+            CompoundEnum::Unnamed(base_0, base_1) => CompoundEnumWithExt::Unnamed(
+                base_0.with_extension(extension.clone()),
+                base_1.with_extension(extension.clone()),
             ),
         }
     }
@@ -148,9 +148,9 @@ impl<X: Clone> Extension<X> for CompoundEnum {
                 u: Extension::unwrap_extension(u),
                 v: Extension::unwrap_extension(v),
             },
-            CompoundEnumWithExt::Unnamed(self_0, self_1) => CompoundEnum::Unnamed(
-                Extension::unwrap_extension(self_0),
-                Extension::unwrap_extension(self_1),
+            CompoundEnumWithExt::Unnamed(base_0, base_1) => CompoundEnum::Unnamed(
+                Extension::unwrap_extension(base_0),
+                Extension::unwrap_extension(base_1),
             ),
         }
     }
@@ -175,19 +175,19 @@ impl<X> Coalesce for CompoundEnumWithExt<X> {
             (Self::Unit(_), prior @ Self::Unit(_)) => prior,
             (
                 Self::Named {
-                    u: self_u,
-                    v: self_v,
+                    u: base_u,
+                    v: base_v,
                 },
                 Self::Named {
                     u: other_u,
                     v: other_v,
                 },
             ) => Self::Named {
-                u: self_u.prior(other_u),
-                v: self_v.prior(other_v),
+                u: base_u.prior(other_u),
+                v: base_v.prior(other_v),
             },
-            (Self::Unnamed(self_0, self_1), Self::Unnamed(other_0, other_1)) => {
-                Self::Unnamed(self_0.prior(other_0), self_1.prior(other_1))
+            (Self::Unnamed(base_0, base_1), Self::Unnamed(other_0, other_1)) => {
+                Self::Unnamed(base_0.prior(other_0), base_1.prior(other_1))
             }
             (_, o) => o,
         }
@@ -197,19 +197,19 @@ impl<X> Coalesce for CompoundEnumWithExt<X> {
             (posterior @ Self::Unit(_), Self::Unit(_)) => posterior,
             (
                 Self::Named {
-                    u: self_u,
-                    v: self_v,
+                    u: base_u,
+                    v: base_v,
                 },
                 Self::Named {
                     u: other_u,
                     v: other_v,
                 },
             ) => Self::Named {
-                u: self_u.posterior(other_u),
-                v: self_v.posterior(other_v),
+                u: base_u.posterior(other_u),
+                v: base_v.posterior(other_v),
             },
-            (Self::Unnamed(self_0, self_1), Self::Unnamed(other_0, other_1)) => {
-                Self::Unnamed(self_0.posterior(other_0), self_1.posterior(other_1))
+            (Self::Unnamed(base_0, base_1), Self::Unnamed(other_0, other_1)) => {
+                Self::Unnamed(base_0.posterior(other_0), base_1.posterior(other_1))
             }
             (b, _) => b,
         }
