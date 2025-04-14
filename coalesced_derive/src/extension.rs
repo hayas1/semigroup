@@ -44,7 +44,7 @@ impl Implementor {
             }) => {
                 let ident = &self.input.ident;
                 let x_param = self.x_param();
-                parse_quote! { ::coalesced::WithExt <#ident, #x_param> }
+                parse_quote! { ::coalesced::WithExt<#ident, #x_param> }
             }
             Data::Union(_) => unreachable!(),
         }
