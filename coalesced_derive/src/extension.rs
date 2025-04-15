@@ -1,9 +1,10 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, ToTokens};
 use syn::{
-    parse_quote, Data, DataEnum, DataStruct, DeriveInput, Expr, Fields, FieldsNamed, FieldsUnnamed,
-    GenericParam, Ident, ItemFn, ItemImpl, ItemStruct, Path, PathArguments, PathSegment, Type,
-    TypeGenerics, TypeParam, TypeParamBound, WhereClause,
+    parse_quote, Arm, Data, DataEnum, DataStruct, DeriveInput, Expr, Fields, FieldsNamed,
+    FieldsUnnamed, GenericParam, Ident, ItemEnum, ItemFn, ItemImpl, ItemStruct, Path,
+    PathArguments, PathSegment, Type, TypeGenerics, TypeParam, TypeParamBound, Variant,
+    WhereClause,
 };
 
 use crate::error::DeriveError;
@@ -19,7 +20,7 @@ impl Implementor {
     pub fn implement(&self) -> TokenStream {
         let DeriveInput { ident, data, .. } = &self.input;
         match &data {
-            Data::Enum(_e) => todo!(),
+            Data::Enum(e) => self.implement_enum(e),
             Data::Struct(s) => self.implement_struct(s),
             Data::Union(_) => {
                 syn::Error::new_spanned(ident, DeriveError::UnsupportedUnion).to_compile_error()
@@ -29,8 +30,8 @@ impl Implementor {
 
     fn with_ext_path(&self) -> Path {
         match self.input.data {
-            Data::Enum(DataEnum { .. }) => todo!(),
-            Data::Struct(DataStruct {
+            Data::Enum(DataEnum { .. })
+            | Data::Struct(DataStruct {
                 fields: Fields::Named(_) | Fields::Unnamed(_),
                 ..
             }) => {
@@ -94,7 +95,6 @@ impl Implementor {
             #from_with_ext
         }
     }
-
     fn implement_struct_extension(&self, s: &DataStruct) -> ItemImpl {
         let DeriveInput { ident, .. } = &self.input;
         let (g_impl, g_type, g_where) = self.split_with_extension_generics();
@@ -272,6 +272,259 @@ impl Implementor {
         }
     }
 
+    fn implement_enum(&self, e: &DataEnum) -> TokenStream {
+        let extension = self.implement_enum_extension(e);
+        let with_ext_def = self.definition_enum_with_ext(e);
+        let coalesce_with_ext = self.implement_enum_coalesce_with_ext(e);
+        let from_with_ext = self.implement_enum_from_with_ext();
+        parse_quote! {
+            #extension
+            #with_ext_def
+            #coalesce_with_ext
+            #from_with_ext
+        }
+    }
+    fn implement_enum_extension(&self, e: &DataEnum) -> ItemImpl {
+        let DeriveInput { ident, .. } = &self.input;
+        let (g_impl, g_type, g_where) = self.split_with_extension_generics();
+        let x_param = self.x_param();
+
+        let with_ext = self.with_ext_path();
+        let (ex, we) = (parse_quote! { extension }, parse_quote! { with_ext });
+        let (arms_with_extension, arms_unwrap_extension) = (
+            self.implement_enum_extension_with_extension(e.variants.iter(), &ex),
+            self.implement_enum_extension_unwrap_extension(e.variants.iter(), &we),
+        );
+        parse_quote! {
+            impl #g_impl ::coalesced::Extension<#x_param> for #ident #g_type #g_where {
+                type WithExt = #with_ext;
+                fn with_extension(self, #ex: #x_param) -> Self::WithExt {
+                    match self {
+                        #(#arms_with_extension),*
+                    }
+                }
+                fn unwrap_extension(#we: Self::WithExt) -> Self {
+                    match #we {
+                        #(#arms_unwrap_extension),*
+                    }
+                }
+                fn ex_prior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
+                    base.prior(other)
+                }
+                fn ex_posterior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
+                    base.posterior(other)
+                }
+            }
+        }
+    }
+    fn implement_enum_extension_with_extension<'a>(
+        &'a self,
+        v: impl 'a + IntoIterator<Item = &'a Variant>,
+        ex: &'a Ident,
+    ) -> impl 'a + Iterator<Item = Arm> {
+        let enum_ident = &self.input.ident;
+        let with_ext = Self::strip_path_argument(&self.with_ext_path());
+        v.into_iter()
+            .map(move |Variant { ident, fields, .. }| match fields {
+                Fields::Named(n) => {
+                    let (fields, _types) = self.fields_types(n);
+                    parse_quote! {
+                        #enum_ident::#ident { #(#fields),* } => {
+                            #with_ext::#ident {
+                                #(#fields: #fields.with_extension(#ex.clone())),*
+                            }
+                        }
+                    }
+                }
+                Fields::Unnamed(u) => {
+                    let prefixed_indices = self.prefixed_indices(u, "base");
+                    parse_quote! {
+                        #enum_ident::#ident ( #(#prefixed_indices),* ) => {
+                            #with_ext::#ident (
+                                #(#prefixed_indices.with_extension(#ex.clone())),*
+                            )
+                        }
+                    }
+                }
+                Fields::Unit => parse_quote! {
+                    #enum_ident::#ident => {
+                        #with_ext::#ident(().with_extension(#ex))
+                    }
+                },
+            })
+    }
+    fn implement_enum_extension_unwrap_extension<'a>(
+        &'a self,
+        v: impl 'a + IntoIterator<Item = &'a Variant>,
+        _we: &'a Ident,
+    ) -> impl 'a + Iterator<Item = Arm> {
+        let enum_ident = &self.input.ident;
+        let with_ext = Self::strip_path_argument(&self.with_ext_path());
+        v.into_iter()
+            .map(move |Variant { ident, fields, .. }| match fields {
+                Fields::Named(n) => {
+                    let (fields, _types) = self.fields_types(n);
+                    parse_quote! {
+                        #with_ext::#ident { #(#fields),* } => {
+                            #enum_ident::#ident {
+                                #(#fields: ::coalesced::Extension::unwrap_extension(#fields)),*
+                            }
+                        }
+                    }
+                }
+                Fields::Unnamed(u) => {
+                    let prefixed_indices = self.prefixed_indices(u, "base");
+                    parse_quote! {
+                        #with_ext::#ident ( #(#prefixed_indices),* ) => {
+                            #enum_ident::#ident (
+                                #(::coalesced::Extension::unwrap_extension(#prefixed_indices)),*
+                            )
+                        }
+                    }
+                }
+                Fields::Unit => parse_quote! {
+                    #with_ext::#ident(_) => {
+                        #enum_ident::#ident
+                    }
+                },
+            })
+    }
+    fn definition_enum_with_ext(&self, e: &DataEnum) -> ItemEnum {
+        let DeriveInput { vis, .. } = &self.input;
+        let (_, _, g_where) = self.split_with_extension_generics();
+        let with_ext = self.with_ext_path();
+        let variants = e
+            .variants
+            .iter()
+            .map(|variant| self.definition_enum_with_ext_variant(variant));
+        parse_quote! {
+            #[doc(hidden)]
+            #vis enum #with_ext #g_where {
+                #(#variants),*
+            }
+        }
+    }
+    fn definition_enum_with_ext_variant(&self, v: &Variant) -> Variant {
+        let Variant { ident, fields, .. } = v;
+        let x_param = self.x_param();
+        match fields {
+            Fields::Named(n) => {
+                let (fields, types) = self.fields_types(n);
+                parse_quote! {
+                    #ident { #(#fields: ::coalesced::WithExt<#types, #x_param>),* }
+                }
+            }
+            Fields::Unnamed(u) => {
+                let (_indices, types) = self.indices_types(u);
+                parse_quote! {
+                    #ident ( #(::coalesced::WithExt<#types, #x_param>),* )
+                }
+            }
+            Fields::Unit => parse_quote! {
+                #ident ( ::coalesced::WithExt<(), #x_param> )
+            }, // TODO
+        }
+    }
+    fn implement_enum_coalesce_with_ext(&self, e: &DataEnum) -> ItemImpl {
+        let (g_impl, _, g_where) = self.split_with_extension_generics();
+        let with_ext = self.with_ext_path();
+
+        let (prior_arms, posterior_arms): (Vec<_>, Vec<_>) = e
+            .variants
+            .iter()
+            .map(|variant| self.implement_enum_coalesce_with_ext_arm(variant))
+            .unzip();
+        parse_quote! {
+            impl #g_impl ::coalesced::Coalesce for #with_ext #g_where {
+                fn prior(self, other: Self) -> Self {
+                    match (self, other) {
+                        #(#prior_arms),*
+                    }
+                }
+                fn posterior(self, other: Self) -> Self {
+                    match (self, other) {
+                        #(#posterior_arms),*
+                    }
+                }
+            }
+        }
+    }
+    fn implement_enum_coalesce_with_ext_arm(&self, v: &Variant) -> (Arm, Arm) {
+        let Variant { ident, fields, .. } = v;
+        match fields {
+            Fields::Named(n) => {
+                let (fields, _types) = self.fields_types(n);
+                let (base_fields, other_fields) = (
+                    self.prefixed_fields(n, "base"),
+                    self.prefixed_fields(n, "other"),
+                );
+                (
+                    parse_quote! {
+                        (
+                            Self::#ident { #(#fields: #base_fields),* },
+                            Self::#ident { #(#fields: #other_fields),* },
+                        ) => {
+                            Self::#ident {
+                                #(#fields: #base_fields.prior(#other_fields)),*
+                            }
+                        }
+                    },
+                    parse_quote! {
+                        (
+                            Self::#ident { #(#fields: #base_fields),* },
+                            Self::#ident { #(#fields: #other_fields),* },
+                        ) => {
+                            Self::#ident {
+                                #(#fields: #base_fields.posterior(#other_fields)),*
+                            }
+                        }
+                    },
+                )
+            }
+            Fields::Unnamed(u) => {
+                let (base_indices, other_indices) = (
+                    self.prefixed_indices(u, "base"),
+                    self.prefixed_indices(u, "other"),
+                );
+                (
+                    parse_quote! {
+                        (
+                            Self::#ident ( #(#base_indices),* ),
+                            Self::#ident ( #(#other_indices),* ),
+                        ) => {
+                            Self::#ident (
+                                #(#base_indices.prior(#other_indices)),*
+                            )
+                        }
+                    },
+                    parse_quote! {
+                        (
+                            Self::#ident ( #(#base_indices),* ),
+                            Self::#ident ( #(#other_indices),* ),
+                        ) => {
+                            Self::#ident (
+                                #(#base_indices.posterior(#other_indices)),*
+                            )
+                        }
+                    },
+                )
+            }
+            Fields::Unit => (parse_quote! { (_, o) => o }, parse_quote! { (b, _) => b }),
+        }
+    }
+    fn implement_enum_from_with_ext(&self) -> ItemImpl {
+        let DeriveInput { ident, .. } = &self.input;
+        let (g_impl, g_type, g_where) = self.split_with_extension_generics();
+        let with_ext = self.with_ext_path();
+        parse_quote! {
+            impl #g_impl From<#with_ext> for #ident #g_type #g_where {
+                fn from(with_ext: #with_ext) -> Self {
+                    ::coalesced::Extension::unwrap_extension(with_ext)
+                }
+            }
+        }
+    }
+
     fn fields_types<'a>(&self, f: &'a FieldsNamed) -> (Vec<&'a Option<Ident>>, Vec<&'a Type>) {
         f.named.iter().map(|f| (&f.ident, &f.ty)).unzip()
     }
@@ -281,6 +534,19 @@ impl Implementor {
             .enumerate()
             .map(|(i, f)| (i.into(), &f.ty))
             .unzip()
+    }
+    fn prefixed_fields(&self, f: &FieldsNamed, prefix: &str) -> Vec<Option<Ident>> {
+        f.named
+            .iter()
+            .map(|f| f.ident.as_ref().map(|i| format_ident!("{}_{}", prefix, i)))
+            .collect()
+    }
+    fn prefixed_indices(&self, f: &FieldsUnnamed, prefix: &str) -> Vec<Ident> {
+        f.unnamed
+            .iter()
+            .enumerate()
+            .map(|(i, _)| format_ident!("{}_{}", prefix, i))
+            .collect()
     }
 }
 
