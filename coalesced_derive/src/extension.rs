@@ -152,13 +152,13 @@ impl Implementor {
             Fields::Named(n) => {
                 let (fields, _types) = self.fields_types(n);
                 parse_quote! {
-                    Self { #(#fields: Extension::unwrap_extension(#we.#fields)),* }
+                    Self { #(#fields: ::coalesced::Extension::unwrap_extension(#we.#fields)),* }
                 }
             }
             Fields::Unnamed(u) => {
                 let (indices, _types) = self.indices_types(u);
                 parse_quote! {
-                    Self( #(Extension::unwrap_extension(#we.#indices)),* )
+                    Self( #(::coalesced::Extension::unwrap_extension(#we.#indices)),* )
                 }
             }
             Fields::Unit => parse_quote! {
