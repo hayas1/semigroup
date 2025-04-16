@@ -329,27 +329,21 @@ impl Implementor {
                 Fields::Named(n) => {
                     let (fields, _types) = self.fields_types(n);
                     parse_quote! {
-                        #enum_ident::#ident { #(#fields),* } => {
-                            #with_ext::#ident {
-                                #(#fields: #fields.with_extension(#ex.clone())),*
-                            }
+                        #enum_ident::#ident { #(#fields),* } => #with_ext::#ident {
+                            #(#fields: #fields.with_extension(#ex.clone())),*
                         }
                     }
                 }
                 Fields::Unnamed(u) => {
                     let prefixed_indices = self.prefixed_indices(u, "base");
                     parse_quote! {
-                        #enum_ident::#ident ( #(#prefixed_indices),* ) => {
-                            #with_ext::#ident (
-                                #(#prefixed_indices.with_extension(#ex.clone())),*
-                            )
-                        }
+                        #enum_ident::#ident ( #(#prefixed_indices),* ) => #with_ext::#ident (
+                            #(#prefixed_indices.with_extension(#ex.clone())),*
+                        )
                     }
                 }
                 Fields::Unit => parse_quote! {
-                    #enum_ident::#ident => {
-                        #with_ext::#ident(().with_extension(#ex))
-                    }
+                    #enum_ident::#ident => #with_ext::#ident(().with_extension(#ex))
                 },
             })
     }
@@ -365,27 +359,21 @@ impl Implementor {
                 Fields::Named(n) => {
                     let (fields, _types) = self.fields_types(n);
                     parse_quote! {
-                        #with_ext::#ident { #(#fields),* } => {
-                            #enum_ident::#ident {
-                                #(#fields: ::coalesced::Extension::unwrap_extension(#fields)),*
-                            }
+                        #with_ext::#ident { #(#fields),* } => #enum_ident::#ident {
+                            #(#fields: ::coalesced::Extension::unwrap_extension(#fields)),*
                         }
                     }
                 }
                 Fields::Unnamed(u) => {
                     let prefixed_indices = self.prefixed_indices(u, "base");
                     parse_quote! {
-                        #with_ext::#ident ( #(#prefixed_indices),* ) => {
-                            #enum_ident::#ident (
-                                #(::coalesced::Extension::unwrap_extension(#prefixed_indices)),*
-                            )
-                        }
+                        #with_ext::#ident ( #(#prefixed_indices),* ) => #enum_ident::#ident (
+                            #(::coalesced::Extension::unwrap_extension(#prefixed_indices)),*
+                        )
                     }
                 }
                 Fields::Unit => parse_quote! {
-                    #with_ext::#ident(_) => {
-                        #enum_ident::#ident
-                    }
+                    #with_ext::#ident(_) => #enum_ident::#ident
                 },
             })
     }
@@ -463,20 +451,16 @@ impl Implementor {
                         (
                             Self::#ident { #(#fields: #base_fields),* },
                             Self::#ident { #(#fields: #other_fields),* },
-                        ) => {
-                            Self::#ident {
-                                #(#fields: #base_fields.prior(#other_fields)),*
-                            }
+                        ) => Self::#ident {
+                            #(#fields: #base_fields.prior(#other_fields)),*
                         }
                     },
                     parse_quote! {
                         (
                             Self::#ident { #(#fields: #base_fields),* },
                             Self::#ident { #(#fields: #other_fields),* },
-                        ) => {
-                            Self::#ident {
-                                #(#fields: #base_fields.posterior(#other_fields)),*
-                            }
+                        ) => Self::#ident {
+                            #(#fields: #base_fields.posterior(#other_fields)),*
                         }
                     },
                 )
@@ -491,21 +475,17 @@ impl Implementor {
                         (
                             Self::#ident ( #(#base_indices),* ),
                             Self::#ident ( #(#other_indices),* ),
-                        ) => {
-                            Self::#ident (
-                                #(#base_indices.prior(#other_indices)),*
-                            )
-                        }
+                        ) => Self::#ident (
+                            #(#base_indices.prior(#other_indices)),*
+                        )
                     },
                     parse_quote! {
                         (
                             Self::#ident ( #(#base_indices),* ),
                             Self::#ident ( #(#other_indices),* ),
-                        ) => {
-                            Self::#ident (
-                                #(#base_indices.posterior(#other_indices)),*
-                            )
-                        }
+                        ) => Self::#ident (
+                            #(#base_indices.posterior(#other_indices)),*
+                        )
                     },
                 )
             }
