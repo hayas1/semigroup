@@ -128,13 +128,13 @@ impl Implementor {
         let with_ext = Self::strip_path_argument(&self.with_ext_path());
         match f {
             Fields::Named(n) => {
-                let (fields, _types) = self.fields_types(n);
+                let (fields, _types) = Self::fields_types(n);
                 parse_quote! {
                     #with_ext { #(#fields: self.#fields.with_extension(#ex.clone())),* }
                 }
             }
             Fields::Unnamed(u) => {
-                let (indices, _types) = self.indices_types(u);
+                let (indices, _types) = Self::indices_types(u);
                 parse_quote! {
                     #with_ext( #(self.#indices.with_extension(#ex.clone())),* )
                 }
@@ -150,13 +150,13 @@ impl Implementor {
     fn implement_struct_extension_unwrap_extension(&self, f: &Fields, we: &Ident) -> Expr {
         match f {
             Fields::Named(n) => {
-                let (fields, _types) = self.fields_types(n);
+                let (fields, _types) = Self::fields_types(n);
                 parse_quote! {
                     Self { #(#fields: ::coalesced::Extension::unwrap_extension(#we.#fields)),* }
                 }
             }
             Fields::Unnamed(u) => {
-                let (indices, _types) = self.indices_types(u);
+                let (indices, _types) = Self::indices_types(u);
                 parse_quote! {
                     Self( #(::coalesced::Extension::unwrap_extension(#we.#indices)),* )
                 }
@@ -201,7 +201,7 @@ impl Implementor {
         let with_ext = self.with_ext_path();
         match &s.fields {
             Fields::Named(n) => {
-                let (fields, types) = self.fields_types(n);
+                let (fields, types) = Self::fields_types(n);
                 Some(parse_quote! {
                     #[doc(hidden)]
                     #vis struct #with_ext #g_where {
@@ -210,7 +210,7 @@ impl Implementor {
                 })
             }
             Fields::Unnamed(u) => {
-                let (_indices, types) = self.indices_types(u);
+                let (_indices, types) = Self::indices_types(u);
                 Some(parse_quote! {
                     #[doc(hidden)]
                     #vis struct #with_ext (
@@ -227,7 +227,7 @@ impl Implementor {
 
         match &s.fields {
             Fields::Named(n) => {
-                let (fields, _types) = self.fields_types(n);
+                let (fields, _types) = Self::fields_types(n);
                 Some(parse_quote! {
                     impl #g_impl ::coalesced::Coalesce for #with_ext #g_where {
                         fn prior(self, other: Self) -> Self {
@@ -244,7 +244,7 @@ impl Implementor {
                 })
             }
             Fields::Unnamed(u) => {
-                let (indices, _types) = self.indices_types(u);
+                let (indices, _types) = Self::indices_types(u);
                 Some(parse_quote! {
                     impl #g_impl ::coalesced::Coalesce for #with_ext #g_where {
                         fn prior(self, other: Self) -> Self {
@@ -327,7 +327,7 @@ impl Implementor {
         v.into_iter()
             .map(move |Variant { ident, fields, .. }| match fields {
                 Fields::Named(n) => {
-                    let (fields, _types) = self.fields_types(n);
+                    let (fields, _types) = Self::fields_types(n);
                     parse_quote! {
                         #enum_ident::#ident { #(#fields),* } => #with_ext::#ident {
                             #(#fields: #fields.with_extension(#ex.clone())),*
@@ -335,7 +335,7 @@ impl Implementor {
                     }
                 }
                 Fields::Unnamed(u) => {
-                    let prefixed_indices = self.prefixed_indices(u, "base");
+                    let prefixed_indices = Self::prefixed_indices(u, "base");
                     parse_quote! {
                         #enum_ident::#ident ( #(#prefixed_indices),* ) => #with_ext::#ident (
                             #(#prefixed_indices.with_extension(#ex.clone())),*
@@ -357,7 +357,7 @@ impl Implementor {
         v.into_iter()
             .map(move |Variant { ident, fields, .. }| match fields {
                 Fields::Named(n) => {
-                    let (fields, _types) = self.fields_types(n);
+                    let (fields, _types) = Self::fields_types(n);
                     parse_quote! {
                         #with_ext::#ident { #(#fields),* } => #enum_ident::#ident {
                             #(#fields: ::coalesced::Extension::unwrap_extension(#fields)),*
@@ -365,7 +365,7 @@ impl Implementor {
                     }
                 }
                 Fields::Unnamed(u) => {
-                    let prefixed_indices = self.prefixed_indices(u, "base");
+                    let prefixed_indices = Self::prefixed_indices(u, "base");
                     parse_quote! {
                         #with_ext::#ident ( #(#prefixed_indices),* ) => #enum_ident::#ident (
                             #(::coalesced::Extension::unwrap_extension(#prefixed_indices)),*
@@ -397,13 +397,13 @@ impl Implementor {
         let x_param = self.x_param();
         match fields {
             Fields::Named(n) => {
-                let (fields, types) = self.fields_types(n);
+                let (fields, types) = Self::fields_types(n);
                 parse_quote! {
                     #ident { #(#fields: ::coalesced::WithExt<#types, #x_param>),* }
                 }
             }
             Fields::Unnamed(u) => {
-                let (_indices, types) = self.indices_types(u);
+                let (_indices, types) = Self::indices_types(u);
                 parse_quote! {
                     #ident ( #(::coalesced::WithExt<#types, #x_param>),* )
                 }
@@ -441,10 +441,10 @@ impl Implementor {
         let Variant { ident, fields, .. } = v;
         match fields {
             Fields::Named(n) => {
-                let (fields, _types) = self.fields_types(n);
+                let (fields, _types) = Self::fields_types(n);
                 let (base_fields, other_fields) = (
-                    self.prefixed_fields(n, "base"),
-                    self.prefixed_fields(n, "other"),
+                    Self::prefixed_fields(n, "base"),
+                    Self::prefixed_fields(n, "other"),
                 );
                 (
                     parse_quote! {
@@ -467,8 +467,8 @@ impl Implementor {
             }
             Fields::Unnamed(u) => {
                 let (base_indices, other_indices) = (
-                    self.prefixed_indices(u, "base"),
-                    self.prefixed_indices(u, "other"),
+                    Self::prefixed_indices(u, "base"),
+                    Self::prefixed_indices(u, "other"),
                 );
                 (
                     parse_quote! {
@@ -505,23 +505,23 @@ impl Implementor {
         }
     }
 
-    fn fields_types<'a>(&self, f: &'a FieldsNamed) -> (Vec<&'a Option<Ident>>, Vec<&'a Type>) {
+    fn fields_types<'a>(f: &'a FieldsNamed) -> (Vec<&'a Option<Ident>>, Vec<&'a Type>) {
         f.named.iter().map(|f| (&f.ident, &f.ty)).unzip()
     }
-    fn indices_types<'a>(&self, f: &'a FieldsUnnamed) -> (Vec<syn::Index>, Vec<&'a Type>) {
+    fn indices_types<'a>(f: &'a FieldsUnnamed) -> (Vec<syn::Index>, Vec<&'a Type>) {
         f.unnamed
             .iter()
             .enumerate()
             .map(|(i, f)| (i.into(), &f.ty))
             .unzip()
     }
-    fn prefixed_fields(&self, f: &FieldsNamed, prefix: &str) -> Vec<Option<Ident>> {
+    fn prefixed_fields(f: &FieldsNamed, prefix: &str) -> Vec<Option<Ident>> {
         f.named
             .iter()
             .map(|f| f.ident.as_ref().map(|i| format_ident!("{}_{}", prefix, i)))
             .collect()
     }
-    fn prefixed_indices(&self, f: &FieldsUnnamed, prefix: &str) -> Vec<Ident> {
+    fn prefixed_indices(f: &FieldsUnnamed, prefix: &str) -> Vec<Ident> {
         f.unnamed
             .iter()
             .enumerate()
