@@ -505,10 +505,10 @@ impl Implementor {
         }
     }
 
-    fn fields_types<'a>(f: &'a FieldsNamed) -> (Vec<&'a Option<Ident>>, Vec<&'a Type>) {
+    fn fields_types(f: &FieldsNamed) -> (Vec<&Option<Ident>>, Vec<&Type>) {
         f.named.iter().map(|f| (&f.ident, &f.ty)).unzip()
     }
-    fn indices_types<'a>(f: &'a FieldsUnnamed) -> (Vec<syn::Index>, Vec<&'a Type>) {
+    fn indices_types(f: &FieldsUnnamed) -> (Vec<syn::Index>, Vec<&Type>) {
         f.unnamed
             .iter()
             .enumerate()
