@@ -1,9 +1,6 @@
-use coalesced::Coalesce;
+use coalesced::{Coalesce, Extension};
 
-use coalesced::Extension;
-use coalesced_derive::Extension;
-
-#[derive(Extension)]
+#[derive(Coalesce)]
 struct Config<T>(&'static str, Option<T>);
 
 #[test]

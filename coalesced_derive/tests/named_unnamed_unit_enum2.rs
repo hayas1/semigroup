@@ -1,10 +1,6 @@
-use coalesced::Coalesce;
+use coalesced::{Coalesce, Extension, WithExt};
 
-use coalesced::Extension;
-use coalesced::WithExt;
-use coalesced_derive::Extension;
-
-#[derive(Extension)]
+#[derive(Coalesce)]
 enum Config {
     Unit,
     Named { value: i32 },
