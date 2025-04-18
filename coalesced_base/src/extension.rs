@@ -2,35 +2,42 @@ use std::ops::{Deref, DerefMut};
 
 use crate::coalesce::Coalesce;
 
-pub trait Extension: Sized {
-    type WithExt<X>;
-    fn with_extension<X>(self, extension: X) -> Self::WithExt<X>;
-    fn ex_prior<X>(base: Self::WithExt<X>, other: Self::WithExt<X>) -> Self::WithExt<X>;
-    fn ex_posterior<X>(base: Self::WithExt<X>, other: Self::WithExt<X>) -> Self::WithExt<X>;
+pub trait Extension<X>: Sized {
+    type WithExt: Coalesce;
+    fn with_extension(self, extension: X) -> Self::WithExt;
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self;
+    fn ex_prior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt;
+    fn ex_posterior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt;
 }
-impl<T: Extension<WithExt<()> = WithExt<T, ()>>> Coalesce for T {
+impl<T> Coalesce for T
+where
+    T: Extension<()>,
+{
     fn prior(self, other: Self) -> Self {
         let (s, o) = (self.with_extension(()), other.with_extension(()));
-        s.prior(o).value
+        Self::unwrap_extension(s.prior(o))
     }
     fn posterior(self, other: Self) -> Self {
         let (s, o) = (self.with_extension(()), other.with_extension(()));
-        s.posterior(o).value
+        Self::unwrap_extension(s.posterior(o))
     }
 }
 enum ExEither<T> {
     Base(T),
     Other(T),
 }
-impl<T> Extension for Option<T> {
-    type WithExt<X> = WithExt<Self, X>;
-    fn with_extension<X>(self, extension: X) -> Self::WithExt<X> {
+impl<T, X> Extension<X> for Option<T> {
+    type WithExt = WithExt<Self, X>;
+    fn with_extension(self, extension: X) -> Self::WithExt {
         WithExt {
             value: self,
             extension,
         }
     }
-    fn ex_prior<X>(base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
+        with_ext.value
+    }
+    fn ex_prior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
         let (s, o) = (
             base.value.map(ExEither::Base),
             other.value.map(ExEither::Other),
@@ -41,7 +48,7 @@ impl<T> Extension for Option<T> {
             None => None.with_extension(other.extension),
         }
     }
-    fn ex_posterior<X>(base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+    fn ex_posterior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
         let (s, o) = (
             base.value.map(ExEither::Base),
             other.value.map(ExEither::Other),
@@ -53,15 +60,18 @@ impl<T> Extension for Option<T> {
         }
     }
 }
-impl<T, E> Extension for Result<T, E> {
-    type WithExt<X> = WithExt<Self, X>;
-    fn with_extension<X>(self, extension: X) -> Self::WithExt<X> {
+impl<T, E, X> Extension<X> for Result<T, E> {
+    type WithExt = WithExt<Self, X>;
+    fn with_extension(self, extension: X) -> Self::WithExt {
         WithExt {
             value: self,
             extension,
         }
     }
-    fn ex_prior<X>(base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
+        with_ext.value
+    }
+    fn ex_prior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
         let (s, o) = (
             base.value.map(ExEither::Base).map_err(ExEither::Base),
             other.value.map(ExEither::Other).map_err(ExEither::Other),
@@ -73,7 +83,7 @@ impl<T, E> Extension for Result<T, E> {
             Err(ExEither::Other(e)) => Err(e).with_extension(other.extension),
         }
     }
-    fn ex_posterior<X>(base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+    fn ex_posterior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
         let (s, o) = (
             base.value.map(ExEither::Base).map_err(ExEither::Base),
             other.value.map(ExEither::Other).map_err(ExEither::Other),
@@ -90,12 +100,17 @@ impl<T, E> Extension for Result<T, E> {
 /// A value with an extension
 ///
 /// # Examples
-/// An instance can be created with [Extension::with_extension].
+/// An instance can be created with [`Extension::with_extension`].
 /// ```
-/// use coalesced_base::extension::Extension;
-/// let ext = Some(100).with_extension("ext");
+/// use coalesced_base::{coalesce::Coalesce, extension::Extension};
+/// let ext = Some(100).with_extension(&"ext");
 /// assert_eq!(*ext, Some(100));
-/// assert_eq!(ext.extension, "ext");
+/// assert_eq!(ext.extension, &"ext");
+///
+/// let none = None.with_extension(&"none");
+/// let ext = ext.prior(none);
+/// assert_eq!(*ext, Some(100));
+/// assert_eq!(ext.extension, &"ext");
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct WithExt<T, X> {
@@ -113,14 +128,25 @@ impl<T, X> DerefMut for WithExt<T, X> {
         &mut self.value
     }
 }
-impl<T: Extension<WithExt<X> = Self>, X> Coalesce for WithExt<T, X> {
-    fn prior(self, other: Self) -> Self {
-        T::ex_prior::<X>(self, other)
-    }
-    fn posterior(self, other: Self) -> Self {
-        T::ex_posterior::<X>(self, other)
+impl<T, X> AsRef<T> for WithExt<T, X> {
+    fn as_ref(&self) -> &T {
+        &self.value
     }
 }
+impl<T: Extension<X, WithExt = Self>, X> Coalesce for WithExt<T, X> {
+    fn prior(self, other: Self) -> Self {
+        T::ex_prior(self, other)
+    }
+    fn posterior(self, other: Self) -> Self {
+        T::ex_posterior(self, other)
+    }
+}
+// cannot implement `From` because of orphan rule
+// impl<T: Extension<X, WithExt = Self>, X> From<WithExt<T, X>> for T {
+//     fn from(with_ext: WithExt<T, X>) -> Self {
+//         with_ext.value
+//     }
+// }
 
 #[cfg(test)]
 mod tests {

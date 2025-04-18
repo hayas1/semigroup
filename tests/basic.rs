@@ -1,4 +1,4 @@
-use coalesced::{Coalesce, Extension, History, IntoHistory};
+use coalesced::{Coalesce, History, IntoHistory};
 
 #[derive(Coalesce)]
 pub struct Config<'a> {
@@ -72,37 +72,37 @@ fn test_history_posterior() {
     ));
 }
 
-// TODO ConfigBlock -> Config (with Extension)
-#[derive(Coalesce)]
-pub struct ConfigBlock<'a> {
-    num: i32,
-    str: &'a str,
-}
 #[test]
 fn test_extension_prior() {
-    let from_file = Some(ConfigBlock {
-        num: 10,
-        str: "ten",
-    });
-    let from_env = Some(ConfigBlock {
-        num: 100,
-        str: "hundred",
-    });
-    let from_cli = None;
+    use coalesced::Extension;
+
+    let from_file = Config {
+        num: Some(10),
+        str: Some("ten"),
+    };
+    let from_env = Config {
+        num: Some(100),
+        str: None,
+    };
+    let from_cli = Config {
+        num: None,
+        str: None,
+    };
 
     let (file, env, cli) = (
-        from_file.with_extension("file"),
-        from_env.with_extension("env"),
-        from_cli.with_extension("cli"),
+        from_file.with_extension(&"file"),
+        from_env.with_extension(&"env"),
+        from_cli.with_extension(&"cli"),
     );
 
     let config = file.prior(env).prior(cli);
-    assert_eq!(config.extension, "env");
+    assert_eq!(config.num.extension, &"env");
+    assert_eq!(config.str.extension, &"file");
     assert!(matches!(
-        config.as_ref().unwrap(),
-        ConfigBlock {
-            num: 100,
-            str: "hundred",
+        config.into(),
+        Config {
+            num: Some(100),
+            str: Some("ten"),
         }
     ));
 }

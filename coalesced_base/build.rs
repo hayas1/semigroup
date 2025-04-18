@@ -29,22 +29,30 @@ impl Implementor {
         }
     }
 
-    fn basic_implement(&self, ident: impl ToTokens, generics: impl ToTokens) -> TokenStream {
+    fn basic_implement(&self, ident: impl ToTokens, generics: &Option<Generics>) -> TokenStream {
+        let impl_generics = generics
+            .as_ref()
+            .map(|g| g.params.clone())
+            .unwrap_or_default()
+            .into_iter();
         match self {
             Self::Extension => quote! {
                 #[doc = "Generated implementation"]
-                impl #generics Extension for #ident #generics {
-                    type WithExt<X> = WithExt<Self, X>;
-                    fn with_extension<X>(self, extension: X) -> Self::WithExt<X> {
+                impl <X, #(#impl_generics),*> Extension<X> for #ident #generics {
+                    type WithExt = WithExt<Self, X>;
+                    fn with_extension(self, extension: X) -> Self::WithExt {
                         WithExt {
                             value: self,
                             extension,
                         }
                     }
-                    fn ex_prior<X>(_base: WithExt<Self, X>, other: WithExt<Self, X>) -> WithExt<Self, X> {
+                    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
+                        with_ext.value
+                    }
+                    fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
                         other
                     }
-                    fn ex_posterior<X>(base: WithExt<Self, X>, _other: WithExt<Self, X>) -> WithExt<Self, X> {
+                    fn ex_posterior(base: Self::WithExt, _other: Self::WithExt) -> Self::WithExt {
                         base
                     }
                 }
@@ -118,11 +126,13 @@ impl Target {
             Self::new_extension(parse_quote! {bool}, None, (true, true, true)),
             Self::new_extension(parse_quote! {char}, None, (true, true, true)),
             Self::new_extension(parse_quote! {String}, None, (true, true, true)),
+            Self::new_extension(parse_quote! {usize}, None, (true, true, true)),
             Self::new_extension(parse_quote! {u8}, None, (true, true, true)),
             Self::new_extension(parse_quote! {u16}, None, (true, true, true)),
             Self::new_extension(parse_quote! {u32}, None, (true, true, true)),
             Self::new_extension(parse_quote! {u64}, None, (true, true, true)),
             Self::new_extension(parse_quote! {u128}, None, (true, true, true)),
+            Self::new_extension(parse_quote! {isize}, None, (true, true, true)),
             Self::new_extension(parse_quote! {i8}, None, (true, true, true)),
             Self::new_extension(parse_quote! {i16}, None, (true, true, true)),
             Self::new_extension(parse_quote! {i32}, None, (true, true, true)),

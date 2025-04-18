@@ -41,6 +41,20 @@ pub enum Priority {
     Prior,
     Posterior,
 }
+/// Some values for lazy evaluation
+///
+/// # Examples
+/// An instance can be created with [`IntoHistory::into_history`].
+/// ```
+/// use coalesced_base::{coalesce::Coalesce, coalesced::{History, IntoHistory}};
+/// let history = Some(100).into_history();
+/// assert_eq!(history.base(), &Some(100));
+///
+/// let none = None.into_history();
+/// let history = history.prior(none);
+/// assert_eq!(history.base(), &Some(100));
+/// assert_eq!(history.into(), Some(100));
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct Coalesced<T> {
     base: T,
