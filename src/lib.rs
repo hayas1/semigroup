@@ -59,6 +59,7 @@
 //! | `str` | | hundred | thousand | | thousand | hundred |
 //!
 //! ### Lazy Evaluation
+//! Related to [`crate::Coalesced`].
 //! ```
 //! use coalesced::{Coalesce, History, IntoHistory};
 //!
@@ -96,6 +97,7 @@
 //! ```
 //!
 //! ### Extensions
+//! Related to [`crate::WithExt`].
 //! ```
 //! use coalesced::{Coalesce, Extension};
 //!

@@ -44,7 +44,7 @@ pub enum Priority {
 /// Some values for lazy evaluation
 ///
 /// # Examples
-/// An instance can be created with [IntoHistory::into_history].
+/// An instance can be created with [`IntoHistory::into_history`].
 /// ```
 /// use coalesced_base::{coalesce::Coalesce, coalesced::{History, IntoHistory}};
 /// let history = Some(100).into_history();

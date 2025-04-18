@@ -100,7 +100,7 @@ impl<T, E, X> Extension<X> for Result<T, E> {
 /// A value with an extension
 ///
 /// # Examples
-/// An instance can be created with [Extension::with_extension].
+/// An instance can be created with [`Extension::with_extension`].
 /// ```
 /// use coalesced_base::{coalesce::Coalesce, extension::Extension};
 /// let ext = Some(100).with_extension(&"ext");
