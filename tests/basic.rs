@@ -1,52 +1,108 @@
-use coalesced::{Coalesce, CoalesceExt};
+use coalesced::{Coalesce, History, IntoHistory};
 
+#[derive(Coalesce)]
 pub struct Config<'a> {
-    pub name: &'a str,
+    num: Option<i32>,
+    str: Option<&'a str>,
 }
 
 #[test]
-fn test_coalesced_basic_config() {
-    let from_file = Some(Config { name: "file" });
-    let from_env = Some(Config { name: "env" });
-    let from_cli = Some(Config { name: "cli" });
-
-    let config = from_file.coalesce(from_env).coalesce(from_cli).prior();
-    assert_eq!(config.as_ref().unwrap().name, "cli");
-}
-
-struct GlobalConfig<'a> {
-    _name: &'a str,
-    number: Option<i64>,
-    locals: Vec<LocalConfig<'a>>,
-}
-struct LocalConfig<'a> {
-    _name: &'a str,
-    number: Option<i64>,
-}
-#[test]
-fn test_coalesced_complex_config() {
-    let config = GlobalConfig {
-        _name: "global",
-        number: Some(1),
-        locals: vec![
-            LocalConfig {
-                _name: "local1",
-                number: Some(10),
-            },
-            LocalConfig {
-                _name: "local2",
-                number: Some(100),
-            },
-            LocalConfig {
-                _name: "local3",
-                number: None,
-            },
-        ],
+fn test_basic_prior() {
+    let from_file = Config {
+        num: Some(10),
+        str: None,
     };
-    let base = config.number.prior();
-    let expected = [Some(10), Some(100), Some(1)];
-    for (cfg, exp) in config.locals.into_iter().zip(expected) {
-        let number = base.clone().coalesce(cfg.number);
-        assert_eq!(*number, exp);
-    }
+    let from_env = Config {
+        num: Some(100),
+        str: Some("hundred"),
+    };
+    let from_cli = Config {
+        num: None,
+        str: Some("thousand"),
+    };
+
+    let config = from_file.prior(from_env).prior(from_cli);
+    assert!(matches!(
+        config,
+        Config {
+            num: Some(100),
+            str: Some("thousand")
+        }
+    ));
+}
+#[test]
+fn test_history_posterior() {
+    let from_file = Config {
+        num: Some(10),
+        str: None,
+    };
+    let from_env = Config {
+        num: Some(100),
+        str: Some("hundred"),
+    };
+    let from_cli = Config {
+        num: None,
+        str: Some("thousand"),
+    };
+
+    let config = from_file
+        .into_history()
+        .posterior(from_env)
+        .posterior(from_cli);
+    assert!(matches!(
+        config.base(),
+        Config {
+            num: Some(10),
+            str: None,
+        }
+    ));
+    assert!(matches!(
+        config.history()[0].1,
+        Config {
+            num: Some(100),
+            str: Some("hundred"),
+        }
+    ));
+    assert!(matches!(
+        config.into(),
+        Config {
+            num: Some(10),
+            str: Some("hundred"),
+        }
+    ));
+}
+
+#[test]
+fn test_extension_prior() {
+    use coalesced::Extension;
+
+    let from_file = Config {
+        num: Some(10),
+        str: Some("ten"),
+    };
+    let from_env = Config {
+        num: Some(100),
+        str: None,
+    };
+    let from_cli = Config {
+        num: None,
+        str: None,
+    };
+
+    let (file, env, cli) = (
+        from_file.with_extension(&"file"),
+        from_env.with_extension(&"env"),
+        from_cli.with_extension(&"cli"),
+    );
+
+    let config = file.prior(env).prior(cli);
+    assert_eq!(config.num.extension, &"env");
+    assert_eq!(config.str.extension, &"file");
+    assert!(matches!(
+        config.into(),
+        Config {
+            num: Some(100),
+            str: Some("ten"),
+        }
+    ));
 }

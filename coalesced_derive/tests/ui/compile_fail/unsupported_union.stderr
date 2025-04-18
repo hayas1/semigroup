@@ -1,0 +1,5 @@
+error: derive Coalesce for union is not supported
+ --> tests/ui/compile_fail/unsupported_union.rs:4:7
+  |
+4 | union UnionType {
+  |       ^^^^^^^^^

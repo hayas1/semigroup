@@ -1,0 +1,23 @@
+[package]
+name = "coalesced_derive"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+license-file.workspace = true
+readme.workspace = true
+
+[lib]
+proc-macro = true
+
+[features]
+default = ["syn/extra-traits"] # TODO developing
+
+[dependencies]
+proc-macro2 = "1.0.94"
+quote = "1.0.39"
+syn = { version = "2.0.100", features = ["full"] }
+
+[dev-dependencies]
+coalesced = { path = "../", features = ["derive"] }
+trybuild = { version = "1.0.104", features = ["diff"] }

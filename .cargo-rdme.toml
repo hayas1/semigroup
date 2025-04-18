@@ -1,0 +1,7 @@
+# generate README.md: `cargo install cargo-rdme && cargo rdme --force`
+
+heading-base-level = 1
+workspace-project = "coalesced"
+
+[intralinks]
+docs-rs-base-url = "https://hayas1.github.io/coalesced"
