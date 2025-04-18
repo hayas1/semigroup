@@ -102,8 +102,13 @@ impl<T, E, X> Extension<X> for Result<T, E> {
 /// # Examples
 /// An instance can be created with [Extension::with_extension].
 /// ```
-/// use coalesced_base::extension::Extension;
+/// use coalesced_base::{coalesce::Coalesce, extension::Extension};
 /// let ext = Some(100).with_extension(&"ext");
+/// assert_eq!(*ext, Some(100));
+/// assert_eq!(ext.extension, &"ext");
+///
+/// let none = None.with_extension(&"none");
+/// let ext = ext.prior(none);
 /// assert_eq!(*ext, Some(100));
 /// assert_eq!(ext.extension, &"ext");
 /// ```
