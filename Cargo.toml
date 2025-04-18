@@ -27,3 +27,6 @@ clap = ["coalesced_base/clap"]
 [dependencies]
 coalesced_base = { path = "coalesced_base", default-features = false }
 coalesced_derive = { path = "coalesced_derive", default-features = false, optional = true }
+
+[dev-dependencies]
+coalesced = { path = ".", features = ["derive"] }
