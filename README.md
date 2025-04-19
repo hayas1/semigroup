@@ -7,119 +7,141 @@ coalesced supports reading configs from multiple sources
 [dependencies]
 coalesced = { git = "https://github.com/hayas1/coalesced" }
 ```
+Documentation: [https://hayas1.github.io/coalesced/coalesced/](https://hayas1.github.io/coalesced/coalesced/)
 
 ### Examples
-[`Coalesce::posterior`] will return the first unconfirmed value. [`Coalesce::prior`] will return the last confirmed value.
+[`Coalesce::prior`] will return the last confirmed value. [`Coalesce::posterior`] will return the first confirmed value.
+| `Config` | file | env | cli | → | prior | posterior |
+| --- | --- | --- | --- | --- | --- | --- |
+| `opt_num` | 10 | 100 | | →| 100 | 10 |
+| `opt_str` | | hundred | thousand | →| thousand | hundred |
+| `boolean` | true | false | true | →| true | true |
+
 ```rust
 use coalesced::Coalesce;
 
 #[derive(Coalesce)]
 pub struct Config<'a> {
-    num: Option<i32>,
-    str: Option<&'a str>,
+    opt_num: Option<i32>,
+    opt_str: Option<&'a str>,
+    boolean: bool
 }
 
 let from_file = Config {
-    num: Some(10),
-    str: None,
+    opt_num: Some(10),
+    opt_str: None,
+    boolean: true,
 };
 let from_env = Config {
-    num: Some(100),
-    str: Some("hundred"),
+    opt_num: Some(100),
+    opt_str: Some("hundred"),
+    boolean: false,
 };
 let from_cli = Config {
-    num: None,
-    str: Some("thousand"),
+    opt_num: None,
+    opt_str: Some("thousand"),
+    boolean: true,
 };
 let config = from_file.prior(from_env).prior(from_cli);
 assert!(matches!(config, Config {
-    num: Some(100),
-    str: Some("thousand"),
+    opt_num: Some(100),
+    opt_str: Some("thousand"),
+    boolean: true,
 }));
 
 let from_file = Config {
-    num: Some(10),
-    str: None,
+    opt_num: Some(10),
+    opt_str: None,
+    boolean: true,
 };
 let from_env = Config {
-    num: Some(100),
-    str: Some("hundred"),
+    opt_num: Some(100),
+    opt_str: Some("hundred"),
+    boolean: false,
 };
 let from_cli = Config {
-    num: None,
-    str: Some("thousand"),
+    opt_num: None,
+    opt_str: Some("thousand"),
+    boolean: true,
 };
 let config = from_file.posterior(from_env).posterior(from_cli);
 assert!(matches!(config, Config {
-    num: Some(10),
-    str: Some("hundred"),
+    opt_num: Some(10),
+    opt_str: Some("hundred"),
+    boolean: true,
 }));
 ```
-| `Config` | file | env | cli | | prior | posterior |
-| --- | ---- | ------- | -------- | --- | -------- | --------- |
-| `num` | 10 | 100 | | | 100 | 10 |
-| `str` | | hundred | thousand | | thousand | hundred |
 
 #### Lazy Evaluation
-Related to [`crate::Coalesced`].
+Related to [`crate::Coalesced`]. Lazy evaluation is supported so we can follow the changes until the value is confirmed.
 ```rust
 use coalesced::{Coalesce, History, IntoHistory};
 
 #[derive(Coalesce)]
 pub struct Config<'a> {
-    num: Option<i32>,
-    str: Option<&'a str>,
+    opt_num: Option<i32>,
+    opt_str: Option<&'a str>,
+    boolean: bool,
 }
 
 let from_file = Config {
-    num: Some(10),
-    str: None,
+    opt_num: Some(10),
+    opt_str: None,
+    boolean: true,
 };
 let from_env = Config {
-    num: Some(100),
-    str: Some("hundred"),
+    opt_num: Some(100),
+    opt_str: Some("hundred"),
+    boolean: false,
 };
 let from_cli = Config {
-    num: None,
-    str: Some("thousand"),
+    opt_num: None,
+    opt_str: Some("thousand"),
+    boolean: true,
 };
 
 let config = from_file.into_history().prior(from_env).prior(from_cli);
 assert!(matches!(
     config.base(),
     Config {
-        num: Some(10),
-        str: None,
+        opt_num: Some(10),
+        opt_str: None,
+        boolean: true,
     }
 ));
 assert!(matches!(config.into(), Config {
-    num: Some(100),
-    str: Some("thousand"),
+    opt_num: Some(100),
+    opt_str: Some("thousand"),
+    boolean: true,
 }));
 ```
 
-#### Extensions
-Related to [`crate::WithExt`].
+#### Extensions metadata
+Related to [`crate::WithExt`]. Extensions metadata is supported so we can follow the source of the confirmed value.
 ```rust
 use coalesced::{Coalesce, Extension};
 
 #[derive(Coalesce)]
 pub struct Config<'a> {
-    num: Option<i32>,
-    str: Option<&'a str>,
+    opt_num: Option<i32>,
+    opt_str: Option<&'a str>,
+    boolean: bool,
 }
 
 let from_file = Config {
-    num: Some(10),
-    str: None,
+    opt_num: Some(10),
+    opt_str: None,
+    boolean: true,
 };
 let from_env = Config {
-    num: Some(100),
-    str: Some("hundred"),
+    opt_num: Some(100),
+    opt_str: Some("hundred"),
+    boolean: false,
 };
 let from_cli = Config {
-    num: None,
-    str: Some("thousand"),
+    opt_num: None,
+    opt_str: Some("thousand"),
+    boolean: true,
 };
 
 let (file, env, cli) = (
@@ -129,11 +151,13 @@ let (file, env, cli) = (
 );
 
 let config = file.prior(env).prior(cli);
-assert_eq!(config.num.extension, &"env");
-assert_eq!(config.str.extension, &"cli");
+assert_eq!(config.opt_num.extension, &"env");
+assert_eq!(config.opt_str.extension, &"cli");
+assert_eq!(config.boolean.extension, &"cli");
 assert!(matches!(config.into(), Config {
-    num: Some(100),
-    str: Some("thousand"),
+    opt_num: Some(100),
+    opt_str: Some("thousand"),
+    boolean: true
 }));
 ```
 

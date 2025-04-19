@@ -20,4 +20,3 @@ syn = { version = "2.0.100", features = ["full"] }
 
 [dev-dependencies]
 coalesced = { path = "../", features = ["derive"] }
-trybuild = { version = "1.0.104", features = ["diff"] }

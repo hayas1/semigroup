@@ -1,0 +1,22 @@
+error[E0308]: mismatched types
+ --> tests/ui/compile_fail/only_same_type_extension.rs:7:21
+  |
+7 |     let c = a.prior(b);
+  |               ----- ^ expected `WithExt<Option<{integer}>, &str>`, found `WithExt<Option<{integer}>, String>`
+  |               |
+  |               arguments to this method are incorrect
+  |
+  = note: expected struct `WithExt<Option<{integer}>, &str>`
+             found struct `WithExt<Option<{integer}>, String>`
+help: the return type of this call is `WithExt<Option<{integer}>, String>` due to the type of the argument passed
+ --> tests/ui/compile_fail/only_same_type_extension.rs:7:13
+  |
+7 |     let c = a.prior(b);
+  |             ^^^^^^^^-^
+  |                     |
+  |                     this argument influences the return type of `prior`
+note: method defined here
+ --> coalesced_base/src/coalesce.rs
+  |
+  |     fn prior(self, other: Self) -> Self;
+  |        ^^^^^
