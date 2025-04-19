@@ -11,52 +11,52 @@
 //! [`Coalesce::prior`] will return the last confirmed value. [`Coalesce::posterior`] will return the first confirmed value.
 //! | `Config` | file | env | cli | → | prior | posterior |
 //! | --- | ---- | ------- | -------- | --- | -------- | --------- |
-//! | `num` | 10 | 100 | | →| 100 | 10 |
-//! | `str` | | hundred | thousand | →| thousand | hundred |
+//! | `opt_num` | 10 | 100 | | →| 100 | 10 |
+//! | `opt_str` | | hundred | thousand | →| thousand | hundred |
 //!
 //! ```rust
 //! use coalesced::Coalesce;
 //!
 //! #[derive(Coalesce)]
 //! pub struct Config<'a> {
-//!     num: Option<i32>,
-//!     str: Option<&'a str>,
+//!     opt_num: Option<i32>,
+//!     opt_str: Option<&'a str>,
 //! }
 //!
 //! let from_file = Config {
-//!     num: Some(10),
-//!     str: None,
+//!     opt_num: Some(10),
+//!     opt_str: None,
 //! };
 //! let from_env = Config {
-//!     num: Some(100),
-//!     str: Some("hundred"),
+//!     opt_num: Some(100),
+//!     opt_str: Some("hundred"),
 //! };
 //! let from_cli = Config {
-//!     num: None,
-//!     str: Some("thousand"),
+//!     opt_num: None,
+//!     opt_str: Some("thousand"),
 //! };
 //! let config = from_file.prior(from_env).prior(from_cli);
 //! assert!(matches!(config, Config {
-//!     num: Some(100),
-//!     str: Some("thousand"),
+//!     opt_num: Some(100),
+//!     opt_str: Some("thousand"),
 //! }));
 //!
 //! let from_file = Config {
-//!     num: Some(10),
-//!     str: None,
+//!     opt_num: Some(10),
+//!     opt_str: None,
 //! };
 //! let from_env = Config {
-//!     num: Some(100),
-//!     str: Some("hundred"),
+//!     opt_num: Some(100),
+//!     opt_str: Some("hundred"),
 //! };
 //! let from_cli = Config {
-//!     num: None,
-//!     str: Some("thousand"),
+//!     opt_num: None,
+//!     opt_str: Some("thousand"),
 //! };
 //! let config = from_file.posterior(from_env).posterior(from_cli);
 //! assert!(matches!(config, Config {
-//!     num: Some(10),
-//!     str: Some("hundred"),
+//!     opt_num: Some(10),
+//!     opt_str: Some("hundred"),
 //! }));
 //! ```
 //!
@@ -67,34 +67,34 @@
 //!
 //! #[derive(Coalesce)]
 //! pub struct Config<'a> {
-//!     num: Option<i32>,
-//!     str: Option<&'a str>,
+//!     opt_num: Option<i32>,
+//!     opt_str: Option<&'a str>,
 //! }
 //!
 //! let from_file = Config {
-//!     num: Some(10),
-//!     str: None,
+//!     opt_num: Some(10),
+//!     opt_str: None,
 //! };
 //! let from_env = Config {
-//!     num: Some(100),
-//!     str: Some("hundred"),
+//!     opt_num: Some(100),
+//!     opt_str: Some("hundred"),
 //! };
 //! let from_cli = Config {
-//!     num: None,
-//!     str: Some("thousand"),
+//!     opt_num: None,
+//!     opt_str: Some("thousand"),
 //! };
 //!
 //! let config = from_file.into_history().prior(from_env).prior(from_cli);
 //! assert!(matches!(
 //!     config.base(),
 //!     Config {
-//!         num: Some(10),
-//!         str: None,
+//!         opt_num: Some(10),
+//!         opt_str: None,
 //!     }
 //! ));
 //! assert!(matches!(config.into(), Config {
-//!     num: Some(100),
-//!     str: Some("thousand"),
+//!     opt_num: Some(100),
+//!     opt_str: Some("thousand"),
 //! }));
 //! ```
 //!
@@ -105,21 +105,21 @@
 //!
 //! #[derive(Coalesce)]
 //! pub struct Config<'a> {
-//!     num: Option<i32>,
-//!     str: Option<&'a str>,
+//!     opt_num: Option<i32>,
+//!     opt_str: Option<&'a str>,
 //! }
 //!
 //! let from_file = Config {
-//!     num: Some(10),
-//!     str: None,
+//!     opt_num: Some(10),
+//!     opt_str: None,
 //! };
 //! let from_env = Config {
-//!     num: Some(100),
-//!     str: Some("hundred"),
+//!     opt_num: Some(100),
+//!     opt_str: Some("hundred"),
 //! };
 //! let from_cli = Config {
-//!     num: None,
-//!     str: Some("thousand"),
+//!     opt_num: None,
+//!     opt_str: Some("thousand"),
 //! };
 //!
 //! let (file, env, cli) = (
@@ -129,11 +129,11 @@
 //! );
 //!
 //! let config = file.prior(env).prior(cli);
-//! assert_eq!(config.num.extension, &"env");
-//! assert_eq!(config.str.extension, &"cli");
+//! assert_eq!(config.opt_num.extension, &"env");
+//! assert_eq!(config.opt_str.extension, &"cli");
 //! assert!(matches!(config.into(), Config {
-//!     num: Some(100),
-//!     str: Some("thousand"),
+//!     opt_num: Some(100),
+//!     opt_str: Some("thousand"),
 //! }));
 //! ```
 //!
