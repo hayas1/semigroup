@@ -2,14 +2,13 @@
 
 coalesced supports reading configs from multiple sources
 
-### Usage
+## Usage
 ```toml
 [dependencies]
 coalesced = { git = "https://github.com/hayas1/coalesced" }
 ```
-Documentation: [https://hayas1.github.io/coalesced/coalesced/](https://hayas1.github.io/coalesced/coalesced/)
 
-### Examples
+## Examples
 [`Coalesce::prior`] will return the last confirmed value. [`Coalesce::posterior`] will return the first confirmed value.
 | `Config` | file | env | cli | → | prior | posterior |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -160,5 +159,15 @@ assert!(matches!(config.into(), Config {
     boolean: true
 }));
 ```
+
+## Documents
+<https://hayas1.github.io/coalesced/coalesced>
+
+## Testing
+### Benchmarks
+TODO
+
+### Coverage
+<https://hayas1.github.io/coalesced/coalesced/tarpaulin-report.html>
 
 <!-- cargo-rdme end -->
