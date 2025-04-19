@@ -37,7 +37,7 @@ jobs:
     - name: Coverage
       run: >
         cargo install cargo-tarpaulin &&
-          cargo tarpaulin --output-dir target/doc --manifest-path Cargo.toml --out Html
+          cargo tarpaulin -p coalesced* --output-dir target/doc/coalesced --out Html
     - name: Remove 600 permission files
       run: find target/doc -perm 600 | xargs rm -rf
     - name: Upload artifact
