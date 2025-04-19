@@ -13,6 +13,7 @@
 //! | --- | ---- | ------- | -------- | --- | -------- | --------- |
 //! | `opt_num` | 10 | 100 | | →| 100 | 10 |
 //! | `opt_str` | | hundred | thousand | →| thousand | hundred |
+//! | `boolean` | true | false | true | →| true | true |
 //!
 //! ```rust
 //! use coalesced::Coalesce;
@@ -21,42 +22,51 @@
 //! pub struct Config<'a> {
 //!     opt_num: Option<i32>,
 //!     opt_str: Option<&'a str>,
+//!     boolean: bool
 //! }
 //!
 //! let from_file = Config {
 //!     opt_num: Some(10),
 //!     opt_str: None,
+//!     boolean: true,
 //! };
 //! let from_env = Config {
 //!     opt_num: Some(100),
 //!     opt_str: Some("hundred"),
+//!     boolean: false,
 //! };
 //! let from_cli = Config {
 //!     opt_num: None,
 //!     opt_str: Some("thousand"),
+//!     boolean: true,
 //! };
 //! let config = from_file.prior(from_env).prior(from_cli);
 //! assert!(matches!(config, Config {
 //!     opt_num: Some(100),
 //!     opt_str: Some("thousand"),
+//!     boolean: true,
 //! }));
 //!
 //! let from_file = Config {
 //!     opt_num: Some(10),
 //!     opt_str: None,
+//!     boolean: true,
 //! };
 //! let from_env = Config {
 //!     opt_num: Some(100),
 //!     opt_str: Some("hundred"),
+//!     boolean: false,
 //! };
 //! let from_cli = Config {
 //!     opt_num: None,
 //!     opt_str: Some("thousand"),
+//!     boolean: true,
 //! };
 //! let config = from_file.posterior(from_env).posterior(from_cli);
 //! assert!(matches!(config, Config {
 //!     opt_num: Some(10),
 //!     opt_str: Some("hundred"),
+//!     boolean: true,
 //! }));
 //! ```
 //!
@@ -69,19 +79,23 @@
 //! pub struct Config<'a> {
 //!     opt_num: Option<i32>,
 //!     opt_str: Option<&'a str>,
+//!     boolean: bool,
 //! }
 //!
 //! let from_file = Config {
 //!     opt_num: Some(10),
 //!     opt_str: None,
+//!     boolean: true,
 //! };
 //! let from_env = Config {
 //!     opt_num: Some(100),
 //!     opt_str: Some("hundred"),
+//!     boolean: false,
 //! };
 //! let from_cli = Config {
 //!     opt_num: None,
 //!     opt_str: Some("thousand"),
+//!     boolean: true,
 //! };
 //!
 //! let config = from_file.into_history().prior(from_env).prior(from_cli);
@@ -90,11 +104,13 @@
 //!     Config {
 //!         opt_num: Some(10),
 //!         opt_str: None,
+//!         boolean: true,
 //!     }
 //! ));
 //! assert!(matches!(config.into(), Config {
 //!     opt_num: Some(100),
 //!     opt_str: Some("thousand"),
+//!     boolean: true,
 //! }));
 //! ```
 //!
@@ -107,19 +123,23 @@
 //! pub struct Config<'a> {
 //!     opt_num: Option<i32>,
 //!     opt_str: Option<&'a str>,
+//!     boolean: bool,
 //! }
 //!
 //! let from_file = Config {
 //!     opt_num: Some(10),
 //!     opt_str: None,
+//!     boolean: true,
 //! };
 //! let from_env = Config {
 //!     opt_num: Some(100),
 //!     opt_str: Some("hundred"),
+//!     boolean: false,
 //! };
 //! let from_cli = Config {
 //!     opt_num: None,
 //!     opt_str: Some("thousand"),
+//!     boolean: true,
 //! };
 //!
 //! let (file, env, cli) = (
@@ -131,9 +151,11 @@
 //! let config = file.prior(env).prior(cli);
 //! assert_eq!(config.opt_num.extension, &"env");
 //! assert_eq!(config.opt_str.extension, &"cli");
+//! assert_eq!(config.boolean.extension, &"cli");
 //! assert!(matches!(config.into(), Config {
 //!     opt_num: Some(100),
 //!     opt_str: Some("thousand"),
+//!     boolean: true
 //! }));
 //! ```
 //!
