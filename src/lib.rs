@@ -8,7 +8,7 @@
 //! Documentation: [https://hayas1.github.io/coalesced/coalesced/](https://hayas1.github.io/coalesced/coalesced/)
 //!
 //! ## Examples
-//! [`Coalesce::posterior`] will return the first unconfirmed value. [`Coalesce::prior`] will return the last confirmed value.
+//! [`Coalesce::prior`] will return the last confirmed value. [`Coalesce::posterior`] will return the first confirmed value.
 //! ```rust
 //! use coalesced::Coalesce;
 //!
