@@ -62,7 +62,7 @@ assert!(matches!(config, Config {
 | `str` | | hundred | thousand | | thousand | hundred |
 
 #### Lazy Evaluation
-Related to [`crate::Coalesced`].
+Related to [`crate::Coalesced`]. Lazy evaluation is supported so we can follow the changes until the value is confirmed.
 ```rust
 use coalesced::{Coalesce, History, IntoHistory};
 
@@ -99,8 +99,8 @@ assert!(matches!(config.into(), Config {
 }));
 ```
 
-#### Extensions
-Related to [`crate::WithExt`].
+#### Extensions metadata
+Related to [`crate::WithExt`]. Extensions metadata is supported so we can follow the source of the confirmed value.
 ```rust
 use coalesced::{Coalesce, Extension};
 

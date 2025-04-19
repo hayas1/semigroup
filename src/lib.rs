@@ -60,7 +60,7 @@
 //! | `str` | | hundred | thousand | | thousand | hundred |
 //!
 //! ### Lazy Evaluation
-//! Related to [`crate::Coalesced`].
+//! Related to [`crate::Coalesced`]. Lazy evaluation is supported so we can follow the changes until the value is confirmed.
 //! ```
 //! use coalesced::{Coalesce, History, IntoHistory};
 //!
@@ -97,8 +97,8 @@
 //! }));
 //! ```
 //!
-//! ### Extensions
-//! Related to [`crate::WithExt`].
+//! ### Extensions metadata
+//! Related to [`crate::WithExt`]. Extensions metadata is supported so we can follow the source of the confirmed value.
 //! ```
 //! use coalesced::{Coalesce, Extension};
 //!
