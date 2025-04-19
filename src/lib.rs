@@ -10,7 +10,7 @@
 //! ## Examples
 //! [`Coalesce::prior`] will return the last confirmed value. [`Coalesce::posterior`] will return the first confirmed value.
 //! | `Config` | file | env | cli | → | prior | posterior |
-//! | --- | ---- | ------- | -------- | --- | -------- | --------- |
+//! | --- | --- | --- | --- | --- | --- | --- |
 //! | `opt_num` | 10 | 100 | | →| 100 | 10 |
 //! | `opt_str` | | hundred | thousand | →| thousand | hundred |
 //! | `boolean` | true | false | true | →| true | true |
