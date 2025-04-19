@@ -9,6 +9,11 @@
 //!
 //! ## Examples
 //! [`Coalesce::prior`] will return the last confirmed value. [`Coalesce::posterior`] will return the first confirmed value.
+//! | `Config` | file | env | cli | → | prior | posterior |
+//! | --- | ---- | ------- | -------- | --- | -------- | --------- |
+//! | `num` | 10 | 100 | | →| 100 | 10 |
+//! | `str` | | hundred | thousand | →| thousand | hundred |
+//!
 //! ```rust
 //! use coalesced::Coalesce;
 //!
@@ -54,10 +59,6 @@
 //!     str: Some("hundred"),
 //! }));
 //! ```
-//! | `Config` | file | env | cli | | prior | posterior |
-//! | --- | ---- | ------- | -------- | --- | -------- | --------- |
-//! | `num` | 10 | 100 | | | 100 | 10 |
-//! | `str` | | hundred | thousand | | thousand | hundred |
 //!
 //! ### Lazy Evaluation
 //! Related to [`crate::Coalesced`]. Lazy evaluation is supported so we can follow the changes until the value is confirmed.
