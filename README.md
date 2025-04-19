@@ -7,6 +7,7 @@ coalesced supports reading configs from multiple sources
 [dependencies]
 coalesced = { git = "https://github.com/hayas1/coalesced" }
 ```
+Documentation: [https://hayas1.github.io/coalesced/coalesced/](https://hayas1.github.io/coalesced/coalesced/)
 
 ### Examples
 [`Coalesce::posterior`] will return the first unconfirmed value. [`Coalesce::prior`] will return the last confirmed value.
