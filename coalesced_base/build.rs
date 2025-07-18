@@ -79,23 +79,25 @@ impl Target {
             implementor,
         } = self;
 
-        let owned_impl = owned
-            .then(|| implementor.basic_implement(&ident, &generics))
-            .unwrap_or_default();
+        let owned_impl = if owned {
+            implementor.basic_implement(&ident, &generics)
+        } else {
+            Default::default()
+        };
 
-        let ref_impl = reference
-            .then(|| {
-                let ref_ident = Type::Reference(parse_quote! {&#ident});
-                implementor.basic_implement(&ref_ident, &generics)
-            })
-            .unwrap_or_default();
+        let ref_impl = if reference {
+            let ref_ident = Type::Reference(parse_quote! {&#ident});
+            implementor.basic_implement(&ref_ident, &generics)
+        } else {
+            Default::default()
+        };
 
-        let mut_impl = mutable
-            .then(|| {
-                let mut_ident = Type::Reference(parse_quote! {&mut #ident});
-                implementor.basic_implement(&mut_ident, &generics)
-            })
-            .unwrap_or_default();
+        let mut_impl = if mutable {
+            let mut_ident = Type::Reference(parse_quote! {&mut #ident});
+            implementor.basic_implement(&mut_ident, &generics)
+        } else {
+            Default::default()
+        };
 
         quote! {
             #owned_impl
