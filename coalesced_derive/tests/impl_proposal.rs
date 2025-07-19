@@ -33,8 +33,8 @@ struct NamedStructWithExt<X> {
 impl<X> Coalesce for NamedStructWithExt<X> {
     fn prior(self, other: Self) -> Self {
         Self {
-            u: self.u.prior(other.u),
-            v: self.v.prior(other.v),
+            u: Coalesce::prior(self.u, other.u),
+            v: Coalesce::prior(self.v, other.v),
         }
     }
     fn posterior(self, other: Self) -> Self {
@@ -76,10 +76,16 @@ impl<X: Clone> Extension<X> for UnnamedStruct {
 struct UnnamedStructWithExt<X>(WithExt<u32, X>, WithExt<i32, X>);
 impl<X> Coalesce for UnnamedStructWithExt<X> {
     fn prior(self, other: Self) -> Self {
-        Self(self.0.prior(other.0), self.1.prior(other.1))
+        Self(
+            Coalesce::prior(self.0, other.0),
+            Coalesce::prior(self.1, other.1),
+        )
     }
     fn posterior(self, other: Self) -> Self {
-        Self(self.0.posterior(other.0), self.1.posterior(other.1))
+        Self(
+            Coalesce::posterior(self.0, other.0),
+            Coalesce::posterior(self.1, other.1),
+        )
     }
 }
 impl<X: Clone> From<UnnamedStructWithExt<X>> for UnnamedStruct {
@@ -183,12 +189,13 @@ impl<X> Coalesce for CompoundEnumWithExt<X> {
                     v: other_v,
                 },
             ) => Self::Named {
-                u: base_u.prior(other_u),
-                v: base_v.prior(other_v),
+                u: Coalesce::prior(base_u, other_u),
+                v: Coalesce::prior(base_v, other_v),
             },
-            (Self::Unnamed(base_0, base_1), Self::Unnamed(other_0, other_1)) => {
-                Self::Unnamed(base_0.prior(other_0), base_1.prior(other_1))
-            }
+            (Self::Unnamed(base_0, base_1), Self::Unnamed(other_0, other_1)) => Self::Unnamed(
+                Coalesce::prior(base_0, other_0),
+                Coalesce::prior(base_1, other_1),
+            ),
             (_, o) => o,
         }
     }
@@ -205,12 +212,13 @@ impl<X> Coalesce for CompoundEnumWithExt<X> {
                     v: other_v,
                 },
             ) => Self::Named {
-                u: base_u.posterior(other_u),
-                v: base_v.posterior(other_v),
+                u: Coalesce::posterior(base_u, other_u),
+                v: Coalesce::posterior(base_v, other_v),
             },
-            (Self::Unnamed(base_0, base_1), Self::Unnamed(other_0, other_1)) => {
-                Self::Unnamed(base_0.posterior(other_0), base_1.posterior(other_1))
-            }
+            (Self::Unnamed(base_0, base_1), Self::Unnamed(other_0, other_1)) => Self::Unnamed(
+                Coalesce::posterior(base_0, other_0),
+                Coalesce::posterior(base_1, other_1),
+            ),
             (b, _) => b,
         }
     }
