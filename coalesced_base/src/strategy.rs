@@ -1,65 +1,100 @@
-pub mod overwrite {
-    use crate::extension::{Extension, WithExt};
+use crate::extension::{Extension, WithExt};
 
-    pub fn prior<T>(_base: T, other: T) -> T {
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct Overwrite<T>(pub T);
+impl<X, T> Extension<X> for Overwrite<T> {
+    type WithExt = WithExt<Self, X>;
+    fn with_extension(self, extension: X) -> Self::WithExt {
+        WithExt {
+            value: self,
+            extension,
+        }
+    }
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
+        with_ext.value
+    }
+    fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
         other
     }
-
-    pub fn posterior<T>(base: T, _other: T) -> T {
+    fn ex_posterior(base: Self::WithExt, _other: Self::WithExt) -> Self::WithExt {
         base
-    }
-
-    #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-    pub struct Overwrite<T>(pub T);
-    impl<X, T> Extension<X> for Overwrite<T> {
-        type WithExt = WithExt<Self, X>;
-        fn with_extension(self, extension: X) -> Self::WithExt {
-            WithExt {
-                value: self,
-                extension,
-            }
-        }
-        fn unwrap_extension(with_ext: Self::WithExt) -> Self {
-            with_ext.value
-        }
-        fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
-            other
-        }
-        fn ex_posterior(base: Self::WithExt, _other: Self::WithExt) -> Self::WithExt {
-            base
-        }
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::coalesce::Coalesce;
+
     use super::*;
 
     #[test]
-    fn test_override_coalesce() {
-        assert_eq!(0, overwrite::prior(0, 0));
-        assert_eq!(1, overwrite::prior(0, 1));
-        assert_eq!(0, overwrite::prior(1, 0));
-        assert_eq!(2, overwrite::prior(1, 2));
-        assert_eq!(0, overwrite::posterior(0, 0));
-        assert_eq!(0, overwrite::posterior(0, 1));
-        assert_eq!(1, overwrite::posterior(1, 0));
-        assert_eq!(1, overwrite::posterior(1, 2));
+    fn test_overwrite_coalesce_integer() {
+        assert_eq!(Overwrite(0), Overwrite(0).prior(Overwrite(0)));
+        assert_eq!(Overwrite(1), Overwrite(0).prior(Overwrite(1)));
+        assert_eq!(Overwrite(0), Overwrite(1).prior(Overwrite(0)));
+        assert_eq!(Overwrite(2), Overwrite(1).prior(Overwrite(2)));
+        assert_eq!(
+            Overwrite(0),
+            Overwrite(0)
+                .prior(Overwrite(2))
+                .prior(Overwrite(0))
+                .prior(Overwrite(4))
+                .prior(Overwrite(0))
+        );
 
-        assert_eq!("", overwrite::prior("", ""));
-        assert_eq!("foo", overwrite::prior("", "foo"));
-        assert_eq!("", overwrite::prior("foo", ""));
-        assert_eq!("bar", overwrite::prior("foo", "bar"));
-        assert_eq!("", overwrite::posterior("", ""));
-        assert_eq!("", overwrite::posterior("", "foo"));
-        assert_eq!("foo", overwrite::posterior("foo", ""));
-        assert_eq!("foo", overwrite::posterior("foo", "bar"));
+        assert_eq!(Overwrite(0), Overwrite(0).posterior(Overwrite(0)));
+        assert_eq!(Overwrite(0), Overwrite(0).posterior(Overwrite(1)));
+        assert_eq!(Overwrite(1), Overwrite(1).posterior(Overwrite(0)));
+        assert_eq!(Overwrite(1), Overwrite(1).posterior(Overwrite(2)));
+        assert_eq!(
+            Overwrite(0),
+            Overwrite(0)
+                .posterior(Overwrite(2))
+                .posterior(Overwrite(0))
+                .posterior(Overwrite(4))
+                .posterior(Overwrite(0))
+        );
     }
 
     #[test]
-    fn test_override_coalesce_ref() {
-        assert_eq!(&0, overwrite::prior(&0, &0));
-        assert_eq!(&false, overwrite::posterior(&false, &true));
+    fn test_overwrite_coalesce_str() {
+        assert_eq!(Overwrite(""), Overwrite("").prior(Overwrite("")));
+        assert_eq!(Overwrite("foo"), Overwrite("").prior(Overwrite("foo")));
+        assert_eq!(Overwrite(""), Overwrite("foo").prior(Overwrite("")));
+        assert_eq!(Overwrite("bar"), Overwrite("foo").prior(Overwrite("bar")));
+        assert_eq!(
+            Overwrite(""),
+            Overwrite("")
+                .prior(Overwrite("bar"))
+                .prior(Overwrite(""))
+                .prior(Overwrite("baz"))
+                .prior(Overwrite(""))
+        );
+
+        assert_eq!(Overwrite(""), Overwrite("").posterior(Overwrite("")));
+        assert_eq!(Overwrite(""), Overwrite("").posterior(Overwrite("foo")));
+        assert_eq!(Overwrite("foo"), Overwrite("foo").posterior(Overwrite("")));
+        assert_eq!(
+            Overwrite("foo"),
+            Overwrite("foo").posterior(Overwrite("bar"))
+        );
+        assert_eq!(
+            Overwrite(""),
+            Overwrite("")
+                .posterior(Overwrite("bar"))
+                .posterior(Overwrite(""))
+                .posterior(Overwrite("baz"))
+                .posterior(Overwrite(""))
+        );
+    }
+
+    #[test]
+    fn test_overwrite_coalesce_ref() {
+        assert_eq!(Overwrite(&0), Overwrite(&0).prior(Overwrite(&0)));
+        assert_eq!(
+            Overwrite(&false),
+            Overwrite(&false).posterior(Overwrite(&true))
+        );
     }
 }

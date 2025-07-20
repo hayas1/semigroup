@@ -114,7 +114,7 @@ impl<T: Coalesce + Clone> Coalesced<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::strategy::overwrite::Overwrite;
+    use crate::strategy::Overwrite;
 
     use super::*;
 
