@@ -3,15 +3,6 @@ pub trait Coalesce {
     fn posterior(self, other: Self) -> Self;
 }
 
-// impl<T> Coalesce for T {
-//     default fn prior(self, other: Self) -> Self {
-//         self
-//     }
-//     default fn posterior(self, other: Self) -> Self {
-//         other
-//     }
-// }
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -67,47 +58,5 @@ mod tests {
                 .posterior(Ok(4))
                 .posterior(Err("five"))
         );
-    }
-
-    #[test]
-    fn test_coalesce_integer() {
-        assert_eq!(0, 0.prior(0));
-        assert_eq!(1, 0.prior(1));
-        assert_eq!(0, 1.prior(0));
-        assert_eq!(2, 1.prior(2));
-        assert_eq!(0, 0.prior(2).prior(0).prior(4).prior(0));
-
-        assert_eq!(0, 0.posterior(0));
-        assert_eq!(0, 0.posterior(1));
-        assert_eq!(1, 1.posterior(0));
-        assert_eq!(1, 1.posterior(2));
-        assert_eq!(0, 0.posterior(2).posterior(0).posterior(4).posterior(0));
-    }
-
-    #[test]
-    fn test_coalesce_str() {
-        assert_eq!("", "".prior(""));
-        assert_eq!("foo", "".prior("foo"));
-        assert_eq!("", "foo".prior(""));
-        assert_eq!("bar", "foo".prior("bar"));
-        assert_eq!("", "".prior("bar").prior("").prior("baz").prior(""));
-
-        assert_eq!("", "".posterior(""));
-        assert_eq!("", "".posterior("foo"));
-        assert_eq!("foo", "foo".posterior(""));
-        assert_eq!("foo", "foo".posterior("bar"));
-        assert_eq!(
-            "",
-            "".posterior("bar")
-                .posterior("")
-                .posterior("baz")
-                .posterior("")
-        );
-    }
-
-    #[test]
-    fn test_coalesce_ref() {
-        assert_eq!(&0, (&0).prior(&0));
-        assert_eq!(&false, (&false).posterior(&true));
     }
 }

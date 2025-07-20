@@ -114,6 +114,8 @@ impl<T: Coalesce + Clone> Coalesced<T> {
 
 #[cfg(test)]
 mod tests {
+    use crate::strategy::overwrite::Overwrite;
+
     use super::*;
 
     #[test]
@@ -129,21 +131,21 @@ mod tests {
 
     #[test]
     fn test_history_coalesced_prior() {
-        let v1 = 1;
-        let v2 = 2;
-        let v3 = 3;
+        let v1 = Overwrite(1);
+        let v2 = Overwrite(2);
+        let v3 = Overwrite(3);
 
         let coalesced = v1.history_prior(v2).prior(v3);
-        assert_eq!(coalesced.into(), 3);
+        assert_eq!(coalesced.into(), Overwrite(3));
     }
 
     #[test]
     fn test_history_coalesced_posterior() {
-        let v1 = 1;
-        let v2 = 2;
-        let v3 = 3;
+        let v1 = Overwrite(1);
+        let v2 = Overwrite(2);
+        let v3 = Overwrite(3);
 
         let coalesced = v1.history_posterior(v2).posterior(v3);
-        assert_eq!(coalesced.into(), 1);
+        assert_eq!(coalesced.into(), Overwrite(1));
     }
 }

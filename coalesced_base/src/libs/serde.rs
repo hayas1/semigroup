@@ -33,13 +33,13 @@ where
 
 #[cfg(test)]
 mod tests {
-    use coalesced::Coalesce;
+    use coalesced::{strategy::overwrite::Overwrite, Coalesce};
 
     use super::*;
 
     #[derive(Coalesce, Serialize, Deserialize)]
     struct Config {
-        name: &'static str,
+        name: Overwrite<String>,
         number: Option<i64>,
     }
 
@@ -51,7 +51,7 @@ mod tests {
 
         let cfg = file.prior(env).prior(cli);
 
-        assert_eq!(cfg.name, "cli");
+        assert_eq!(cfg.name, Overwrite("cli".to_string()));
         assert_eq!(cfg.number, Some(10));
     }
 

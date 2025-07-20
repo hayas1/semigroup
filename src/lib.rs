@@ -173,6 +173,7 @@ pub use coalesced_base::{
     coalesce::Coalesce,
     coalesced::{Coalesced, History, IntoHistory},
     extension::{Extension, WithExt},
+    strategy,
 };
 
 #[cfg(feature = "derive")]
