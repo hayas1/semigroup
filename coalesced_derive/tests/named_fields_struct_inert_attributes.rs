@@ -2,7 +2,7 @@ use coalesced::{Coalesce, Extension};
 
 #[derive(Coalesce)]
 struct Config {
-    #[coalesced(with = "coalesced::overwrite")]
+    #[coalesced(with = coalesced::strategy::Overwrite)]
     name: &'static str,
     value: Option<u32>,
 }
