@@ -1,10 +1,10 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, ToTokens};
 use syn::{
-    parse_quote, Arm, Attribute, Data, DataEnum, DataStruct, DeriveInput, Expr, Field, Fields,
-    FieldsNamed, FieldsUnnamed, GenericParam, Ident, ItemEnum, ItemFn, ItemImpl, ItemStruct, Meta,
-    MetaList, MetaNameValue, Path, PathArguments, PathSegment, Type, TypeGenerics, TypeParam,
-    TypeParamBound, Variant, WhereClause,
+    parse_quote, Arm, Data, DataEnum, DataStruct, DeriveInput, Expr, Fields, FieldsNamed,
+    FieldsUnnamed, GenericParam, Ident, ItemEnum, ItemFn, ItemImpl, ItemStruct, Path,
+    PathArguments, PathSegment, Type, TypeGenerics, TypeParam, TypeParamBound, Variant,
+    WhereClause,
 };
 
 use crate::error::DeriveError;
@@ -227,31 +227,31 @@ impl Implementor {
 
         match &s.fields {
             Fields::Named(n) => {
-                let (fields, (prior, posterior)) = Self::fields_functions(n);
+                let (fields, _types) = Self::fields_types(n);
                 Some(parse_quote! {
                     impl #g_impl ::coalesced::Coalesce for #with_ext #g_where {
                         fn prior(self, other: Self) -> Self {
                             Self {
-                                #(#fields: #prior(self.#fields, other.#fields)),*
+                                #(#fields: self.#fields.prior(other.#fields)),*
                             }
                         }
                         fn posterior(self, other: Self) -> Self {
                             Self {
-                                #(#fields: #posterior(self.#fields, other.#fields)),*
+                                #(#fields: self.#fields.posterior(other.#fields)),*
                             }
                         }
                     }
                 })
             }
             Fields::Unnamed(u) => {
-                let (indices, (prior, posterior)) = Self::indices_functions(u);
+                let (indices, _types) = Self::indices_types(u);
                 Some(parse_quote! {
                     impl #g_impl ::coalesced::Coalesce for #with_ext #g_where {
                         fn prior(self, other: Self) -> Self {
-                            Self( #(#prior(self.#indices, other.#indices)),* )
+                            Self( #(self.#indices.prior(other.#indices)),* )
                         }
                         fn posterior(self, other: Self) -> Self {
-                            Self( #(#posterior(self.#indices, other.#indices)),* )
+                            Self( #(self.#indices.posterior(other.#indices)),* )
                         }
                     }
                 })
@@ -441,7 +441,7 @@ impl Implementor {
         v.into_iter()
             .map(move |Variant { ident, fields, .. }| match fields {
                 Fields::Named(n) => {
-                    let (fields, (prior, posterior)) = Self::fields_functions(n);
+                    let (fields, _types) = Self::fields_types(n);
                     let (base_fields, other_fields) = (
                         Self::prefixed_fields(n, "base"),
                         Self::prefixed_fields(n, "other"),
@@ -452,7 +452,7 @@ impl Implementor {
                                 Self::#ident { #(#fields: #base_fields),* },
                                 Self::#ident { #(#fields: #other_fields),* },
                             ) => Self::#ident {
-                                #(#fields: #prior(#base_fields, #other_fields)),*
+                                #(#fields: #base_fields.prior(#other_fields)),*
                             }
                         },
                         parse_quote! {
@@ -460,13 +460,12 @@ impl Implementor {
                                 Self::#ident { #(#fields: #base_fields),* },
                                 Self::#ident { #(#fields: #other_fields),* },
                             ) => Self::#ident {
-                                #(#fields: #posterior(#base_fields, #other_fields)),*
+                                #(#fields: #base_fields.posterior(#other_fields)),*
                             }
                         },
                     )
                 }
                 Fields::Unnamed(u) => {
-                    let (_, (prior, posterior)) = Self::indices_functions(u);
                     let (base_indices, other_indices) = (
                         Self::prefixed_indices(u, "base"),
                         Self::prefixed_indices(u, "other"),
@@ -477,7 +476,7 @@ impl Implementor {
                                 Self::#ident ( #(#base_indices),* ),
                                 Self::#ident ( #(#other_indices),* ),
                             ) => Self::#ident (
-                                #(#prior(#base_indices, #other_indices)),*
+                                #(#base_indices.prior(#other_indices)),*
                             )
                         },
                         parse_quote! {
@@ -485,7 +484,7 @@ impl Implementor {
                                 Self::#ident ( #(#base_indices),* ),
                                 Self::#ident ( #(#other_indices),* ),
                             ) => Self::#ident (
-                                #(#posterior(#base_indices, #other_indices)),*
+                                #(#base_indices.posterior(#other_indices)),*
                             )
                         },
                     )
@@ -529,47 +528,6 @@ impl Implementor {
             .enumerate()
             .map(|(i, _)| format_ident!("{}_{}", prefix, i))
             .collect()
-    }
-    #[allow(clippy::type_complexity)] // TODO type complexity
-    fn fields_functions(f: &FieldsNamed) -> (Vec<&Option<Ident>>, (Vec<Path>, Vec<Path>)) {
-        f.named
-            .iter()
-            .map(|f| &f.ident)
-            .zip(f.named.iter().map(Self::fields_coalesce_function))
-            .collect()
-    }
-    fn indices_functions(f: &FieldsUnnamed) -> (Vec<syn::Index>, (Vec<Path>, Vec<Path>)) {
-        f.unnamed
-            .iter()
-            .enumerate()
-            .map(|(i, _)| i.into())
-            .zip(f.unnamed.iter().map(Self::fields_coalesce_function))
-            .collect()
-    }
-    fn fields_coalesce_function(f: &Field) -> (Path, Path) {
-        let module = f.attrs.iter().find_map(|Attribute { meta, .. }| {
-            let Meta::List(MetaList { path, tokens, .. }) = meta else {
-                return None;
-            };
-            let MetaNameValue { path, value, .. } = path
-                .is_ident("coalesced")
-                .then(|| syn::parse2(tokens.clone()).ok())??;
-            let Expr::Path(module) = path.is_ident("with").then_some(value)? else {
-                return None;
-            };
-            Some(module)
-        });
-        module
-            .map(|m| {
-                let (mut prior, mut posterior) = (m.path.clone(), m.path.clone());
-                prior.segments.push_punct(parse_quote!(prior));
-                posterior.segments.push_punct(parse_quote!(posterior));
-                (prior, posterior)
-            })
-            .unwrap_or((
-                parse_quote!(::coalesced::Coalesce::prior),
-                parse_quote!(::coalesced::Coalesce::posterior),
-            ))
     }
 }
 
