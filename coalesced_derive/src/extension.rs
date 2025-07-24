@@ -1,10 +1,10 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, ToTokens};
 use syn::{
-    parse_quote, Arm, Data, DataEnum, DataStruct, DeriveInput, Expr, Fields, FieldsNamed,
-    FieldsUnnamed, GenericParam, Ident, ItemEnum, ItemFn, ItemImpl, ItemStruct, Path,
-    PathArguments, PathSegment, Type, TypeGenerics, TypeParam, TypeParamBound, Variant,
-    WhereClause,
+    parse_quote, Arm, Attribute, Data, DataEnum, DataStruct, DeriveInput, Expr, ExprPath, Field,
+    Fields, FieldsNamed, FieldsUnnamed, GenericParam, Ident, ItemEnum, ItemFn, ItemImpl,
+    ItemStruct, Meta, MetaList, MetaNameValue, Path, PathArguments, PathSegment, Type,
+    TypeGenerics, TypeParam, TypeParamBound, Variant, WhereClause,
 };
 
 use crate::error::DeriveError;
@@ -528,6 +528,21 @@ impl Implementor {
             .enumerate()
             .map(|(i, _)| format_ident!("{}_{}", prefix, i))
             .collect()
+    }
+
+    fn fields_with(f: &Field) -> Option<ExprPath> {
+        f.attrs.iter().find_map(|Attribute { meta, .. }| {
+            let Meta::List(MetaList { path, tokens, .. }) = meta else {
+                return None;
+            };
+            let MetaNameValue { path, value, .. } = path
+                .is_ident("coalesced")
+                .then(|| syn::parse2(tokens.clone()).ok())??;
+            let Expr::Path(module) = path.is_ident("with").then_some(value)? else {
+                return None;
+            };
+            Some(module)
+        })
     }
 }
 
