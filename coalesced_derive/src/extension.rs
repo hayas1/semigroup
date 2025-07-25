@@ -544,6 +544,13 @@ impl Implementor {
             Some(module)
         })
     }
+    fn fields_with_extension(f: &Field) -> Expr {
+        let wrap = Self::fields_with(f);
+        todo!()
+    }
+    fn fields_unwrap_extension(f: &Field) -> Expr {
+        todo!()
+    }
 }
 
 struct ExImplGenerics<'a>(&'a Implementor);
