@@ -549,6 +549,7 @@ impl Implementor {
         todo!()
     }
     fn fields_unwrap_extension(f: &Field) -> Expr {
+        let wrap = Self::fields_with(f);
         todo!()
     }
 }
