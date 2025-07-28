@@ -545,6 +545,7 @@ impl Implementor {
         })
     }
     fn implement_fields_with_extension(f: &Field, ext: &Ident) -> Expr {
+        // TODO indices
         let (wrap, ident) = (Self::fields_with(f), &f.ident);
         match wrap {
             Some(wrap) => parse_quote! { #wrap(self.#ident).with_extension(#ext.clone()) },
