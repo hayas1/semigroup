@@ -1,3 +1,5 @@
+use std::ops::{Deref, DerefMut};
+
 use crate::extension::{Extension, WithExt};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
@@ -19,6 +21,17 @@ impl<X, T> Extension<X> for Overwrite<T> {
     }
     fn ex_posterior(base: Self::WithExt, _other: Self::WithExt) -> Self::WithExt {
         base
+    }
+}
+impl<T> Deref for Overwrite<T> {
+    type Target = T;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+impl<T> DerefMut for Overwrite<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 
