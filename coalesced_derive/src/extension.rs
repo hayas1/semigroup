@@ -128,9 +128,9 @@ impl Implementor {
         let with_ext = Self::strip_path_argument(&self.with_ext_path());
         match f {
             Fields::Named(n) => {
-                let (fields, _types) = Self::fields_types(n);
+                let (fields, expr) = Self::fields_with_extension(n, ext);
                 parse_quote! {
-                    #with_ext { #(#fields: self.#fields.with_extension(#ext.clone())),* }
+                    #with_ext { #(#fields: #expr),* }
                 }
             }
             Fields::Unnamed(u) => {
@@ -150,9 +150,9 @@ impl Implementor {
     fn implement_struct_extension_unwrap_extension(&self, f: &Fields, we: &Ident) -> Expr {
         match f {
             Fields::Named(n) => {
-                let (fields, _types) = Self::fields_types(n);
+                let (fields, expr) = Self::fields_unwrap_extension(n, we);
                 parse_quote! {
-                    Self { #(#fields: ::coalesced::Extension::unwrap_extension(#we.#fields)),* }
+                    Self { #(#fields: #expr),* }
                 }
             }
             Fields::Unnamed(u) => {
@@ -201,11 +201,11 @@ impl Implementor {
         let with_ext = self.with_ext_path();
         match &s.fields {
             Fields::Named(n) => {
-                let (fields, types) = Self::fields_types(n);
+                let (fields, types) = Self::fields_with_ext(n, &x_param); // ここ
                 Some(parse_quote! {
                     #[doc(hidden)]
                     #vis struct #with_ext #g_where {
-                        #(#fields: ::coalesced::WithExt<#types, #x_param>),*
+                        #(#fields: #types),*
                     }
                 })
             }
@@ -530,6 +530,34 @@ impl Implementor {
             .collect()
     }
 
+    fn fields_with_ext<'a>(
+        f: &'a FieldsNamed,
+        ext: &Ident,
+    ) -> (Vec<&'a Option<Ident>>, Vec<Field>) {
+        f.named
+            .iter()
+            .map(|f| (&f.ident, Self::definition_with_ext_field(f, ext)))
+            .unzip()
+    }
+    fn fields_with_extension<'a>(
+        f: &'a FieldsNamed,
+        ext: &Ident,
+    ) -> (Vec<&'a Option<Ident>>, Vec<Expr>) {
+        f.named
+            .iter()
+            .map(|f| (&f.ident, Self::implement_field_with_extension(f, ext)))
+            .unzip()
+    }
+    fn fields_unwrap_extension<'a>(
+        f: &'a FieldsNamed,
+        ext: &Ident,
+    ) -> (Vec<&'a Option<Ident>>, Vec<Expr>) {
+        f.named
+            .iter()
+            .map(|f| (&f.ident, Self::implement_field_unwrap_extension(f, ext)))
+            .unzip()
+    }
+
     fn fields_with(f: &Field) -> Option<ExprPath> {
         f.attrs.iter().find_map(|Attribute { meta, .. }| {
             let Meta::List(MetaList { path, tokens, .. }) = meta else {
@@ -544,19 +572,25 @@ impl Implementor {
             Some(module)
         })
     }
-    fn implement_fields_with_extension(f: &Field, ext: &Ident) -> Expr {
-        // TODO indices
+    fn definition_with_ext_field(f: &Field, x_param: &Ident) -> Field {
+        let (wrap, ty) = (Self::fields_with(f), &f.ty);
+        match wrap {
+            Some(w) => parse_quote! { ::coalesced::WithExt<#w<#ty>, #x_param> },
+            None => parse_quote! { ::coalesced::WithExt<#ty, #x_param> },
+        }
+    }
+    fn implement_field_with_extension(f: &Field, ext: &Ident) -> Expr {
         let (wrap, ident) = (Self::fields_with(f), &f.ident);
         match wrap {
-            Some(wrap) => parse_quote! { #wrap(self.#ident).with_extension(#ext.clone()) },
+            Some(w) => parse_quote! { #w(self.#ident).with_extension(#ext.clone()) },
             None => parse_quote! { self.#ident.with_extension(#ext.clone()) },
         }
     }
-    fn implement_fields_unwrap_extension(f: &Field, with_ext: &Ident) -> Expr {
+    fn implement_field_unwrap_extension(f: &Field, with_ext: &Ident) -> Expr {
         let (wrap, ident) = (Self::fields_with(f), &f.ident);
         match wrap {
-            Some(wrap) => parse_quote! { #wrap(#with_ext.#ident) },
-            None => parse_quote! { ::coalesced::Extension::unwrap_extension(#with_ext.#ident).0 },
+            Some(w) => parse_quote! { #w::unwrap_extension(#with_ext.#ident).0 },
+            None => parse_quote! { ::coalesced::Extension::unwrap_extension(#with_ext.#ident) },
         }
     }
 }
