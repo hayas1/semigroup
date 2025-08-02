@@ -38,7 +38,7 @@ fn test_derive_extension_named_fields_struct_inert_attributes() {
 
     let c = config.posterior(config2);
     assert_eq!(c.name.extension, "first");
-    assert_eq!(*c.name, "c1");
+    assert_eq!(**c.name, "c1");
     assert_eq!(c.value.extension, "second");
     assert_eq!(*c.value, Some(2));
 
