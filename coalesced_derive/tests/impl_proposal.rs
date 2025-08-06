@@ -129,7 +129,7 @@ impl<X: Clone> From<WithExt<UnitStruct, X>> for UnitStruct {
 // #[derive(Coalesce)]
 enum CompoundEnum {
     Unit,
-    Named { u: u32, v: i32 },
+    Named { u: Option<u32>, v: i32 },
     Unnamed(&'static str, usize),
 }
 impl<X: Clone> Extension<X> for CompoundEnum {
@@ -139,7 +139,7 @@ impl<X: Clone> Extension<X> for CompoundEnum {
             CompoundEnum::Unit => CompoundEnumWithExt::Unit(().with_extension(extension)),
             CompoundEnum::Named { u, v } => CompoundEnumWithExt::Named {
                 u: u.with_extension(extension.clone()),
-                v: v.with_extension(extension.clone()),
+                v: coalesced::strategy::Overwrite(v).with_extension(extension.clone()),
             },
             CompoundEnum::Unnamed(base_0, base_1) => CompoundEnumWithExt::Unnamed(
                 base_0.with_extension(extension.clone()),
@@ -152,7 +152,7 @@ impl<X: Clone> Extension<X> for CompoundEnum {
             CompoundEnumWithExt::Unit(_) => CompoundEnum::Unit,
             CompoundEnumWithExt::Named { u, v } => CompoundEnum::Named {
                 u: Extension::unwrap_extension(u),
-                v: Extension::unwrap_extension(v),
+                v: coalesced::strategy::Overwrite::unwrap_extension(v).0,
             },
             CompoundEnumWithExt::Unnamed(base_0, base_1) => CompoundEnum::Unnamed(
                 Extension::unwrap_extension(base_0),
@@ -170,8 +170,8 @@ impl<X: Clone> Extension<X> for CompoundEnum {
 enum CompoundEnumWithExt<X> {
     Unit(WithExt<(), X>), // TODO ?
     Named {
-        u: WithExt<u32, X>,
-        v: WithExt<i32, X>,
+        u: WithExt<Option<u32>, X>,
+        v: WithExt<coalesced::strategy::Overwrite<i32>, X>,
     },
     Unnamed(WithExt<&'static str, X>, WithExt<usize, X>),
 }
@@ -266,11 +266,11 @@ fn test_compound_enum() {
     let b_unit = CompoundEnum::Unit;
     assert!(matches!(a_unit.posterior(b_unit), CompoundEnum::Unit));
 
-    let a_named = CompoundEnum::Named { u: 1, v: -1 };
-    let b_named = CompoundEnum::Named { u: 2, v: -2 };
+    let a_named = CompoundEnum::Named { u: None, v: -1 };
+    let b_named = CompoundEnum::Named { u: Some(2), v: -2 };
     assert!(matches!(
         a_named.prior(b_named),
-        CompoundEnum::Named { u: 2, v: -2 }
+        CompoundEnum::Named { u: Some(2), v: -2 }
     ));
 
     let a_unnamed = CompoundEnum::Unnamed("one", 1);
