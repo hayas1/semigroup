@@ -51,19 +51,19 @@ impl<X: Clone> From<NamedStructWithExt<X>> for NamedStruct {
 }
 
 // #[derive(Coalesce)]
-struct UnnamedStruct(u32, i32);
+struct UnnamedStruct(Option<u32>, i32);
 impl<X: Clone> Extension<X> for UnnamedStruct {
     type WithExt = UnnamedStructWithExt<X>;
     fn with_extension(self, extension: X) -> Self::WithExt {
         UnnamedStructWithExt(
             self.0.with_extension(extension.clone()),
-            self.1.with_extension(extension.clone()),
+            coalesced::strategy::Overwrite(self.1).with_extension(extension.clone()),
         )
     }
     fn unwrap_extension(with_ext: Self::WithExt) -> Self {
         Self(
             Extension::unwrap_extension(with_ext.0),
-            Extension::unwrap_extension(with_ext.1),
+            coalesced::strategy::Overwrite::unwrap_extension(with_ext.1).0,
         )
     }
     fn ex_prior(base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
@@ -73,7 +73,10 @@ impl<X: Clone> Extension<X> for UnnamedStruct {
         base.posterior(other)
     }
 }
-struct UnnamedStructWithExt<X>(WithExt<u32, X>, WithExt<i32, X>);
+struct UnnamedStructWithExt<X>(
+    WithExt<Option<u32>, X>,
+    WithExt<coalesced::strategy::Overwrite<i32>, X>,
+);
 impl<X> Coalesce for UnnamedStructWithExt<X> {
     fn prior(self, other: Self) -> Self {
         Self(
@@ -248,9 +251,9 @@ fn test_named_struct() {
 
 #[test]
 fn test_unnamed_struct() {
-    let a = UnnamedStruct(1, -1);
-    let b = UnnamedStruct(2, -2);
-    assert!(matches!(a.prior(b), UnnamedStruct(2, -2)));
+    let a = UnnamedStruct(Some(1), -1);
+    let b = UnnamedStruct(None, -2);
+    assert!(matches!(a.prior(b), UnnamedStruct(Some(1), -2)));
 }
 
 #[test]
