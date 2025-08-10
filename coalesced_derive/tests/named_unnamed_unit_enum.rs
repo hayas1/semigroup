@@ -3,8 +3,8 @@ use coalesced::{Coalesce, Extension, WithExt};
 #[derive(Coalesce)]
 enum Config {
     Unit,
-    Named { value: i32 },
-    Unnamed(&'static str),
+    Named { value: Option<i32> },
+    Unnamed(Option<&'static str>),
 }
 
 #[test]
@@ -18,20 +18,20 @@ fn test_derive_coalesce_enum_unit() {
 
 #[test]
 fn test_derive_coalesce_enum_named() {
-    let config = Config::Named { value: 10 };
-    let config2 = Config::Named { value: 100 };
+    let config = Config::Named { value: Some(10) };
+    let config2 = Config::Named { value: Some(100) };
 
     let c = config.prior(config2);
-    assert!(matches!(c, Config::Named { value: 100 }));
+    assert!(matches!(c, Config::Named { value: Some(100) }));
 }
 
 #[test]
 fn test_derive_coalesce_enum_unnamed() {
-    let config = Config::Unnamed("nop");
-    let config2 = Config::Unnamed("op");
+    let config = Config::Unnamed(Some("nop"));
+    let config2 = Config::Unnamed(Some("op"));
 
     let c = config.prior(config2);
-    assert!(matches!(c, Config::Unnamed("op")));
+    assert!(matches!(c, Config::Unnamed(Some("op"))));
 }
 
 #[test]
@@ -53,8 +53,8 @@ fn test_derive_extension_enum_unit() {
 
 #[test]
 fn test_derive_extension_enum_named() {
-    let config = Config::Named { value: 10 }.with_extension("first");
-    let config2 = Config::Named { value: 100 }.with_extension("second");
+    let config = Config::Named { value: Some(10) }.with_extension("first");
+    let config2 = Config::Named { value: Some(100) }.with_extension("second");
 
     let c = config.posterior(config2);
     assert!(matches!(
@@ -62,27 +62,27 @@ fn test_derive_extension_enum_named() {
         // TODO <Config as Extension<_>>::WithExt::Unit, but experimental
         ConfigWithExt::Named {
             value: WithExt {
-                value: 10,
+                value: Some(10),
                 extension: "first"
             }
         }
     ));
-    assert!(matches!(c.into(), Config::Named { value: 10 }));
+    assert!(matches!(c.into(), Config::Named { value: Some(10) }));
 }
 
 #[test]
 fn test_derive_extension_enum_unnamed() {
-    let config = Config::Unnamed("nop").with_extension("first");
-    let config2 = Config::Unnamed("op").with_extension("second");
+    let config = Config::Unnamed(Some("nop")).with_extension("first");
+    let config2 = Config::Unnamed(Some("op")).with_extension("second");
 
     let c = config.posterior(config2);
     assert!(matches!(
         c,
         // TODO <Config as Extension<_>>::WithExt::Unit, but experimental
         ConfigWithExt::Unnamed(WithExt {
-            value: "nop",
+            value: Some("nop"),
             extension: "first"
         })
     ));
-    assert!(matches!(c.into(), Config::Unnamed("nop")));
+    assert!(matches!(c.into(), Config::Unnamed(Some("nop"))));
 }

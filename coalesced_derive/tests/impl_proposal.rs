@@ -133,7 +133,7 @@ impl<X: Clone> From<WithExt<UnitStruct, X>> for UnitStruct {
 enum CompoundEnum {
     Unit,
     Named { u: Option<u32>, v: i32 },
-    Unnamed(&'static str, usize),
+    Unnamed(Option<&'static str>, usize),
 }
 impl<X: Clone> Extension<X> for CompoundEnum {
     type WithExt = CompoundEnumWithExt<X>;
@@ -146,7 +146,7 @@ impl<X: Clone> Extension<X> for CompoundEnum {
             },
             CompoundEnum::Unnamed(base_0, base_1) => CompoundEnumWithExt::Unnamed(
                 base_0.with_extension(extension.clone()),
-                base_1.with_extension(extension.clone()),
+                coalesced::strategy::Overwrite(base_1).with_extension(extension.clone()),
             ),
         }
     }
@@ -159,7 +159,7 @@ impl<X: Clone> Extension<X> for CompoundEnum {
             },
             CompoundEnumWithExt::Unnamed(base_0, base_1) => CompoundEnum::Unnamed(
                 Extension::unwrap_extension(base_0),
-                Extension::unwrap_extension(base_1),
+                coalesced::strategy::Overwrite::unwrap_extension(base_1).0,
             ),
         }
     }
@@ -176,7 +176,10 @@ enum CompoundEnumWithExt<X> {
         u: WithExt<Option<u32>, X>,
         v: WithExt<coalesced::strategy::Overwrite<i32>, X>,
     },
-    Unnamed(WithExt<&'static str, X>, WithExt<usize, X>),
+    Unnamed(
+        WithExt<Option<&'static str>, X>,
+        WithExt<coalesced::strategy::Overwrite<usize>, X>,
+    ),
 }
 impl<X> Coalesce for CompoundEnumWithExt<X> {
     fn prior(self, other: Self) -> Self {
@@ -276,10 +279,10 @@ fn test_compound_enum() {
         CompoundEnum::Named { u: Some(2), v: -2 }
     ));
 
-    let a_unnamed = CompoundEnum::Unnamed("one", 1);
-    let b_unnamed = CompoundEnum::Unnamed("two", 2);
+    let a_unnamed = CompoundEnum::Unnamed(None, 1);
+    let b_unnamed = CompoundEnum::Unnamed(Some("two"), 2);
     assert!(matches!(
         a_unnamed.posterior(b_unnamed),
-        CompoundEnum::Unnamed("one", 1)
+        CompoundEnum::Unnamed(Some("two"), 1)
     ));
 }

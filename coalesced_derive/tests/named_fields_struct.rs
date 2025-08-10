@@ -2,49 +2,49 @@ use coalesced::{Coalesce, Extension};
 
 #[derive(Coalesce)]
 struct Config {
-    name: &'static str,
+    name: Option<&'static str>,
     value: Option<u32>,
 }
 
 #[test]
 fn test_derive_coalesce_named_fields_struct() {
     let config = Config {
-        name: "c1",
+        name: Some("c1"),
         value: Some(1),
     };
     let config2 = Config {
-        name: "c2",
+        name: Some("c2"),
         value: None,
     };
 
     let c = config.prior(config2);
-    assert_eq!(c.name, "c2");
+    assert_eq!(c.name, Some("c2"));
     assert_eq!(c.value, Some(1));
 }
 
 #[test]
 fn test_derive_extension_named_fields_struct() {
     let config = Config {
-        name: "c1",
+        name: Some("c1"),
         value: None,
     }
     .with_extension("first");
     let config2 = Config {
-        name: "c2",
+        name: Some("c2"),
         value: Some(2),
     }
     .with_extension("second");
 
     let c = config.posterior(config2);
     assert_eq!(c.name.extension, "first");
-    assert_eq!(*c.name, "c1");
+    assert_eq!(*c.name, Some("c1"));
     assert_eq!(c.value.extension, "second");
     assert_eq!(*c.value, Some(2));
 
     assert!(matches!(
         c.into(),
         Config {
-            name: "c1",
+            name: Some("c1"),
             value: Some(2),
         }
     ));
