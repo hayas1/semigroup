@@ -65,7 +65,7 @@ fn test_derive_extension_enum_named_inert_attributes() {
         // TODO <Config as Extension<_>>::WithExt::Unit, but experimental
         ConfigWithExt::Named {
             value: WithExt {
-                value: 10,
+                value: coalesced::strategy::Overwrite(10),
                 extension: "first"
             }
         }
@@ -83,7 +83,7 @@ fn test_derive_extension_enum_unnamed_inert_attributes() {
         c,
         // TODO <Config as Extension<_>>::WithExt::Unit, but experimental
         ConfigWithExt::Unnamed(WithExt {
-            value: "nop",
+            value: coalesced::strategy::Overwrite("nop"),
             extension: "first"
         })
     ));
