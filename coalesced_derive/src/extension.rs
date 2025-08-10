@@ -558,8 +558,8 @@ impl Implementor {
             .map(|(i, f)| (&f.ident, Self::implement_field_with_extension(f, i, ext)))
             .unzip()
     }
-    fn fields_with_extension_prefix<'a>(
-        f: &'a FieldsNamed,
+    fn fields_with_extension_prefix(
+        f: &FieldsNamed,
         prefix: Option<&str>,
         ext: &Ident,
     ) -> (Vec<Ident>, Vec<Expr>) {
@@ -711,7 +711,7 @@ impl Implementor {
         f: &Field,
         prefix: Option<&str>,
         i: usize,
-        with_ext: &Ident,
+        _with_ext: &Ident,
     ) -> (Ident, Expr) {
         let wrap = Self::fields_with(f);
         let ident = f
