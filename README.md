@@ -23,6 +23,7 @@ use coalesced::Coalesce;
 pub struct Config<'a> {
     opt_num: Option<i32>,
     opt_str: Option<&'a str>,
+    #[coalesced(with = coalesced::strategy::Overwrite)]
     boolean: bool
 }
 
@@ -80,6 +81,7 @@ use coalesced::{Coalesce, History, IntoHistory};
 pub struct Config<'a> {
     opt_num: Option<i32>,
     opt_str: Option<&'a str>,
+    #[coalesced(with = coalesced::strategy::Overwrite)]
     boolean: bool,
 }
 
@@ -124,6 +126,7 @@ use coalesced::{Coalesce, Extension};
 pub struct Config<'a> {
     opt_num: Option<i32>,
     opt_str: Option<&'a str>,
+    #[coalesced(with = coalesced::strategy::Overwrite)]
     boolean: bool,
 }
 
