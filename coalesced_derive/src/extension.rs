@@ -1,10 +1,10 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, ToTokens};
 use syn::{
-    parse_quote, Arm, Data, DataEnum, DataStruct, DeriveInput, Expr, Fields, FieldsNamed,
-    FieldsUnnamed, GenericParam, Ident, ItemEnum, ItemFn, ItemImpl, ItemStruct, Path,
-    PathArguments, PathSegment, Type, TypeGenerics, TypeParam, TypeParamBound, Variant,
-    WhereClause,
+    parse_quote, Arm, Attribute, Data, DataEnum, DataStruct, DeriveInput, Expr, ExprPath, Field,
+    Fields, FieldsNamed, FieldsUnnamed, GenericParam, Ident, ItemEnum, ItemFn, ItemImpl,
+    ItemStruct, Meta, MetaList, MetaNameValue, Path, PathArguments, PathSegment, Type,
+    TypeGenerics, TypeParam, TypeParamBound, Variant, WhereClause,
 };
 
 use crate::error::DeriveError;
@@ -77,7 +77,7 @@ impl Implementor {
     }
     fn split_with_extension_generics(
         &self,
-    ) -> (ExImplGenerics, TypeGenerics, Option<&WhereClause>) {
+    ) -> (ExImplGenerics<'_>, TypeGenerics<'_>, Option<&WhereClause>) {
         let ex_impl = ExImplGenerics(self);
         let (_, g_type, g_where) = self.input.generics.split_for_impl();
         (ex_impl, g_type, g_where)
@@ -101,9 +101,9 @@ impl Implementor {
         let x_param = self.x_param();
 
         let with_ext = self.with_ext_path();
-        let (ex, we) = (parse_quote! { extension }, parse_quote! { with_ext });
+        let (ext, we) = (parse_quote! { extension }, parse_quote! { with_ext });
         let (block_with_extension, block_unwrap_extension) = (
-            self.implement_struct_extension_with_extension(&s.fields, &ex),
+            self.implement_struct_extension_with_extension(&s.fields, &ext),
             self.implement_struct_extension_unwrap_extension(&s.fields, &we),
         );
         let (fn_ex_prior, fn_ex_posterior) = (
@@ -113,7 +113,7 @@ impl Implementor {
         parse_quote! {
             impl #g_impl ::coalesced::Extension<#x_param> for #ident #g_type #g_where {
                 type WithExt = #with_ext;
-                fn with_extension(self, #ex: #x_param) -> Self::WithExt {
+                fn with_extension(self, #ext: #x_param) -> Self::WithExt {
                     #block_with_extension
                 }
                 fn unwrap_extension(#we: Self::WithExt) -> Self {
@@ -124,25 +124,25 @@ impl Implementor {
             }
         }
     }
-    fn implement_struct_extension_with_extension(&self, f: &Fields, ex: &Ident) -> Expr {
+    fn implement_struct_extension_with_extension(&self, f: &Fields, ext: &Ident) -> Expr {
         let with_ext = Self::strip_path_argument(&self.with_ext_path());
         match f {
             Fields::Named(n) => {
-                let (fields, _types) = Self::fields_types(n);
+                let (fields, expr) = Self::fields_with_extension(n, ext);
                 parse_quote! {
-                    #with_ext { #(#fields: self.#fields.with_extension(#ex.clone())),* }
+                    #with_ext { #(#fields: #expr),* }
                 }
             }
             Fields::Unnamed(u) => {
-                let (indices, _types) = Self::indices_types(u);
+                let (_indices, expr) = Self::indices_with_extension(u, ext);
                 parse_quote! {
-                    #with_ext( #(self.#indices.with_extension(#ex.clone())),* )
+                    #with_ext( #(#expr),* )
                 }
             }
             Fields::Unit => parse_quote! {
                 ::coalesced::WithExt {
                     value: self,
-                    extension: #ex
+                    extension: #ext
                 }
             },
         }
@@ -150,15 +150,15 @@ impl Implementor {
     fn implement_struct_extension_unwrap_extension(&self, f: &Fields, we: &Ident) -> Expr {
         match f {
             Fields::Named(n) => {
-                let (fields, _types) = Self::fields_types(n);
+                let (fields, expr) = Self::fields_unwrap_extension(n, we);
                 parse_quote! {
-                    Self { #(#fields: ::coalesced::Extension::unwrap_extension(#we.#fields)),* }
+                    Self { #(#fields: #expr),* }
                 }
             }
             Fields::Unnamed(u) => {
-                let (indices, _types) = Self::indices_types(u);
+                let (_indices, expr) = Self::indices_unwrap_extension(u, we);
                 parse_quote! {
-                    Self( #(::coalesced::Extension::unwrap_extension(#we.#indices)),* )
+                    Self( #(#expr),* )
                 }
             }
             Fields::Unit => parse_quote! {
@@ -201,20 +201,20 @@ impl Implementor {
         let with_ext = self.with_ext_path();
         match &s.fields {
             Fields::Named(n) => {
-                let (fields, types) = Self::fields_types(n);
+                let (fields, types) = Self::fields_with_ext(n, &x_param);
                 Some(parse_quote! {
                     #[doc(hidden)]
                     #vis struct #with_ext #g_where {
-                        #(#fields: ::coalesced::WithExt<#types, #x_param>),*
+                        #(#fields: #types),*
                     }
                 })
             }
             Fields::Unnamed(u) => {
-                let (_indices, types) = Self::indices_types(u);
+                let (_indices, types) = Self::indices_with_ext(u, &x_param);
                 Some(parse_quote! {
                     #[doc(hidden)]
                     #vis struct #with_ext (
-                        #(::coalesced::WithExt<#types, #x_param>),*
+                        #(#types),*
                     ) #g_where;
                 })
             }
@@ -290,15 +290,15 @@ impl Implementor {
         let x_param = self.x_param();
 
         let with_ext = self.with_ext_path();
-        let (ex, we) = (parse_quote! { extension }, parse_quote! { with_ext });
+        let (ext, we) = (parse_quote! { extension }, parse_quote! { with_ext });
         let (arms_with_extension, arms_unwrap_extension) = (
-            self.implement_enum_extension_with_extension(e.variants.iter(), &ex),
+            self.implement_enum_extension_with_extension(e.variants.iter(), &ext),
             self.implement_enum_extension_unwrap_extension(e.variants.iter(), &we),
         );
         parse_quote! {
             impl #g_impl ::coalesced::Extension<#x_param> for #ident #g_type #g_where {
                 type WithExt = #with_ext;
-                fn with_extension(self, #ex: #x_param) -> Self::WithExt {
+                fn with_extension(self, #ext: #x_param) -> Self::WithExt {
                     match self {
                         #(#arms_with_extension),*
                     }
@@ -320,55 +320,57 @@ impl Implementor {
     fn implement_enum_extension_with_extension<'a>(
         &'a self,
         v: impl 'a + IntoIterator<Item = &'a Variant>,
-        ex: &'a Ident,
+        ext: &'a Ident,
     ) -> impl 'a + Iterator<Item = Arm> {
         let enum_ident = &self.input.ident;
         let with_ext = Self::strip_path_argument(&self.with_ext_path());
         v.into_iter()
             .map(move |Variant { ident, fields, .. }| match fields {
                 Fields::Named(n) => {
-                    let (fields, _types) = Self::fields_types(n);
+                    let (fields, expr) = Self::fields_with_extension_prefix(n, None, ext);
                     parse_quote! {
                         #enum_ident::#ident { #(#fields),* } => #with_ext::#ident {
-                            #(#fields: #fields.with_extension(#ex.clone())),*
+                            #(#fields: #expr),*
                         }
                     }
                 }
                 Fields::Unnamed(u) => {
-                    let prefixed_indices = Self::prefixed_indices(u, "base");
+                    let (prefixed_indices, expr) =
+                        Self::indices_with_extension_prefix(u, Some("base"), ext);
                     parse_quote! {
                         #enum_ident::#ident ( #(#prefixed_indices),* ) => #with_ext::#ident (
-                            #(#prefixed_indices.with_extension(#ex.clone())),*
+                            #(#expr),*
                         )
                     }
                 }
                 Fields::Unit => parse_quote! {
-                    #enum_ident::#ident => #with_ext::#ident(().with_extension(#ex))
+                    #enum_ident::#ident => #with_ext::#ident(().with_extension(#ext))
                 },
             })
     }
     fn implement_enum_extension_unwrap_extension<'a>(
         &'a self,
         v: impl 'a + IntoIterator<Item = &'a Variant>,
-        _we: &'a Ident,
+        we: &'a Ident,
     ) -> impl 'a + Iterator<Item = Arm> {
         let enum_ident = &self.input.ident;
         let with_ext = Self::strip_path_argument(&self.with_ext_path());
         v.into_iter()
             .map(move |Variant { ident, fields, .. }| match fields {
                 Fields::Named(n) => {
-                    let (fields, _types) = Self::fields_types(n);
+                    let (fields, expr) = Self::fields_unwrap_extension_prefix(n, None, we);
                     parse_quote! {
                         #with_ext::#ident { #(#fields),* } => #enum_ident::#ident {
-                            #(#fields: ::coalesced::Extension::unwrap_extension(#fields)),*
+                            #(#fields: #expr),*
                         }
                     }
                 }
                 Fields::Unnamed(u) => {
-                    let prefixed_indices = Self::prefixed_indices(u, "base");
+                    let (prefixed_indices, expr) =
+                        Self::indices_unwrap_extension_prefix(u, Some("base"), we);
                     parse_quote! {
                         #with_ext::#ident ( #(#prefixed_indices),* ) => #enum_ident::#ident (
-                            #(::coalesced::Extension::unwrap_extension(#prefixed_indices)),*
+                            #(#expr),*
                         )
                     }
                 }
@@ -397,15 +399,15 @@ impl Implementor {
         v.into_iter()
             .map(move |Variant { ident, fields, .. }| match fields {
                 Fields::Named(n) => {
-                    let (fields, types) = Self::fields_types(n);
+                    let (fields, types) = Self::fields_with_ext(n, &x_param);
                     parse_quote! {
-                        #ident { #(#fields: ::coalesced::WithExt<#types, #x_param>),* }
+                        #ident { #(#fields: #types),* }
                     }
                 }
                 Fields::Unnamed(u) => {
-                    let (_indices, types) = Self::indices_types(u);
+                    let (_indices, types) = Self::indices_with_ext(u, &x_param);
                     parse_quote! {
-                        #ident ( #(::coalesced::WithExt<#types, #x_param>),* )
+                        #ident ( #(#types),* )
                     }
                 }
                 Fields::Unit => parse_quote! {
@@ -528,6 +530,209 @@ impl Implementor {
             .enumerate()
             .map(|(i, _)| format_ident!("{}_{}", prefix, i))
             .collect()
+    }
+
+    fn fields_with_ext<'a>(
+        f: &'a FieldsNamed,
+        ext: &Ident,
+    ) -> (Vec<&'a Option<Ident>>, Vec<Field>) {
+        f.named
+            .iter()
+            .map(|f| (&f.ident, Self::definition_with_ext_field(f, ext)))
+            .unzip()
+    }
+    fn indices_with_ext(f: &FieldsUnnamed, ext: &Ident) -> (Vec<syn::Index>, Vec<Field>) {
+        f.unnamed
+            .iter()
+            .enumerate()
+            .map(|(i, f)| (i.into(), Self::definition_with_ext_field(f, ext)))
+            .unzip()
+    }
+    fn fields_with_extension<'a>(
+        f: &'a FieldsNamed,
+        ext: &Ident,
+    ) -> (Vec<&'a Option<Ident>>, Vec<Expr>) {
+        f.named
+            .iter()
+            .enumerate()
+            .map(|(i, f)| (&f.ident, Self::implement_field_with_extension(f, i, ext)))
+            .unzip()
+    }
+    fn fields_with_extension_prefix(
+        f: &FieldsNamed,
+        prefix: Option<&str>,
+        ext: &Ident,
+    ) -> (Vec<Ident>, Vec<Expr>) {
+        f.named
+            .iter()
+            .enumerate()
+            .map(|(i, f)| Self::implement_field_with_extension_prefix(f, prefix, i, ext))
+            .unzip()
+    }
+    fn indices_with_extension(f: &FieldsUnnamed, ext: &Ident) -> (Vec<syn::Index>, Vec<Expr>) {
+        f.unnamed
+            .iter()
+            .enumerate()
+            .map(|(i, f)| (i.into(), Self::implement_field_with_extension(f, i, ext)))
+            .unzip()
+    }
+    fn indices_with_extension_prefix(
+        f: &FieldsUnnamed,
+        prefix: Option<&str>,
+        ext: &Ident,
+    ) -> (Vec<Ident>, Vec<Expr>) {
+        f.unnamed
+            .iter()
+            .enumerate()
+            .map(|(i, f)| Self::implement_field_with_extension_prefix(f, prefix, i, ext))
+            .unzip()
+    }
+    fn fields_unwrap_extension<'a>(
+        f: &'a FieldsNamed,
+        ext: &Ident,
+    ) -> (Vec<&'a Option<Ident>>, Vec<Expr>) {
+        f.named
+            .iter()
+            .enumerate()
+            .map(|(i, f)| (&f.ident, Self::implement_field_unwrap_extension(f, i, ext)))
+            .unzip()
+    }
+    fn fields_unwrap_extension_prefix(
+        f: &FieldsNamed,
+        prefix: Option<&str>,
+        ext: &Ident,
+    ) -> (Vec<Ident>, Vec<Expr>) {
+        f.named
+            .iter()
+            .enumerate()
+            .map(|(i, f)| Self::implement_field_unwrap_extension_prefix(f, prefix, i, ext))
+            .unzip()
+    }
+    fn indices_unwrap_extension(
+        f: &FieldsUnnamed,
+        with_ext: &Ident,
+    ) -> (Vec<syn::Index>, Vec<Expr>) {
+        f.unnamed
+            .iter()
+            .enumerate()
+            .map(|(i, f)| {
+                (
+                    i.into(),
+                    Self::implement_field_unwrap_extension(f, i, with_ext),
+                )
+            })
+            .unzip()
+    }
+    fn indices_unwrap_extension_prefix(
+        f: &FieldsUnnamed,
+        prefix: Option<&str>,
+        with_ext: &Ident,
+    ) -> (Vec<Ident>, Vec<Expr>) {
+        f.unnamed
+            .iter()
+            .enumerate()
+            .map(|(i, f)| Self::implement_field_unwrap_extension_prefix(f, prefix, i, with_ext))
+            .unzip()
+    }
+
+    fn fields_with(f: &Field) -> Option<ExprPath> {
+        f.attrs.iter().find_map(|Attribute { meta, .. }| {
+            let Meta::List(MetaList { path, tokens, .. }) = meta else {
+                return None;
+            };
+            let MetaNameValue { path, value, .. } = path
+                .is_ident("coalesced")
+                .then(|| syn::parse2(tokens.clone()).ok())??;
+            let Expr::Path(module) = path.is_ident("with").then_some(value)? else {
+                return None;
+            };
+            Some(module)
+        })
+    }
+    fn definition_with_ext_field(f: &Field, x_param: &Ident) -> Field {
+        let (wrap, ty) = (Self::fields_with(f), &f.ty);
+        match wrap {
+            Some(w) => parse_quote! { ::coalesced::WithExt<#w<#ty>, #x_param> },
+            None => parse_quote! { ::coalesced::WithExt<#ty, #x_param> },
+        }
+    }
+    fn implement_field_with_extension(f: &Field, i: usize, ext: &Ident) -> Expr {
+        let wrap = Self::fields_with(f);
+        let accessor = &f
+            .ident
+            .as_ref()
+            .map(ToTokens::into_token_stream)
+            .unwrap_or(syn::Index::from(i).into_token_stream());
+        match wrap {
+            Some(w) => parse_quote! { #w(self.#accessor).with_extension(#ext.clone()) },
+            None => parse_quote! { self.#accessor.with_extension(#ext.clone()) },
+        }
+    }
+    fn implement_field_with_extension_prefix(
+        f: &Field,
+        prefix: Option<&str>,
+        i: usize,
+        ext: &Ident,
+    ) -> (Ident, Expr) {
+        let wrap = Self::fields_with(f);
+        let ident = f
+            .ident
+            .as_ref()
+            .map(|id| {
+                prefix
+                    .map(|p| format_ident!("{}_{}", p, id))
+                    .unwrap_or(id.clone())
+            })
+            .unwrap_or(
+                prefix
+                    .map(|p| format_ident!("{}_{}", p, i))
+                    .unwrap_or(format_ident!("_{}", i)),
+            );
+        let accessor = &ident;
+        let expr = match wrap {
+            Some(w) => parse_quote! { #w(#accessor).with_extension(#ext.clone()) },
+            None => parse_quote! { #accessor.with_extension(#ext.clone()) },
+        };
+        (ident, expr)
+    }
+    fn implement_field_unwrap_extension(f: &Field, i: usize, with_ext: &Ident) -> Expr {
+        let wrap = Self::fields_with(f);
+        let accessor = &f
+            .ident
+            .as_ref()
+            .map(ToTokens::into_token_stream)
+            .unwrap_or(syn::Index::from(i).into_token_stream());
+        match wrap {
+            Some(w) => parse_quote! { #w::unwrap_extension(#with_ext.#accessor).0 },
+            None => parse_quote! { ::coalesced::Extension::unwrap_extension(#with_ext.#accessor) },
+        }
+    }
+    fn implement_field_unwrap_extension_prefix(
+        f: &Field,
+        prefix: Option<&str>,
+        i: usize,
+        _with_ext: &Ident,
+    ) -> (Ident, Expr) {
+        let wrap = Self::fields_with(f);
+        let ident = f
+            .ident
+            .as_ref()
+            .map(|id| {
+                prefix
+                    .map(|p| format_ident!("{}_{}", p, id))
+                    .unwrap_or(id.clone())
+            })
+            .unwrap_or(
+                prefix
+                    .map(|p| format_ident!("{}_{}", p, i))
+                    .unwrap_or(format_ident!("_{}", i)),
+            );
+        let accessor = &ident;
+        let expr = match wrap {
+            Some(w) => parse_quote! { #w::unwrap_extension(#accessor).0 },
+            None => parse_quote! { ::coalesced::Extension::unwrap_extension(#accessor) },
+        };
+        (ident, expr)
     }
 }
 
