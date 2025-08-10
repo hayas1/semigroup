@@ -77,7 +77,7 @@ impl Implementor {
     }
     fn split_with_extension_generics(
         &self,
-    ) -> (ExImplGenerics, TypeGenerics, Option<&WhereClause>) {
+    ) -> (ExImplGenerics<'_>, TypeGenerics<'_>, Option<&WhereClause>) {
         let ex_impl = ExImplGenerics(self);
         let (_, g_type, g_where) = self.input.generics.split_for_impl();
         (ex_impl, g_type, g_where)
