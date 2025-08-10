@@ -21,6 +21,7 @@
 //! pub struct Config<'a> {
 //!     opt_num: Option<i32>,
 //!     opt_str: Option<&'a str>,
+//!     #[coalesced(with = coalesced::strategy::Overwrite)]
 //!     boolean: bool
 //! }
 //!
@@ -78,6 +79,7 @@
 //! pub struct Config<'a> {
 //!     opt_num: Option<i32>,
 //!     opt_str: Option<&'a str>,
+//!     #[coalesced(with = coalesced::strategy::Overwrite)]
 //!     boolean: bool,
 //! }
 //!
@@ -122,6 +124,7 @@
 //! pub struct Config<'a> {
 //!     opt_num: Option<i32>,
 //!     opt_str: Option<&'a str>,
+//!     #[coalesced(with = coalesced::strategy::Overwrite)]
 //!     boolean: bool,
 //! }
 //!

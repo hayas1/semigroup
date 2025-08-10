@@ -39,7 +39,7 @@ mod tests {
 
     #[derive(Coalesce, Serialize, Deserialize)]
     struct Config {
-        #[coalesced(with = "coalesced::strategy::overwrite")]
+        #[coalesced(with = coalesced::strategy::Overwrite)]
         name: String,
         number: Option<i64>,
     }
