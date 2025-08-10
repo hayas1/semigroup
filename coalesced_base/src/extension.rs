@@ -22,6 +22,26 @@ where
         Self::unwrap_extension(s.posterior(o))
     }
 }
+// TODO remove this implementation?
+impl<X> Extension<X> for () {
+    type WithExt = WithExt<Self, X>;
+    fn with_extension(self, extension: X) -> Self::WithExt {
+        WithExt {
+            value: self,
+            extension,
+        }
+    }
+    fn unwrap_extension(with_ext: Self::WithExt) -> Self {
+        with_ext.value
+    }
+    fn ex_prior(_base: Self::WithExt, other: Self::WithExt) -> Self::WithExt {
+        other
+    }
+    fn ex_posterior(base: Self::WithExt, _other: Self::WithExt) -> Self::WithExt {
+        base
+    }
+}
+
 enum ExEither<T> {
     Base(T),
     Other(T),
