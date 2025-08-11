@@ -1,7 +1,13 @@
-use crate::extension::Extension;
+use crate::{extension::Extension, lazy::Lazy};
 
 pub trait Coalesce<C = Self> {
     fn coalesce(self, other: C) -> Self;
+    fn lazy(self) -> Lazy<Self>
+    where
+        Self: Sized,
+    {
+        Lazy::new(self)
+    }
 }
 impl<T: Extension<()>> Coalesce for T {
     fn coalesce(self, other: Self) -> Self {
