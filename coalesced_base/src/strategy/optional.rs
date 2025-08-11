@@ -4,7 +4,7 @@ use crate::{
 };
 
 impl<T, X> Extension<X> for Option<T> {
-    type WithExt = WithExtension<Option<T>, X>;
+    type WithExt = <Optional as Strategy<Self, X>>::WithExt;
 
     fn with_extension(self, extension: X) -> Self::WithExt {
         WithExtension {
