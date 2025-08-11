@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+ --> tests/ui/compile_fail/other_type_extension.rs:7:24
+  |
+7 |     let c = a.coalesce(b);
+  |               -------- ^ expected `WithExtension<Option<{integer}>, &str>`, found `WithExtension<Option<{integer}>, String>`
+  |               |
+  |               arguments to this method are incorrect
+  |
+  = note: expected struct `WithExtension<Option<{integer}>, &str>`
+             found struct `WithExtension<Option<{integer}>, String>`
+note: method defined here
+ --> coalesced_base/src/coalesce.rs
+  |
+  |     fn coalesce(self, other: C) -> Self;
+  |        ^^^^^^^^
