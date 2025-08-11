@@ -15,11 +15,12 @@ impl<C> Coalesce<Lazy<C>> for Lazy<C> {
     }
 }
 
-impl<C: Coalesce> Lazy<C> {
+impl<C> Lazy<C> {
     pub fn new(base: C) -> Self {
         Self(vec![base])
     }
-
+}
+impl<C: Coalesce> Lazy<C> {
     pub fn into_iter_prior(self) -> impl Iterator<Item = C> {
         Prior::lazy_into_iter(self)
     }
