@@ -1,78 +1,56 @@
-use crate::coalesce::Coalesce;
+use std::ops::{Deref, DerefMut};
+
+use crate::semigroup::Semigroup;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-pub struct Lazy<C>(Vec<C>);
-impl<C> Coalesce<C> for Lazy<C> {
-    fn coalesce(mut self, other: C) -> Self {
-        self.0.push(other);
-        self
-    }
-}
-impl<C> Coalesce<Lazy<C>> for Lazy<C> {
-    fn coalesce(mut self, other: Lazy<C>) -> Self {
-        self.0.extend(other.0);
+pub struct LazySemigroup<T>(Vec<T>);
+impl<T> Semigroup for LazySemigroup<T> {
+    fn op(mut self, other: Self) -> Self {
+        self.extend(other);
         self
     }
 }
 
-impl<C> Lazy<C> {
-    pub fn new(base: C) -> Self {
-        Self(vec![base])
+impl<T> LazySemigroup<T> {
+    pub fn with(t: T) -> Self {
+        Self(vec![t])
     }
-}
-impl<C: Coalesce> Lazy<C> {
-    pub fn into_iter_prior(self) -> impl Iterator<Item = C> {
-        Prior::lazy_into_iter(self)
-    }
-    pub fn into_iter_posterior(self) -> impl Iterator<Item = C> {
-        Posterior::lazy_into_iter(self)
-    }
-    pub fn iter_prior(&self) -> impl Iterator<Item = &C> {
-        Prior::lazy_iter(self)
-    }
-    pub fn iter_posterior(&self) -> impl Iterator<Item = &C> {
-        Posterior::lazy_iter(self)
-    }
-
-    pub fn into_prior(self) -> C {
-        Self::impl_into(self.into_iter_prior())
-    }
-    pub fn into_posterior(self) -> C {
-        Self::impl_into(self.into_iter_posterior())
-    }
-    fn impl_into(mut iter: impl Iterator<Item = C>) -> C {
+    pub fn evaluate(self) -> T
+    where
+        T: Semigroup,
+    {
+        let mut iter = self.into_iter();
         let base = iter.next().unwrap_or_else(|| unreachable!());
-        iter.fold(base, |acc, item| acc.coalesce(item))
-    }
-}
-impl<C: Coalesce + Clone> Lazy<C> {
-    pub fn cloned_prior(&self) -> C {
-        Self::impl_into(self.iter_prior().cloned())
-    }
-    pub fn cloned_posterior(&self) -> C {
-        Self::impl_into(self.iter_posterior().cloned())
+        iter.fold(base, |acc, item| acc.op(item))
     }
 }
 
-enum Prior {}
-impl<C: Coalesce> LazyIter<C> for Prior {
-    fn lazy_into_iter(lazy: Lazy<C>) -> impl Iterator<Item = C> {
-        lazy.0.into_iter()
-    }
-    fn lazy_iter(lazy: &Lazy<C>) -> impl Iterator<Item = &C> {
-        lazy.0.iter()
+impl<T> Deref for LazySemigroup<T> {
+    type Target = Vec<T>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
-enum Posterior {}
-impl<C: Coalesce> LazyIter<C> for Posterior {
-    fn lazy_into_iter(lazy: Lazy<C>) -> impl Iterator<Item = C> {
-        lazy.0.into_iter().rev()
-    }
-    fn lazy_iter(lazy: &Lazy<C>) -> impl Iterator<Item = &C> {
-        lazy.0.iter().rev()
+impl<T> DerefMut for LazySemigroup<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
-trait LazyIter<C: Coalesce> {
-    fn lazy_iter(lazy: &Lazy<C>) -> impl Iterator<Item = &C>;
-    fn lazy_into_iter(lazy: Lazy<C>) -> impl Iterator<Item = C>;
+impl<T> From<LazySemigroup<T>> for Vec<T> {
+    fn from(value: LazySemigroup<T>) -> Self {
+        value.0
+    }
+}
+impl<T> IntoIterator for LazySemigroup<T> {
+    type Item = T;
+    type IntoIter = std::vec::IntoIter<T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+impl<T> Extend<T> for LazySemigroup<T> {
+    fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
+        self.0.extend(iter);
+    }
 }
