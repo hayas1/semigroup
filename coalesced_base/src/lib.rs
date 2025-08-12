@@ -1,4 +1,4 @@
-pub mod coalesce;
-pub mod extension;
+pub mod annotate;
 pub mod lazy;
-pub mod strategy;
+pub mod op;
+pub mod semigroup;
