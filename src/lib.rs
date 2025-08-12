@@ -1,6 +1,1 @@
-pub use coalesced_base::{
-    coalesce::Coalesce,
-    extension::{Extension, WithExtension},
-    lazy::Lazy,
-    strategy,
-};
+pub use coalesced_base::{annotate, lazy::LazySemigroup, op, semigroup::Semigroup};
