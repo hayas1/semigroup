@@ -20,7 +20,7 @@ impl<T, P> Coalesce for Annotated<Construct<T>, P> {
 }
 impl<T> Coalesce for Option<T> {
     fn coalesce(self, other: Self) -> Self {
-        Construct(self).coalesce(Construct(other)).into_inner()
+        Construct(self).op(Construct(other)).into_inner()
     }
 }
 impl<T, P> Coalesce for Annotated<Option<T>, P> {
