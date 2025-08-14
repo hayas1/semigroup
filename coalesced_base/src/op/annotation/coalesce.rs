@@ -18,15 +18,19 @@ impl<T, P> Coalesce for Annotated<Construct<T>, P> {
         AnnotatedSemigroup::annotated_op(self, other)
     }
 }
-impl<T> Coalesce for Option<T> {
-    fn coalesce(self, other: Self) -> Self {
-        Construct(self).op(Construct(other)).into_inner()
+mod sealed {
+    use super::*;
+
+    impl<T> Coalesce for Option<T> {
+        fn coalesce(self, other: Self) -> Self {
+            Construct(self).op(Construct(other)).into_inner()
+        }
     }
-}
-impl<T, P> Coalesce for Annotated<Option<T>, P> {
-    fn coalesce(self, other: Self) -> Self {
-        AnnotatedSemigroup::annotated_op(self.map(Construct), other.map(Construct))
-            .map(Construct::into_inner)
+    impl<T, P> Coalesce for Annotated<Option<T>, P> {
+        fn coalesce(self, other: Self) -> Self {
+            AnnotatedSemigroup::annotated_op(self.map(Construct), other.map(Construct))
+                .map(Construct::into_inner)
+        }
     }
 }
 
