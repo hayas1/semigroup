@@ -1,4 +1,4 @@
-use coalesced::{Coalesce, Extension};
+use coalesced::{annotate::Annotated, op::annotation::coalesce::Coalesce};
 
 #[test]
 fn test_option() {
@@ -23,10 +23,10 @@ fn test_option() {
 
 #[test]
 fn test_option_with_extension() {
-    let val1 = None.with_extension("first");
-    let val2 = Some(10).with_extension("second");
-    let val3 = Some(100).with_extension("third");
-    let val4 = None.with_extension("fourth");
+    let val1 = Annotated::lift_with(None, "first");
+    let val2 = Annotated::lift_with(Some(10), "second");
+    let val3 = Annotated::lift_with(Some(100), "third");
+    let val4 = Annotated::lift_with(None, "fourth");
 
     let val1c2 = val1.coalesce(val2);
     let val1c3 = val1.coalesce(val3);
@@ -54,29 +54,29 @@ fn test_option_with_extension() {
     assert_eq!(val4c2.value, Some(10));
     assert_eq!(val4c3.value, Some(100));
 
-    assert_eq!(val1c2.extension, "second");
-    assert_eq!(val1c3.extension, "third");
-    assert_eq!(val1c4.extension, "first");
-    assert_eq!(val2c1.extension, "second");
-    assert_eq!(val2c3.extension, "second");
-    assert_eq!(val2c4.extension, "second");
-    assert_eq!(val3c1.extension, "third");
-    assert_eq!(val3c2.extension, "third");
-    assert_eq!(val3c4.extension, "third");
-    assert_eq!(val4c1.extension, "fourth");
-    assert_eq!(val4c2.extension, "second");
-    assert_eq!(val4c3.extension, "third");
+    assert_eq!(val1c2.annotation, "second");
+    assert_eq!(val1c3.annotation, "third");
+    assert_eq!(val1c4.annotation, "first");
+    assert_eq!(val2c1.annotation, "second");
+    assert_eq!(val2c3.annotation, "second");
+    assert_eq!(val2c4.annotation, "second");
+    assert_eq!(val3c1.annotation, "third");
+    assert_eq!(val3c2.annotation, "third");
+    assert_eq!(val3c4.annotation, "third");
+    assert_eq!(val4c1.annotation, "fourth");
+    assert_eq!(val4c2.annotation, "second");
+    assert_eq!(val4c3.annotation, "third");
 
-    assert_eq!(val1c2, Some(10).with_extension("second"));
-    assert_eq!(val1c3, Some(100).with_extension("third"));
-    assert_eq!(val1c4, None.with_extension("first"));
-    assert_eq!(val2c1, Some(10).with_extension("second"));
-    assert_eq!(val2c3, Some(10).with_extension("second"));
-    assert_eq!(val2c4, Some(10).with_extension("second"));
-    assert_eq!(val3c1, Some(100).with_extension("third"));
-    assert_eq!(val3c2, Some(100).with_extension("third"));
-    assert_eq!(val3c4, Some(100).with_extension("third"));
-    assert_eq!(val4c1, None.with_extension("fourth"));
-    assert_eq!(val4c2, Some(10).with_extension("second"));
-    assert_eq!(val4c3, Some(100).with_extension("third"));
+    assert_eq!(val1c2, Annotated::lift_with(Some(10), "second"));
+    assert_eq!(val1c3, Annotated::lift_with(Some(100), "third"));
+    assert_eq!(val1c4, Annotated::lift_with(None, "first"));
+    assert_eq!(val2c1, Annotated::lift_with(Some(10), "second"));
+    assert_eq!(val2c3, Annotated::lift_with(Some(10), "second"));
+    assert_eq!(val2c4, Annotated::lift_with(Some(10), "second"));
+    assert_eq!(val3c1, Annotated::lift_with(Some(100), "third"));
+    assert_eq!(val3c2, Annotated::lift_with(Some(100), "third"));
+    assert_eq!(val3c4, Annotated::lift_with(Some(100), "third"));
+    assert_eq!(val4c1, Annotated::lift_with(None, "fourth"));
+    assert_eq!(val4c2, Annotated::lift_with(Some(10), "second"));
+    assert_eq!(val4c3, Annotated::lift_with(Some(100), "third"));
 }
