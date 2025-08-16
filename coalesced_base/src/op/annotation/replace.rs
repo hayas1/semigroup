@@ -30,8 +30,8 @@ impl<T> Construct<T> {
     }
 }
 
-impl<T> AnnotatedSemigroup for Construct<T> {
-    fn annotated_op<P>(base: Annotated<Self, P>, _other: Annotated<Self, P>) -> Annotated<Self, P> {
+impl<T, A> AnnotatedSemigroup<A> for Construct<T> {
+    fn annotated_op(base: Annotated<Self, A>, _other: Annotated<Self, A>) -> Annotated<Self, A> {
         base
     }
 }
