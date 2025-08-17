@@ -11,6 +11,7 @@ readme.workspace = true
 [features]
 serde = ["dep:serde"]
 clap = ["dep:clap"]
+test = []
 
 [dependencies]
 clap = { version = "4.5.43", optional = true }
