@@ -1,5 +1,6 @@
 use crate::{
     annotate::Annotated,
+    op::reverse::Reverse,
     semigroup::{AnnotatedSemigroup, Semigroup},
 };
 
@@ -12,8 +13,13 @@ pub trait Concat: Sized + Semigroup {
     }
 }
 impl<T: IntoIterator + FromIterator<T::Item>> Concat for Concatenated<T> {}
+impl<T: IntoIterator + FromIterator<T::Item>> Concat for Reverse<Concatenated<T>> {}
 impl<T: IntoIterator + FromIterator<T::Item>, A: IntoIterator + FromIterator<A::Item>> Concat
     for Annotated<Concatenated<T>, A>
+{
+}
+impl<T: IntoIterator + FromIterator<T::Item>, A: IntoIterator + FromIterator<A::Item>> Concat
+    for Reverse<Annotated<Concatenated<T>, A>>
 {
 }
 
@@ -61,5 +67,32 @@ impl<T: IntoIterator + FromIterator<T::Item>, A: IntoIterator + FromIterator<A::
             .chain(other.annotation)
             .collect();
         Annotated::lift_with(value, annotation)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::semigroup::tests::{assert_associative_law, assert_reversed_associative_law};
+
+    use super::*;
+
+    #[test]
+    fn test_concat_as_semigroup_op() {
+        let (a, b, c) = (
+            Concatenated(vec![1]),
+            Concatenated(vec![2]),
+            Concatenated(vec![3]),
+        );
+        assert_associative_law(a.clone(), b.clone(), c.clone());
+        assert_reversed_associative_law(a, b, c);
+    }
+
+    #[test]
+    fn test_concat() {
+        let (a, b) = (Concatenated(vec![1]), Concatenated(vec![2]));
+        assert_eq!(a.clone().concat(b.clone()).into_inner(), vec![1, 2]);
+
+        let (ra, rb) = (Reverse(a.clone()), Reverse(b.clone()));
+        assert_eq!(ra.concat(rb).0.into_inner(), vec![2, 1]);
     }
 }
