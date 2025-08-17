@@ -35,7 +35,7 @@ impl<T> Semigroup for Replaced<T> {
     }
 }
 impl<T, A> AnnotatedSemigroup<A> for Replaced<T> {
-    fn annotated_op(base: Annotated<Self, A>, _other: Annotated<Self, A>) -> Annotated<Self, A> {
-        base
+    fn annotated_op(_base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
+        other
     }
 }
