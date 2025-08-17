@@ -4,6 +4,7 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Construct<T>(pub T);
 pub trait Replace: Sized + Semigroup {
     fn replace(self, other: Self) -> Self {

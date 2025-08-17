@@ -4,6 +4,7 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Construct<T>(pub T);
 pub trait Concat: Sized + Semigroup {
     fn concat(self, other: Self) -> Self {

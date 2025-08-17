@@ -4,6 +4,7 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Construct<T>(pub Option<T>);
 pub trait Coalesce: Sized + Semigroup {
     fn coalesce(self, other: Self) -> Self {
