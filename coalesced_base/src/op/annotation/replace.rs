@@ -4,7 +4,7 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-pub struct Construct<T>(T);
+pub struct Construct<T>(pub T);
 pub trait Replace: Sized + Semigroup {
     fn replace(self, other: Self) -> Self {
         Semigroup::semigroup_op(self, other)

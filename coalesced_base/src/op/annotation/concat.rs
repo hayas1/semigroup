@@ -4,7 +4,7 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-pub struct Construct<T>(T);
+pub struct Construct<T>(pub T);
 pub trait Concat: Sized + Semigroup {
     fn concat(self, other: Self) -> Self {
         Semigroup::semigroup_op(self, other)

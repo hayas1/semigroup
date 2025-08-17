@@ -4,7 +4,7 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-pub struct Construct<T>(Option<T>);
+pub struct Construct<T>(pub Option<T>);
 pub trait Coalesce: Sized + Semigroup {
     fn coalesce(self, other: Self) -> Self {
         Semigroup::semigroup_op(self, other)
