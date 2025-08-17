@@ -12,11 +12,7 @@ pub trait Replace: Sized + Semigroup {
     }
 }
 impl<T> Replace for Construct<T> {}
-impl<T, P> Replace for Annotated<Construct<T>, P> {
-    fn replace(self, other: Self) -> Self {
-        AnnotatedSemigroup::annotated_op(self, other)
-    }
-}
+impl<T, P> Replace for Annotated<Construct<T>, P> {}
 
 impl<T> From<T> for Construct<T> {
     fn from(value: T) -> Self {

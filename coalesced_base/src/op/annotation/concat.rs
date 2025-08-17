@@ -11,12 +11,10 @@ pub trait Concat: Sized + Semigroup {
         Semigroup::semigroup_op(self, other)
     }
 }
+impl<T: IntoIterator + FromIterator<T::Item>> Concat for Construct<T> {}
 impl<T: IntoIterator + FromIterator<T::Item>, A: IntoIterator + FromIterator<A::Item>> Concat
     for Annotated<Construct<T>, A>
 {
-    fn concat(self, other: Self) -> Self {
-        AnnotatedSemigroup::annotated_op(self, other)
-    }
 }
 
 mod sealed {

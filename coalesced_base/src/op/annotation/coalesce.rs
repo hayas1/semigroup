@@ -12,14 +12,18 @@ pub trait Coalesce: Sized + Semigroup {
     }
 }
 impl<T> Coalesce for Construct<T> {}
-impl<T, P> Coalesce for Annotated<Construct<T>, P> {
-    fn coalesce(self, other: Self) -> Self {
-        AnnotatedSemigroup::annotated_op(self, other)
-    }
-}
+impl<T, P> Coalesce for Annotated<Construct<T>, P> {}
+
 mod sealed {
     use super::*;
 
+    impl<T> Coalesce for Option<T> {}
+    impl<T> Semigroup for Option<T> {
+        fn semigroup_op(base: Self, other: Self) -> Self {
+            Semigroup::semigroup_op(Construct(base), Construct(other)).into_inner()
+        }
+    }
+    impl<T, A> Coalesce for Annotated<Option<T>, A> {}
     impl<T, A> AnnotatedSemigroup<A> for Option<T> {
         fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
             AnnotatedSemigroup::annotated_op(base.map(Construct), other.map(Construct))
