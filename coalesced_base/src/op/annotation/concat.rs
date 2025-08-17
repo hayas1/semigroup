@@ -1,6 +1,6 @@
 use crate::{
     annotate::Annotated,
-    op::reverse::Reverse,
+    op::reverse::Reversed,
     semigroup::{AnnotatedSemigroup, Semigroup},
 };
 
@@ -13,13 +13,13 @@ pub trait Concat: Sized + Semigroup {
     }
 }
 impl<T: IntoIterator + FromIterator<T::Item>> Concat for Concatenated<T> {}
-impl<T: IntoIterator + FromIterator<T::Item>> Concat for Reverse<Concatenated<T>> {}
+impl<T: IntoIterator + FromIterator<T::Item>> Concat for Reversed<Concatenated<T>> {}
 impl<T: IntoIterator + FromIterator<T::Item>, A: IntoIterator + FromIterator<A::Item>> Concat
     for Annotated<Concatenated<T>, A>
 {
 }
 impl<T: IntoIterator + FromIterator<T::Item>, A: IntoIterator + FromIterator<A::Item>> Concat
-    for Reverse<Annotated<Concatenated<T>, A>>
+    for Reversed<Annotated<Concatenated<T>, A>>
 {
 }
 
@@ -92,7 +92,7 @@ mod tests {
         let (a, b) = (Concatenated(vec![1]), Concatenated(vec![2]));
         assert_eq!(a.clone().concat(b.clone()).into_inner(), vec![1, 2]);
 
-        let (ra, rb) = (Reverse(a.clone()), Reverse(b.clone()));
+        let (ra, rb) = (Reversed(a.clone()), Reversed(b.clone()));
         assert_eq!(ra.concat(rb).0.into_inner(), vec![2, 1]);
     }
 }

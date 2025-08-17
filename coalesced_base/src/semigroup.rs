@@ -16,7 +16,7 @@ impl<T: AnnotatedSemigroup<A>, A> Semigroup for Annotated<T, A> {
 pub mod tests {
     use std::fmt::Debug;
 
-    use crate::op::reverse::Reverse;
+    use crate::op::reverse::Reversed;
 
     use super::*;
 
@@ -31,15 +31,15 @@ pub mod tests {
     }
 
     pub fn reverse<T: Semigroup + Clone>(a: T, b: T) -> (T, T) {
-        let (ra, rb) = (Reverse(a.clone()), Reverse(b.clone()));
-        (T::semigroup_op(a, b), Reverse::<T>::semigroup_op(rb, ra).0)
+        let (ra, rb) = (Reversed(a.clone()), Reversed(b.clone()));
+        (T::semigroup_op(a, b), Reversed::<T>::semigroup_op(rb, ra).0)
     }
     pub fn assert_reversed_associative_law<T: Semigroup + Clone + PartialEq + Debug>(
         a: T,
         b: T,
         c: T,
     ) {
-        let (ra, rb, rc) = (Reverse(a), Reverse(b), Reverse(c));
+        let (ra, rb, rc) = (Reversed(a), Reversed(b), Reversed(c));
         assert_associative_law(ra, rb, rc);
     }
 }

@@ -1,6 +1,6 @@
 use crate::{
     annotate::Annotated,
-    op::reverse::Reverse,
+    op::reverse::Reversed,
     semigroup::{AnnotatedSemigroup, Semigroup},
 };
 
@@ -13,9 +13,9 @@ pub trait Coalesce: Sized + Semigroup {
     }
 }
 impl<T> Coalesce for Coalesced<T> {}
-impl<T> Coalesce for Reverse<Coalesced<T>> {}
+impl<T> Coalesce for Reversed<Coalesced<T>> {}
 impl<T, P> Coalesce for Annotated<Coalesced<T>, P> {}
-impl<T, P> Coalesce for Reverse<Annotated<Coalesced<T>, P>> {}
+impl<T, P> Coalesce for Reversed<Annotated<Coalesced<T>, P>> {}
 
 mod sealed {
     use super::*;
@@ -90,12 +90,12 @@ mod tests {
     fn test_coalesce() {
         let (a, b) = (Coalesced(None), Coalesced(Some("value")));
         assert_eq!(a.coalesce(b).into_inner(), Some("value"));
-        let (ra, rb) = (Reverse(a), Reverse(b));
+        let (ra, rb) = (Reversed(a), Reversed(b));
         assert_eq!(ra.coalesce(rb).0.into_inner(), Some("value"));
 
         let (a, b) = (Coalesced(Some(1)), Coalesced(Some(2)));
         assert_eq!(a.coalesce(b).into_inner(), Some(1));
-        let (ra, rb) = (Reverse(a), Reverse(b));
+        let (ra, rb) = (Reversed(a), Reversed(b));
         assert_eq!(ra.coalesce(rb).0.into_inner(), Some(2));
     }
 }

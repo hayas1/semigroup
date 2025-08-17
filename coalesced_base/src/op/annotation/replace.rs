@@ -1,6 +1,6 @@
 use crate::{
     annotate::Annotated,
-    op::reverse::Reverse,
+    op::reverse::Reversed,
     semigroup::{AnnotatedSemigroup, Semigroup},
 };
 
@@ -13,9 +13,9 @@ pub trait Replace: Sized + Semigroup {
     }
 }
 impl<T> Replace for Replaced<T> {}
-impl<T> Replace for Reverse<Replaced<T>> {}
+impl<T> Replace for Reversed<Replaced<T>> {}
 impl<T, P> Replace for Annotated<Replaced<T>, P> {}
-impl<T, P> Replace for Reverse<Annotated<Replaced<T>, P>> {}
+impl<T, P> Replace for Reversed<Annotated<Replaced<T>, P>> {}
 
 impl<T> From<T> for Replaced<T> {
     fn from(value: T) -> Self {
@@ -61,7 +61,7 @@ mod tests {
         let (a, b) = (Replaced(1), Replaced(2));
         assert_eq!(a.replace(b).into_inner(), 2);
 
-        let (ra, rb) = (Reverse(a), Reverse(b));
+        let (ra, rb) = (Reversed(a), Reversed(b));
         assert_eq!(ra.replace(rb).0.into_inner(), 1);
     }
 }
