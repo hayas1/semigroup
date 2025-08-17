@@ -2,14 +2,21 @@ error[E0308]: mismatched types
  --> tests/ui/compile_fail/other_type_extension.rs:7:24
   |
 7 |     let c = a.coalesce(b);
-  |               -------- ^ expected `WithExtension<Option<{integer}>, &str>`, found `WithExtension<Option<{integer}>, String>`
+  |               -------- ^ expected `Annotated<Option<{integer}>, &str>`, found `Annotated<Option<{integer}>, String>`
   |               |
   |               arguments to this method are incorrect
   |
-  = note: expected struct `WithExtension<Option<{integer}>, &str>`
-             found struct `WithExtension<Option<{integer}>, String>`
-note: method defined here
- --> coalesced_base/src/coalesce.rs
+  = note: expected struct `Annotated<Option<{integer}>, &str>`
+             found struct `Annotated<Option<{integer}>, String>`
+help: the return type of this call is `Annotated<Option<{integer}>, String>` due to the type of the argument passed
+ --> tests/ui/compile_fail/other_type_extension.rs:7:13
   |
-  |     fn coalesce(self, other: C) -> Self;
+7 |     let c = a.coalesce(b);
+  |             ^^^^^^^^^^^-^
+  |                        |
+  |                        this argument influences the return type of `coalesce`
+note: method defined here
+ --> coalesced_base/src/op/annotation/coalesce.rs
+  |
+  |     fn coalesce(self, other: Self) -> Self {
   |        ^^^^^^^^
