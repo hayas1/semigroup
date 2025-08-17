@@ -21,6 +21,7 @@ readme.workspace = true
 
 [features]
 derive = ["coalesced_derive"]
+test = ["coalesced_base/test"]
 serde = ["coalesced_base/serde"]
 clap = ["coalesced_base/clap"]
 
