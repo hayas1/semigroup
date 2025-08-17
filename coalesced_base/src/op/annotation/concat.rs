@@ -1,5 +1,7 @@
+use std::vec;
+
 use crate::{
-    annotate::Annotated,
+    annotate::{Annotate, Annotated},
     op::reverse::Reversed,
     semigroup::{AnnotatedSemigroup, Semigroup},
 };
@@ -49,11 +51,8 @@ impl<T> Concatenated<T> {
 
 impl<T: IntoIterator + FromIterator<T::Item>> Semigroup for Concatenated<T> {
     fn semigroup_op(base: Self, other: Self) -> Self {
-        AnnotatedSemigroup::annotated_op(
-            Annotated::lift_with(base, vec![(); 0]),
-            Annotated::lift_with(other, vec![(); 0]),
-        )
-        .value
+        AnnotatedSemigroup::annotated_op(base.annotated(vec![(); 0]), other.annotated(vec![(); 0]))
+            .value
     }
 }
 impl<T: IntoIterator + FromIterator<T::Item>, A: IntoIterator + FromIterator<A::Item>>
@@ -66,7 +65,7 @@ impl<T: IntoIterator + FromIterator<T::Item>, A: IntoIterator + FromIterator<A::
             .into_iter()
             .chain(other.annotation)
             .collect();
-        Annotated::lift_with(value, annotation)
+        value.annotated(annotation)
     }
 }
 

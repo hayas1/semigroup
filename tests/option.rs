@@ -1,4 +1,4 @@
-use coalesced::{annotate::Annotated, op::annotation::coalesce::Coalesce};
+use coalesced::{annotate::Annotate, op::annotation::coalesce::Coalesce};
 
 #[test]
 fn test_option() {
@@ -23,10 +23,10 @@ fn test_option() {
 
 #[test]
 fn test_option_with_extension() {
-    let val1 = Annotated::lift_with(None, "first");
-    let val2 = Annotated::lift_with(Some(10), "second");
-    let val3 = Annotated::lift_with(Some(100), "third");
-    let val4 = Annotated::lift_with(None, "fourth");
+    let val1 = None.annotated("first");
+    let val2 = Some(10).annotated("second");
+    let val3 = Some(100).annotated("third");
+    let val4 = None.annotated("fourth");
 
     let val1c2 = val1.coalesce(val2);
     let val1c3 = val1.coalesce(val3);
@@ -67,16 +67,16 @@ fn test_option_with_extension() {
     assert_eq!(val4c2.annotation, "second");
     assert_eq!(val4c3.annotation, "third");
 
-    assert_eq!(val1c2, Annotated::lift_with(Some(10), "second"));
-    assert_eq!(val1c3, Annotated::lift_with(Some(100), "third"));
-    assert_eq!(val1c4, Annotated::lift_with(None, "first"));
-    assert_eq!(val2c1, Annotated::lift_with(Some(10), "second"));
-    assert_eq!(val2c3, Annotated::lift_with(Some(10), "second"));
-    assert_eq!(val2c4, Annotated::lift_with(Some(10), "second"));
-    assert_eq!(val3c1, Annotated::lift_with(Some(100), "third"));
-    assert_eq!(val3c2, Annotated::lift_with(Some(100), "third"));
-    assert_eq!(val3c4, Annotated::lift_with(Some(100), "third"));
-    assert_eq!(val4c1, Annotated::lift_with(None, "fourth"));
-    assert_eq!(val4c2, Annotated::lift_with(Some(10), "second"));
-    assert_eq!(val4c3, Annotated::lift_with(Some(100), "third"));
+    assert_eq!(val1c2, Some(10).annotated("second"));
+    assert_eq!(val1c3, Some(100).annotated("third"));
+    assert_eq!(val1c4, None.annotated("first"));
+    assert_eq!(val2c1, Some(10).annotated("second"));
+    assert_eq!(val2c3, Some(10).annotated("second"));
+    assert_eq!(val2c4, Some(10).annotated("second"));
+    assert_eq!(val3c1, Some(100).annotated("third"));
+    assert_eq!(val3c2, Some(100).annotated("third"));
+    assert_eq!(val3c4, Some(100).annotated("third"));
+    assert_eq!(val4c1, None.annotated("fourth"));
+    assert_eq!(val4c2, Some(10).annotated("second"));
+    assert_eq!(val4c3, Some(100).annotated("third"));
 }

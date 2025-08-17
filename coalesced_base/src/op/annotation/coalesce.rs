@@ -1,5 +1,5 @@
 use crate::{
-    annotate::Annotated,
+    annotate::{Annotate, Annotated},
     op::reverse::Reversed,
     semigroup::{AnnotatedSemigroup, Semigroup},
 };
@@ -48,11 +48,7 @@ impl<T> Coalesced<T> {
 
 impl<T> Semigroup for Coalesced<T> {
     fn semigroup_op(base: Self, other: Self) -> Self {
-        AnnotatedSemigroup::annotated_op(
-            Annotated::lift_with(base, ()),
-            Annotated::lift_with(other, ()),
-        )
-        .value
+        AnnotatedSemigroup::annotated_op(base.annotated(()), other.annotated(())).value
     }
 }
 impl<T, A> AnnotatedSemigroup<A> for Coalesced<T> {
