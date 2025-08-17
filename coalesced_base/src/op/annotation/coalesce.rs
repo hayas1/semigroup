@@ -5,14 +5,12 @@ use crate::{
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct Construct<T>(Option<T>);
-pub trait Coalesce {
-    fn coalesce(self, other: Self) -> Self;
-}
-impl<T> Coalesce for Construct<T> {
+pub trait Coalesce: Sized + Semigroup {
     fn coalesce(self, other: Self) -> Self {
-        self.op(other)
+        Semigroup::semigroup_op(self, other)
     }
 }
+impl<T> Coalesce for Construct<T> {}
 impl<T, P> Coalesce for Annotated<Construct<T>, P> {
     fn coalesce(self, other: Self) -> Self {
         AnnotatedSemigroup::annotated_op(self, other)
@@ -21,14 +19,9 @@ impl<T, P> Coalesce for Annotated<Construct<T>, P> {
 mod sealed {
     use super::*;
 
-    impl<T> Coalesce for Option<T> {
-        fn coalesce(self, other: Self) -> Self {
-            Construct(self).op(Construct(other)).into_inner()
-        }
-    }
-    impl<T, P> Coalesce for Annotated<Option<T>, P> {
-        fn coalesce(self, other: Self) -> Self {
-            AnnotatedSemigroup::annotated_op(self.map(Construct), other.map(Construct))
+    impl<T, A> AnnotatedSemigroup<A> for Option<T> {
+        fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
+            AnnotatedSemigroup::annotated_op(base.map(Construct), other.map(Construct))
                 .map(Construct::into_inner)
         }
     }
@@ -45,6 +38,15 @@ impl<T> Construct<T> {
     }
 }
 
+impl<T> Semigroup for Construct<T> {
+    fn semigroup_op(base: Self, other: Self) -> Self {
+        AnnotatedSemigroup::annotated_op(
+            Annotated::lift_with(base, ()),
+            Annotated::lift_with(other, ()),
+        )
+        .value
+    }
+}
 impl<T, A> AnnotatedSemigroup<A> for Construct<T> {
     fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
         match (&base.value.0, &other.value.0) {

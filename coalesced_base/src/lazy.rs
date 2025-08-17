@@ -5,9 +5,9 @@ use crate::semigroup::Semigroup;
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct LazySemigroup<T>(Vec<T>);
 impl<T> Semigroup for LazySemigroup<T> {
-    fn op(mut self, other: Self) -> Self {
-        self.extend(other);
-        self
+    fn semigroup_op(mut base: Self, other: Self) -> Self {
+        base.extend(other);
+        base
     }
 }
 
@@ -21,7 +21,7 @@ impl<T> LazySemigroup<T> {
     {
         let mut iter = self.into_iter();
         let base = iter.next().unwrap_or_else(|| unreachable!());
-        iter.fold(base, |acc, item| acc.op(item))
+        iter.fold(base, |acc, item| T::semigroup_op(acc, item))
     }
 }
 
