@@ -1,20 +1,22 @@
 use std::fmt::{Display, Formatter};
 
+use darling::{ast::NestedMeta, FromMeta};
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{
     parse_quote, Attribute, Data, DataStruct, DeriveInput, Field, Fields, FieldsUnnamed, Generics,
-    Ident, ItemImpl, ItemTrait, Visibility,
+    Ident, ItemImpl, ItemTrait, Meta, MetaList, Visibility,
 };
 
 use crate::error::ConstructionError;
 
+#[derive(Debug, Clone)]
 pub struct Construction<'a> {
     ident: &'a Ident,
     generics: &'a Generics,
     field: &'a Field,
 
-    construction: ConstructionAttr,
+    attr: FreeConstructionAttr,
     semigroup_trait: TraitAttr<'a>,
 }
 impl ToTokens for Construction<'_> {
@@ -47,12 +49,14 @@ impl<'a> Construction<'a> {
                 let &[field] = unnamed.iter().collect::<Vec<_>>().as_slice() else {
                     unreachable!()
                 };
+                let attr = FreeConstructionAttr::new(attrs, ident)?;
+                let semigroup_trait = TraitAttr::new(&derive.vis, &attr, ident, generics)?;
                 Ok(Self {
                     ident,
                     generics,
                     field,
-                    construction: ConstructionAttr::new(attrs, ident)?,
-                    semigroup_trait: TraitAttr::new(&derive.vis, attrs, ident, generics)?,
+                    attr,
+                    semigroup_trait,
                 })
             }
             Data::Enum(_) | Data::Struct(_) | Data::Union(_) => Err(syn::Error::new_spanned(
@@ -80,6 +84,47 @@ impl<'a> Construction<'a> {
         }
     }
 }
+
+#[derive(Debug, Clone, FromMeta)]
+pub struct FreeConstructionAttr {
+    #[darling(default)]
+    pub annotated: bool,
+    #[darling(default)]
+    pub semigroup: bool,
+    pub op: Ident,
+}
+impl FreeConstructionAttr {
+    pub fn new(attrs: &[Attribute], ident: &Ident) -> syn::Result<Self> {
+        let attr = attrs
+            .iter()
+            .find_map(|Attribute { meta, .. }| match meta {
+                Meta::List(MetaList { path, tokens, .. }) if path.is_ident("construction") => {
+                    Some(tokens)
+                }
+                _ => None,
+            })
+            .ok_or(syn::Error::new_spanned(
+                ident,
+                ConstructionError::NoConstructionAttr,
+            ))?;
+
+        let this = Self::from_list(&NestedMeta::parse_meta_list(attr.clone())?)?;
+        this.validate()
+            .map_err(|e| syn::Error::new_spanned(ident, e))?;
+        Ok(this)
+    }
+    pub fn validate(&self) -> Result<&Self, ConstructionError> {
+        if self.annotated && self.semigroup {
+            Err(ConstructionError::DuplicateConstructionType)
+        } else if !self.annotated && !self.semigroup {
+            Err(ConstructionError::ConstructionTypeNotFound)
+        } else {
+            Ok(self)
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub enum ConstructionAttr {
     Annotated,
     Semigroup,
@@ -97,35 +142,7 @@ impl AsRef<str> for ConstructionAttr {
         }
     }
 }
-impl ConstructionAttr {
-    pub fn new(attrs: &[Attribute], ident: &Ident) -> syn::Result<Self> {
-        let (annotated, semigroup) =
-            attrs
-                .iter()
-                .fold((false, false), |(annotated, semigroup), attr| {
-                    if attr.path().is_ident(&Self::Annotated) {
-                        (true, semigroup)
-                    } else if attr.path().is_ident(&Self::Semigroup) {
-                        (annotated, true)
-                    } else {
-                        (annotated, semigroup)
-                    }
-                });
-        match (annotated, semigroup) {
-            (true, false) => Ok(Self::Annotated),
-            (false, true) => Ok(Self::Semigroup),
-            (false, false) => Err(syn::Error::new_spanned(
-                ident,
-                ConstructionError::ConstructionTypeNotFound,
-            )),
-            (true, true) => Err(syn::Error::new_spanned(
-                ident,
-                ConstructionError::DuplicateConstructionType,
-            )),
-        }
-    }
-}
-
+#[derive(Debug, Clone)]
 pub struct TraitAttr<'a> {
     pub vis: &'a Visibility,
     pub newtype_ident: &'a Ident,
@@ -153,21 +170,12 @@ impl ToTokens for TraitAttr<'_> {
 impl<'a> TraitAttr<'a> {
     pub fn new(
         vis: &'a Visibility,
-        attrs: &[Attribute],
+        attr: &FreeConstructionAttr,
         ident: &'a Ident,
         generics: &'a Generics,
     ) -> syn::Result<Self> {
         let newtype_ident = ident;
-        let trait_ident = attrs
-            .iter()
-            .find_map(|attr| {
-                if attr.path().is_ident("trait") {
-                    Some(attr.parse_args::<Ident>().unwrap())
-                } else {
-                    None
-                }
-            })
-            .ok_or_else(|| syn::Error::new_spanned(ident, ConstructionError::TraitNotFound))?;
+        let trait_ident = attr.op.clone();
         let method_ident = quote::format_ident!("{}", trait_ident.to_string().to_lowercase());
 
         Ok(Self {

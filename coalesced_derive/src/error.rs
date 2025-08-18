@@ -8,9 +8,9 @@ use crate::construction::ConstructionAttr;
 #[derive(Debug, Clone)]
 pub enum ConstructionError {
     OnlyNewType,
+    NoConstructionAttr,
     ConstructionTypeNotFound,
     DuplicateConstructionType,
-    TraitNotFound,
 }
 impl Error for ConstructionError {}
 impl Display for ConstructionError {
@@ -18,6 +18,9 @@ impl Display for ConstructionError {
         match self {
             Self::OnlyNewType => {
                 write!(f, "derive Construction only supports newtype structs")
+            }
+            Self::NoConstructionAttr => {
+                write!(f, "Expected `#[construction(...)]` attribute on the struct")
             }
             Self::ConstructionTypeNotFound => {
                 write!(
@@ -34,9 +37,6 @@ impl Display for ConstructionError {
                     ConstructionAttr::Annotated,
                     ConstructionAttr::Semigroup,
                 )
-            }
-            Self::TraitNotFound => {
-                write!(f, "Trait not found for the construction type")
             }
         }
     }
