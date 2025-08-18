@@ -4,21 +4,27 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{
     parse_quote, Attribute, Data, DataStruct, DeriveInput, Field, Fields, FieldsUnnamed, Generics,
-    Ident, ItemImpl,
+    Ident, ItemImpl, ItemTrait, Visibility,
 };
 
 use crate::error::ConstructionError;
 
 pub struct Construction<'a> {
-    construction: ConstructionAttr,
     ident: &'a Ident,
     generics: &'a Generics,
     field: &'a Field,
+
+    construction: ConstructionAttr,
+    semigroup_trait: TraitAttr<'a>,
 }
 impl ToTokens for Construction<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
+        let Self {
+            semigroup_trait, ..
+        } = self;
         let into_inner = self.impl_into_inner();
         tokens.extend(quote::quote! {
+            #semigroup_trait
             #into_inner
         });
     }
@@ -42,10 +48,11 @@ impl<'a> Construction<'a> {
                     unreachable!()
                 };
                 Ok(Self {
-                    construction: ConstructionAttr::new(attrs, ident)?,
                     ident,
                     generics,
                     field,
+                    construction: ConstructionAttr::new(attrs, ident)?,
+                    semigroup_trait: TraitAttr::new(&derive.vis, attrs, ident, generics)?,
                 })
             }
             Data::Enum(_) | Data::Struct(_) | Data::Union(_) => Err(syn::Error::new_spanned(
@@ -115,6 +122,124 @@ impl ConstructionAttr {
                 ident,
                 ConstructionError::DuplicateConstructionType,
             )),
+        }
+    }
+}
+
+pub struct TraitAttr<'a> {
+    pub vis: &'a Visibility,
+    pub newtype_ident: &'a Ident,
+    pub trait_ident: Ident,
+    pub method_ident: Ident,
+    pub generics: &'a Generics,
+}
+impl ToTokens for TraitAttr<'_> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let def_trait = self.def_trait();
+        let impl_trait = self.impl_trait();
+        let impl_trait_reversed = self.impl_trait_reversed();
+        let impl_trait_annotated = self.impl_trait_annotated();
+        let impl_trait_reversed_annotated = self.impl_trait_reversed_annotated();
+
+        tokens.extend(quote::quote! {
+            #def_trait
+            #impl_trait
+            #impl_trait_reversed
+            #impl_trait_annotated
+            #impl_trait_reversed_annotated
+        });
+    }
+}
+impl<'a> TraitAttr<'a> {
+    pub fn new(
+        vis: &'a Visibility,
+        attrs: &[Attribute],
+        ident: &'a Ident,
+        generics: &'a Generics,
+    ) -> syn::Result<Self> {
+        let newtype_ident = ident;
+        let trait_ident = attrs
+            .iter()
+            .find_map(|attr| {
+                if attr.path().is_ident("trait") {
+                    Some(attr.parse_args::<Ident>().unwrap())
+                } else {
+                    None
+                }
+            })
+            .ok_or_else(|| syn::Error::new_spanned(ident, ConstructionError::TraitNotFound))?;
+        let method_ident = quote::format_ident!("{}", trait_ident.to_string().to_lowercase());
+
+        Ok(Self {
+            vis,
+            newtype_ident,
+            trait_ident,
+            method_ident,
+            generics,
+        })
+    }
+
+    pub fn def_trait(&self) -> ItemTrait {
+        let Self {
+            vis,
+            trait_ident,
+            method_ident,
+            ..
+        } = self;
+        parse_quote! {
+            #vis trait #trait_ident: Sized + Semigroup {
+                fn #method_ident(self, other: Self) -> Self {
+                    Semigroup::semigroup_op(self, other)
+                }
+            }
+        }
+    }
+    pub fn impl_trait(&self) -> ItemImpl {
+        let Self {
+            newtype_ident,
+            trait_ident,
+            generics,
+            ..
+        } = self;
+        let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+        parse_quote! {
+            impl #impl_generics #trait_ident for #newtype_ident #ty_generics #where_clause {}
+        }
+    }
+    pub fn impl_trait_reversed(&self) -> ItemImpl {
+        let Self {
+            newtype_ident,
+            trait_ident,
+            generics,
+            ..
+        } = self;
+        let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+        parse_quote! {
+            impl #impl_generics #trait_ident for Reversed<#newtype_ident #ty_generics> #where_clause {}
+        }
+    }
+    pub fn impl_trait_annotated(&self) -> ItemImpl {
+        let Self {
+            newtype_ident,
+            trait_ident,
+            generics,
+            ..
+        } = self;
+        let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+        parse_quote! {
+            impl<T, A> #trait_ident for Annotated<#newtype_ident #ty_generics, A> #where_clause {}
+        }
+    }
+    pub fn impl_trait_reversed_annotated(&self) -> ItemImpl {
+        let Self {
+            newtype_ident,
+            trait_ident,
+            generics,
+            ..
+        } = self;
+        let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+        parse_quote! {
+            impl<T, A> #trait_ident for Reversed<Annotated<#newtype_ident #ty_generics, A>> #where_clause {}
         }
     }
 }

@@ -10,6 +10,7 @@ pub enum ConstructionError {
     OnlyNewType,
     ConstructionTypeNotFound,
     DuplicateConstructionType,
+    TraitNotFound,
 }
 impl Error for ConstructionError {}
 impl Display for ConstructionError {
@@ -33,6 +34,9 @@ impl Display for ConstructionError {
                     ConstructionAttr::Annotated,
                     ConstructionAttr::Semigroup,
                 )
+            }
+            Self::TraitNotFound => {
+                write!(f, "Trait not found for the construction type")
             }
         }
     }
