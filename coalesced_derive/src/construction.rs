@@ -1,6 +1,7 @@
 use std::fmt::{Display, Formatter};
 
 use darling::{ast::NestedMeta, FromMeta};
+use heck::ToSnakeCase;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{
@@ -176,7 +177,7 @@ impl<'a> TraitAttr<'a> {
     ) -> syn::Result<Self> {
         let newtype_ident = ident;
         let trait_ident = attr.op.clone();
-        let method_ident = quote::format_ident!("{}", trait_ident.to_string().to_lowercase());
+        let method_ident = quote::format_ident!("{}", trait_ident.to_string().to_snake_case());
 
         Ok(Self {
             vis,
