@@ -10,6 +10,9 @@ readme.workspace = true
 [lib]
 proc-macro = true
 
+[features]
+use_scope = []
+
 [dependencies]
 darling = "0.21.2"
 heck = "0.5.0"

@@ -107,7 +107,7 @@ name = "coalesced_base"
 version = "0.1.0"
 dependencies = [
  "clap",
- "coalesced",
+ "coalesced_derive",
  "serde",
  "serde_json",
 ]

@@ -20,6 +20,7 @@ impl Constant {
             path_reversed: parse_quote!(::coalesced::op::reverse::Reversed),
         }
     }
+    #[cfg(feature = "use_scope")]
     pub fn new_use() -> Self {
         Constant {
             path_semigroup: parse_quote!(Semigroup),
