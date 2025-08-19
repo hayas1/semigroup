@@ -3,8 +3,6 @@ use std::cell::LazyCell;
 use syn::{parse_quote, Ident, Path};
 
 pub const DERIVE_CONSTRUCTION: &str = "Construction";
-pub const ATTR_ANNOTATED: &str = "annotated";
-pub const ATTR_SEMIGROUP: &str = "semigroup";
 
 thread_local! {
     pub static PATH_SEMIGROUP: LazyCell<Path> = LazyCell::new(|| parse_quote!(::coalesced::Semigroup));

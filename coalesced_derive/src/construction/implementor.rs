@@ -18,7 +18,7 @@ pub struct Construction<'a> {
     generics: &'a Generics,
     field: &'a Field,
 
-    semigroup_trait: TraitAttr<'a>,
+    semigroup_trait: ConstructionTrait<'a>,
 }
 impl ToTokens for Construction<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
@@ -55,7 +55,7 @@ impl<'a> Construction<'a> {
                 let &[field] = unnamed.iter().collect::<Vec<_>>().as_slice() else {
                     unreachable!()
                 };
-                let semigroup_trait = TraitAttr::new(&derive.vis, attr, ident, generics)?;
+                let semigroup_trait = ConstructionTrait::new(&derive.vis, attr, ident, generics)?;
                 Ok(Self {
                     ident,
                     generics,
@@ -138,7 +138,7 @@ impl<'a> Construction<'a> {
 }
 
 #[derive(Debug, Clone)]
-pub struct TraitAttr<'a> {
+pub struct ConstructionTrait<'a> {
     pub vis: &'a Visibility,
     pub newtype_ident: &'a Ident,
     pub trait_ident: Ident,
@@ -147,7 +147,7 @@ pub struct TraitAttr<'a> {
 
     pub attr: &'a ConstructionAttr,
 }
-impl ToTokens for TraitAttr<'_> {
+impl ToTokens for ConstructionTrait<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let def_trait = self.def_trait();
         let impl_trait = self.impl_trait();
@@ -164,7 +164,7 @@ impl ToTokens for TraitAttr<'_> {
         });
     }
 }
-impl<'a> TraitAttr<'a> {
+impl<'a> ConstructionTrait<'a> {
     pub fn new(
         vis: &'a Visibility,
         attr: &'a ConstructionAttr,
