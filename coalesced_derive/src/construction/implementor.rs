@@ -26,10 +26,16 @@ impl ToTokens for Construction<'_> {
         let Self {
             semigroup_trait, ..
         } = self;
+        let from = self.impl_from();
         let into_inner = self.impl_into_inner();
+        let deref = self.impl_deref();
+        let deref_mut = self.impl_deref_mut();
         tokens.extend(quote::quote! {
             #semigroup_trait
+            #from
             #into_inner
+            #deref
+            #deref_mut
         });
     }
 }
@@ -68,6 +74,23 @@ impl<'a> Construction<'a> {
         }
     }
 
+    pub fn impl_from(&self) -> ItemImpl {
+        let Self {
+            ident,
+            generics,
+            field,
+            ..
+        } = self;
+        let field_type = &field.ty;
+        let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+        parse_quote! {
+            impl #impl_generics From<#field_type> for #ident #ty_generics #where_clause {
+                fn from(value: #field_type) -> Self {
+                    #ident(value)
+                }
+            }
+        }
+    }
     pub fn impl_into_inner(&self) -> ItemImpl {
         let Self {
             ident,
@@ -81,6 +104,37 @@ impl<'a> Construction<'a> {
             impl #impl_generics #ident #ty_generics #where_clause {
                 pub fn into_inner(self) -> #field_type {
                     self.0
+                }
+            }
+        }
+    }
+    pub fn impl_deref(&self) -> ItemImpl {
+        let Self {
+            ident,
+            generics,
+            field,
+            ..
+        } = self;
+        let field_type = &field.ty;
+        let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+        parse_quote! {
+            impl #impl_generics std::ops::Deref for #ident #ty_generics #where_clause {
+                type Target = #field_type;
+                fn deref(&self) -> &Self::Target {
+                    &self.0
+                }
+            }
+        }
+    }
+    pub fn impl_deref_mut(&self) -> ItemImpl {
+        let Self {
+            ident, generics, ..
+        } = self;
+        let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+        parse_quote! {
+            impl #impl_generics std::ops::DerefMut for #ident #ty_generics #where_clause {
+                fn deref_mut(&mut self) -> &mut Self::Target {
+                    &mut self.0
                 }
             }
         }
