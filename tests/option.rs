@@ -1,4 +1,4 @@
-use coalesced::{annotate::Annotate, op::annotation::coalesce::Coalesce};
+use coalesced::{op::annotation::coalesce::Coalesce, Annotate};
 
 #[test]
 fn test_option() {
