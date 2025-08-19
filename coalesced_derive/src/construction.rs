@@ -1,5 +1,3 @@
-use std::fmt::{Display, Formatter};
-
 use darling::{ast::NestedMeta, FromMeta};
 use heck::ToSnakeCase;
 use proc_macro2::TokenStream;
@@ -9,7 +7,10 @@ use syn::{
     Ident, ItemImpl, ItemTrait, Meta, MetaList, Visibility,
 };
 
-use crate::error::ConstructionError;
+use crate::{
+    constant::{CONSTRUCTION, IDENT_SEMIGROUP_OP, PATH_ANNOTATED, PATH_REVERSED, PATH_SEMIGROUP},
+    error::ConstructionError,
+};
 
 #[derive(Debug, Clone)]
 pub struct Construction<'a> {
@@ -99,7 +100,7 @@ impl FreeConstructionAttr {
         let attr = attrs
             .iter()
             .find_map(|Attribute { meta, .. }| match meta {
-                Meta::List(MetaList { path, tokens, .. }) if path.is_ident("construction") => {
+                Meta::List(MetaList { path, tokens, .. }) if path.is_ident(CONSTRUCTION) => {
                     Some(tokens)
                 }
                 _ => None,
@@ -125,24 +126,6 @@ impl FreeConstructionAttr {
     }
 }
 
-#[derive(Debug, Clone)]
-pub enum ConstructionAttr {
-    Annotated,
-    Semigroup,
-}
-impl Display for ConstructionAttr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.as_ref())
-    }
-}
-impl AsRef<str> for ConstructionAttr {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::Annotated => "annotated",
-            Self::Semigroup => "semigroup",
-        }
-    }
-}
 #[derive(Debug, Clone)]
 pub struct TraitAttr<'a> {
     pub vis: &'a Visibility,
@@ -195,10 +178,11 @@ impl<'a> TraitAttr<'a> {
             method_ident,
             ..
         } = self;
+        let (semigroup_trait, semigroup_op) = (&*PATH_SEMIGROUP, &*IDENT_SEMIGROUP_OP);
         parse_quote! {
             #vis trait #trait_ident: Sized + Semigroup {
                 fn #method_ident(self, other: Self) -> Self {
-                    Semigroup::semigroup_op(self, other)
+                    #semigroup_trait::#semigroup_op(self, other)
                 }
             }
         }
@@ -222,9 +206,10 @@ impl<'a> TraitAttr<'a> {
             generics,
             ..
         } = self;
+        let reversed = &*PATH_REVERSED;
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
         parse_quote! {
-            impl #impl_generics #trait_ident for Reversed<#newtype_ident #ty_generics> #where_clause {}
+            impl #impl_generics #trait_ident for #reversed<#newtype_ident #ty_generics> #where_clause {}
         }
     }
     pub fn impl_trait_annotated(&self) -> ItemImpl {
@@ -234,9 +219,10 @@ impl<'a> TraitAttr<'a> {
             generics,
             ..
         } = self;
+        let annotated = &*PATH_ANNOTATED;
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
         parse_quote! {
-            impl<T, A> #trait_ident for Annotated<#newtype_ident #ty_generics, A> #where_clause {}
+            impl<T, A> #trait_ident for #annotated<#newtype_ident #ty_generics, A> #where_clause {}
         }
     }
     pub fn impl_trait_reversed_annotated(&self) -> ItemImpl {
@@ -246,9 +232,10 @@ impl<'a> TraitAttr<'a> {
             generics,
             ..
         } = self;
+        let (annotated, reversed) = (&*PATH_ANNOTATED, &*PATH_REVERSED);
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
         parse_quote! {
-            impl<T, A> #trait_ident for Reversed<Annotated<#newtype_ident #ty_generics, A>> #where_clause {}
+            impl<T, A> #trait_ident for #reversed<#annotated<#newtype_ident #ty_generics, A>> #where_clause {}
         }
     }
 }

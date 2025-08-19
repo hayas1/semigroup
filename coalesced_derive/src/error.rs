@@ -3,7 +3,9 @@ use std::{
     fmt::{Display, Formatter},
 };
 
-use crate::construction::ConstructionAttr;
+use heck::ToUpperCamelCase;
+
+use crate::constant::{ANNOTATED, CONSTRUCTION, SEMIGROUP};
 
 #[derive(Debug, Clone)]
 pub enum ConstructionError {
@@ -17,25 +19,28 @@ impl Display for ConstructionError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::OnlyNewType => {
-                write!(f, "derive Construction only supports newtype structs")
+                write!(
+                    f,
+                    "derive {} only supports newtype structs",
+                    CONSTRUCTION.to_upper_camel_case()
+                )
             }
             Self::NoConstructionAttr => {
-                write!(f, "Expected `#[construction(...)]` attribute on the struct")
+                write!(
+                    f,
+                    "Expected `#[{CONSTRUCTION}(...)]` attribute on the struct",
+                )
             }
             Self::ConstructionTypeNotFound => {
                 write!(
                     f,
-                    "Expected either `{}` or `{}` attribute on the field",
-                    ConstructionAttr::Annotated,
-                    ConstructionAttr::Semigroup,
+                    "Expected either `{ANNOTATED}` or `{SEMIGROUP}` attribute on the field",
                 )
             }
             Self::DuplicateConstructionType => {
                 write!(
                     f,
-                    "Cannot derive both `{}` and `{}` at the same time",
-                    ConstructionAttr::Annotated,
-                    ConstructionAttr::Semigroup,
+                    "Cannot derive both `{ANNOTATED}` and `{SEMIGROUP}` at the same time",
                 )
             }
         }

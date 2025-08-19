@@ -1,6 +1,7 @@
 use proc_macro::TokenStream;
 use quote::ToTokens;
 
+mod constant;
 mod construction;
 mod error;
 mod semigroup;
