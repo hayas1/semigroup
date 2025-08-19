@@ -3,12 +3,11 @@ use std::{
     fmt::{Display, Formatter},
 };
 
-use crate::constant::{ATTR_ANNOTATED, ATTR_CONSTRUCTION, ATTR_SEMIGROUP, DERIVE_CONSTRUCTION};
+use crate::constant::{ATTR_ANNOTATED, ATTR_SEMIGROUP, DERIVE_CONSTRUCTION};
 
 #[derive(Debug, Clone)]
 pub enum ConstructionError {
     OnlyNewType,
-    NoConstructionAttr,
     ConstructionTypeNotFound,
     DuplicateConstructionType,
 }
@@ -20,12 +19,6 @@ impl Display for ConstructionError {
                 write!(
                     f,
                     "derive {DERIVE_CONSTRUCTION} only supports newtype structs",
-                )
-            }
-            Self::NoConstructionAttr => {
-                write!(
-                    f,
-                    "Expected `#[{ATTR_CONSTRUCTION}(...)]` attribute on the struct",
                 )
             }
             Self::ConstructionTypeNotFound => {

@@ -1,9 +1,10 @@
-use darling::{ast::NestedMeta, FromMeta};
-use syn::{Attribute, Ident, Meta, MetaList};
+use darling::FromDeriveInput;
+use syn::{DeriveInput, Ident};
 
-use crate::{constant::ATTR_CONSTRUCTION, error::ConstructionError};
+use crate::error::ConstructionError;
 
-#[derive(Debug, Clone, FromMeta)]
+#[derive(Debug, Clone, FromDeriveInput)]
+#[darling(attributes(construction))]
 pub struct ConstructionAttr {
     #[darling(default)]
     pub annotated: bool,
@@ -12,21 +13,9 @@ pub struct ConstructionAttr {
     pub op: Ident,
 }
 impl ConstructionAttr {
-    pub fn new(attrs: &[Attribute], ident: &Ident) -> syn::Result<Self> {
-        let attr = attrs
-            .iter()
-            .find_map(|Attribute { meta, .. }| match meta {
-                Meta::List(MetaList { path, tokens, .. }) if path.is_ident(ATTR_CONSTRUCTION) => {
-                    Some(tokens)
-                }
-                _ => None,
-            })
-            .ok_or(syn::Error::new_spanned(
-                ident,
-                ConstructionError::NoConstructionAttr,
-            ))?;
-
-        let this = Self::from_list(&NestedMeta::parse_meta_list(attr.clone())?)?;
+    pub fn new(derive: &DeriveInput) -> syn::Result<Self> {
+        let DeriveInput { ident, .. } = derive;
+        let this = Self::from_derive_input(derive)?;
         this.validate()
             .map_err(|e| syn::Error::new_spanned(ident, e))?;
         Ok(this)
