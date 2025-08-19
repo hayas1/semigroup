@@ -8,7 +8,9 @@ use syn::{
 };
 
 use crate::{
-    constant::{CONSTRUCTION, IDENT_SEMIGROUP_OP, PATH_ANNOTATED, PATH_REVERSED, PATH_SEMIGROUP},
+    constant::{
+        ATTR_CONSTRUCTION, IDENT_SEMIGROUP_OP, PATH_ANNOTATED, PATH_REVERSED, PATH_SEMIGROUP,
+    },
     error::ConstructionError,
 };
 
@@ -100,7 +102,7 @@ impl ConstructionAttr {
         let attr = attrs
             .iter()
             .find_map(|Attribute { meta, .. }| match meta {
-                Meta::List(MetaList { path, tokens, .. }) if path.is_ident(CONSTRUCTION) => {
+                Meta::List(MetaList { path, tokens, .. }) if path.is_ident(ATTR_CONSTRUCTION) => {
                     Some(tokens)
                 }
                 _ => None,

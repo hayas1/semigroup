@@ -3,9 +3,7 @@ use std::{
     fmt::{Display, Formatter},
 };
 
-use heck::ToUpperCamelCase;
-
-use crate::constant::{ANNOTATED, CONSTRUCTION, SEMIGROUP};
+use crate::constant::{ATTR_ANNOTATED, ATTR_CONSTRUCTION, ATTR_SEMIGROUP, DERIVE_CONSTRUCTION};
 
 #[derive(Debug, Clone)]
 pub enum ConstructionError {
@@ -21,26 +19,25 @@ impl Display for ConstructionError {
             Self::OnlyNewType => {
                 write!(
                     f,
-                    "derive {} only supports newtype structs",
-                    CONSTRUCTION.to_upper_camel_case()
+                    "derive {DERIVE_CONSTRUCTION} only supports newtype structs",
                 )
             }
             Self::NoConstructionAttr => {
                 write!(
                     f,
-                    "Expected `#[{CONSTRUCTION}(...)]` attribute on the struct",
+                    "Expected `#[{ATTR_CONSTRUCTION}(...)]` attribute on the struct",
                 )
             }
             Self::ConstructionTypeNotFound => {
                 write!(
                     f,
-                    "Expected either `{ANNOTATED}` or `{SEMIGROUP}` attribute on the field",
+                    "Expected either `{ATTR_ANNOTATED}` or `{ATTR_SEMIGROUP}` attribute on the field",
                 )
             }
             Self::DuplicateConstructionType => {
                 write!(
                     f,
-                    "Cannot derive both `{ANNOTATED}` and `{SEMIGROUP}` at the same time",
+                    "Cannot derive both `{ATTR_ANNOTATED}` and `{ATTR_SEMIGROUP}` at the same time",
                 )
             }
         }
