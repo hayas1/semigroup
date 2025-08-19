@@ -178,14 +178,18 @@ impl<'a> TraitAttr<'a> {
             method_ident,
             ..
         } = self;
-        let (semigroup_trait, semigroup_op) = (&*PATH_SEMIGROUP, &*IDENT_SEMIGROUP_OP);
-        parse_quote! {
-            #vis trait #trait_ident: Sized + Semigroup {
-                fn #method_ident(self, other: Self) -> Self {
-                    #semigroup_trait::#semigroup_op(self, other)
+        PATH_SEMIGROUP.with(|ps| {
+            IDENT_SEMIGROUP_OP.with(|iso| {
+                let (semigroup_trait, semigroup_op) = (&**ps, &**iso);
+                parse_quote! {
+                    #vis trait #trait_ident: Sized + Semigroup {
+                        fn #method_ident(self, other: Self) -> Self {
+                            #semigroup_trait::#semigroup_op(self, other)
+                        }
+                    }
                 }
-            }
-        }
+            })
+        })
     }
     pub fn impl_trait(&self) -> ItemImpl {
         let Self {
@@ -206,11 +210,13 @@ impl<'a> TraitAttr<'a> {
             generics,
             ..
         } = self;
-        let reversed = &*PATH_REVERSED;
-        let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-        parse_quote! {
-            impl #impl_generics #trait_ident for #reversed<#newtype_ident #ty_generics> #where_clause {}
-        }
+        PATH_REVERSED.with(|pr| {
+            let reversed = &**pr;
+            let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+            parse_quote! {
+                impl #impl_generics #trait_ident for #reversed<#newtype_ident #ty_generics> #where_clause {}
+            }
+        })
     }
     pub fn impl_trait_annotated(&self) -> ItemImpl {
         let Self {
@@ -219,11 +225,13 @@ impl<'a> TraitAttr<'a> {
             generics,
             ..
         } = self;
-        let annotated = &*PATH_ANNOTATED;
-        let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-        parse_quote! {
-            impl<T, A> #trait_ident for #annotated<#newtype_ident #ty_generics, A> #where_clause {}
-        }
+        PATH_ANNOTATED.with(|pa| {
+            let annotated = &**pa;
+            let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+            parse_quote! {
+                impl<T, A> #trait_ident for #annotated<#newtype_ident #ty_generics, A> #where_clause {}
+            }
+        })
     }
     pub fn impl_trait_reversed_annotated(&self) -> ItemImpl {
         let Self {
@@ -232,10 +240,14 @@ impl<'a> TraitAttr<'a> {
             generics,
             ..
         } = self;
-        let (annotated, reversed) = (&*PATH_ANNOTATED, &*PATH_REVERSED);
-        let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-        parse_quote! {
-            impl<T, A> #trait_ident for #reversed<#annotated<#newtype_ident #ty_generics, A>> #where_clause {}
-        }
+        PATH_ANNOTATED.with(|pa| {
+            PATH_REVERSED.with(|pr| {
+                let (annotated, reversed) = (&**pa, &**pr);
+                let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+                parse_quote! {
+                    impl<T, A> #trait_ident for #reversed<#annotated<#newtype_ident #ty_generics, A>> #where_clause {}
+                }
+            })
+        })
     }
 }
