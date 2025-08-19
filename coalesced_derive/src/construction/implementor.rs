@@ -1,16 +1,14 @@
-use darling::{ast::NestedMeta, FromMeta};
 use heck::ToSnakeCase;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{
-    parse_quote, Attribute, Data, DataStruct, DeriveInput, Field, Fields, FieldsUnnamed, Generics,
-    Ident, ItemImpl, ItemTrait, Meta, MetaList, Visibility,
+    parse_quote, Data, DataStruct, DeriveInput, Field, Fields, FieldsUnnamed, Generics, Ident,
+    ItemImpl, ItemTrait, Visibility,
 };
 
 use crate::{
-    constant::{
-        ATTR_CONSTRUCTION, IDENT_SEMIGROUP_OP, PATH_ANNOTATED, PATH_REVERSED, PATH_SEMIGROUP,
-    },
+    constant::{IDENT_SEMIGROUP_OP, PATH_ANNOTATED, PATH_REVERSED, PATH_SEMIGROUP},
+    construction::attr::ConstructionAttr,
     error::ConstructionError,
 };
 
@@ -85,45 +83,6 @@ impl<'a> Construction<'a> {
                     self.0
                 }
             }
-        }
-    }
-}
-
-#[derive(Debug, Clone, FromMeta)]
-pub struct ConstructionAttr {
-    #[darling(default)]
-    pub annotated: bool,
-    #[darling(default)]
-    pub semigroup: bool,
-    pub op: Ident,
-}
-impl ConstructionAttr {
-    pub fn new(attrs: &[Attribute], ident: &Ident) -> syn::Result<Self> {
-        let attr = attrs
-            .iter()
-            .find_map(|Attribute { meta, .. }| match meta {
-                Meta::List(MetaList { path, tokens, .. }) if path.is_ident(ATTR_CONSTRUCTION) => {
-                    Some(tokens)
-                }
-                _ => None,
-            })
-            .ok_or(syn::Error::new_spanned(
-                ident,
-                ConstructionError::NoConstructionAttr,
-            ))?;
-
-        let this = Self::from_list(&NestedMeta::parse_meta_list(attr.clone())?)?;
-        this.validate()
-            .map_err(|e| syn::Error::new_spanned(ident, e))?;
-        Ok(this)
-    }
-    pub fn validate(&self) -> Result<&Self, ConstructionError> {
-        if self.annotated && self.semigroup {
-            Err(ConstructionError::DuplicateConstructionType)
-        } else if !self.annotated && !self.semigroup {
-            Err(ConstructionError::ConstructionTypeNotFound)
-        } else {
-            Ok(self)
         }
     }
 }
