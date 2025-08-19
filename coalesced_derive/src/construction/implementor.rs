@@ -6,11 +6,7 @@ use syn::{
     ItemImpl, ItemTrait, Visibility,
 };
 
-use crate::{
-    constant::{IDENT_SEMIGROUP_OP, PATH_ANNOTATED, PATH_REVERSED, PATH_SEMIGROUP},
-    construction::attr::ConstructionAttr,
-    error::ConstructionError,
-};
+use crate::{constant::Constant, construction::attr::ConstructionAttr, error::ConstructionError};
 
 #[derive(Debug, Clone)]
 pub struct Construction<'a> {
@@ -39,7 +35,11 @@ impl ToTokens for Construction<'_> {
     }
 }
 impl<'a> Construction<'a> {
-    pub fn new(derive: &'a DeriveInput, attr: &'a ConstructionAttr) -> syn::Result<Self> {
+    pub fn new(
+        constant: &'a Constant,
+        derive: &'a DeriveInput,
+        attr: &'a ConstructionAttr,
+    ) -> syn::Result<Self> {
         let DeriveInput {
             ident,
             generics,
@@ -55,7 +55,8 @@ impl<'a> Construction<'a> {
                 let &[field] = unnamed.iter().collect::<Vec<_>>().as_slice() else {
                     unreachable!()
                 };
-                let semigroup_trait = ConstructionTrait::new(&derive.vis, attr, ident, generics)?;
+                let semigroup_trait =
+                    ConstructionTrait::new(constant, &derive.vis, attr, ident, generics)?;
                 Ok(Self {
                     ident,
                     generics,
@@ -139,6 +140,8 @@ impl<'a> Construction<'a> {
 
 #[derive(Debug, Clone)]
 pub struct ConstructionTrait<'a> {
+    pub constant: &'a Constant,
+
     pub vis: &'a Visibility,
     pub newtype_ident: &'a Ident,
     pub trait_ident: Ident,
@@ -166,6 +169,7 @@ impl ToTokens for ConstructionTrait<'_> {
 }
 impl<'a> ConstructionTrait<'a> {
     pub fn new(
+        constant: &'a Constant,
         vis: &'a Visibility,
         attr: &'a ConstructionAttr,
         ident: &'a Ident,
@@ -176,6 +180,7 @@ impl<'a> ConstructionTrait<'a> {
         let method_ident = quote::format_ident!("{}", trait_ident.to_string().to_snake_case());
 
         Ok(Self {
+            constant,
             vis,
             newtype_ident,
             trait_ident,
@@ -187,23 +192,25 @@ impl<'a> ConstructionTrait<'a> {
 
     pub fn def_trait(&self) -> ItemTrait {
         let Self {
+            constant:
+                Constant {
+                    path_semigroup,
+                    ident_semigroup_op,
+                    ..
+                },
             vis,
             trait_ident,
             method_ident,
             ..
         } = self;
-        PATH_SEMIGROUP.with(|ps| {
-            IDENT_SEMIGROUP_OP.with(|iso| {
-                let (semigroup_trait, semigroup_op) = (&**ps, &**iso);
-                parse_quote! {
-                    #vis trait #trait_ident: Sized + Semigroup {
-                        fn #method_ident(self, other: Self) -> Self {
-                            #semigroup_trait::#semigroup_op(self, other)
-                        }
-                    }
+
+        parse_quote! {
+            #vis trait #trait_ident: Sized + Semigroup {
+                fn #method_ident(self, other: Self) -> Self {
+                    #path_semigroup::#ident_semigroup_op(self, other)
                 }
-            })
-        })
+            }
+        }
     }
     pub fn impl_trait(&self) -> ItemImpl {
         let Self {
@@ -219,21 +226,20 @@ impl<'a> ConstructionTrait<'a> {
     }
     pub fn impl_trait_reversed(&self) -> ItemImpl {
         let Self {
+            constant: Constant { path_reversed, .. },
             newtype_ident,
             trait_ident,
             generics,
             ..
         } = self;
-        PATH_REVERSED.with(|pr| {
-            let reversed = &**pr;
-            let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-            parse_quote! {
-                impl #impl_generics #trait_ident for #reversed<#newtype_ident #ty_generics> #where_clause {}
-            }
-        })
+        let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+        parse_quote! {
+            impl #impl_generics #trait_ident for #path_reversed<#newtype_ident #ty_generics> #where_clause {}
+        }
     }
     pub fn impl_trait_annotated(&self) -> Option<ItemImpl> {
         let Self {
+            constant: Constant { path_annotated, .. },
             newtype_ident,
             trait_ident,
             generics,
@@ -241,17 +247,20 @@ impl<'a> ConstructionTrait<'a> {
             ..
         } = self;
         attr.annotated.then(|| {
-            PATH_ANNOTATED.with(|pa| {
-                let annotated = &**pa;
-                let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-                parse_quote! {
-                    impl<T, A> #trait_ident for #annotated<#newtype_ident #ty_generics, A> #where_clause {}
-                }
-            })
+            let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+            parse_quote! {
+                impl<T, A> #trait_ident for #path_annotated<#newtype_ident #ty_generics, A> #where_clause {}
+            }
         })
     }
     pub fn impl_trait_reversed_annotated(&self) -> Option<ItemImpl> {
         let Self {
+            constant:
+                Constant {
+                    path_annotated,
+                    path_reversed,
+                    ..
+                },
             newtype_ident,
             trait_ident,
             generics,
@@ -259,15 +268,10 @@ impl<'a> ConstructionTrait<'a> {
             ..
         } = self;
         attr.annotated.then(|| {
-            PATH_ANNOTATED.with(|pa| {
-                PATH_REVERSED.with(|pr| {
-                    let (annotated, reversed) = (&**pa, &**pr);
-                    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-                    parse_quote! {
-                        impl<T, A> #trait_ident for #reversed<#annotated<#newtype_ident #ty_generics, A>> #where_clause {}
-                    }
-                })
-            })
+            let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+            parse_quote! {
+                impl<T, A> #trait_ident for #path_reversed<#path_annotated<#newtype_ident #ty_generics, A>> #where_clause {}
+            }
         })
     }
 }
