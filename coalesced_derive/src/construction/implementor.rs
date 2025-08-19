@@ -232,35 +232,41 @@ impl<'a> ConstructionTrait<'a> {
             }
         })
     }
-    pub fn impl_trait_annotated(&self) -> ItemImpl {
+    pub fn impl_trait_annotated(&self) -> Option<ItemImpl> {
         let Self {
             newtype_ident,
             trait_ident,
             generics,
+            attr,
             ..
         } = self;
-        PATH_ANNOTATED.with(|pa| {
-            let annotated = &**pa;
-            let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-            parse_quote! {
-                impl<T, A> #trait_ident for #annotated<#newtype_ident #ty_generics, A> #where_clause {}
-            }
-        })
-    }
-    pub fn impl_trait_reversed_annotated(&self) -> ItemImpl {
-        let Self {
-            newtype_ident,
-            trait_ident,
-            generics,
-            ..
-        } = self;
-        PATH_ANNOTATED.with(|pa| {
-            PATH_REVERSED.with(|pr| {
-                let (annotated, reversed) = (&**pa, &**pr);
+        attr.annotated.then(|| {
+            PATH_ANNOTATED.with(|pa| {
+                let annotated = &**pa;
                 let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
                 parse_quote! {
-                    impl<T, A> #trait_ident for #reversed<#annotated<#newtype_ident #ty_generics, A>> #where_clause {}
+                    impl<T, A> #trait_ident for #annotated<#newtype_ident #ty_generics, A> #where_clause {}
                 }
+            })
+        })
+    }
+    pub fn impl_trait_reversed_annotated(&self) -> Option<ItemImpl> {
+        let Self {
+            newtype_ident,
+            trait_ident,
+            generics,
+            attr,
+            ..
+        } = self;
+        attr.annotated.then(|| {
+            PATH_ANNOTATED.with(|pa| {
+                PATH_REVERSED.with(|pr| {
+                    let (annotated, reversed) = (&**pa, &**pr);
+                    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+                    parse_quote! {
+                        impl<T, A> #trait_ident for #reversed<#annotated<#newtype_ident #ty_generics, A>> #where_clause {}
+                    }
+                })
             })
         })
     }

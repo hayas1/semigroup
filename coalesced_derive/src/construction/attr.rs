@@ -1,8 +1,6 @@
 use darling::FromDeriveInput;
 use syn::{DeriveInput, Ident};
 
-use crate::error::ConstructionError;
-
 #[derive(Debug, Clone, FromDeriveInput)]
 #[darling(attributes(construction))]
 pub struct ConstructionAttr {
