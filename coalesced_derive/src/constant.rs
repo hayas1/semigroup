@@ -1,5 +1,3 @@
-use std::cell::LazyCell;
-
 use syn::{parse_quote, Ident, Path};
 
 pub const DERIVE_CONSTRUCTION: &str = "Construction";

@@ -30,5 +30,5 @@ coalesced_base = { path = "coalesced_base", default-features = false }
 coalesced_derive = { path = "coalesced_derive", default-features = false, optional = true }
 
 [dev-dependencies]
-coalesced = { path = ".", features = ["derive"] }
+coalesced = { path = ".", features = ["derive", "test"] }
 trybuild = { version = "1.0.110", features = ["diff"] }
