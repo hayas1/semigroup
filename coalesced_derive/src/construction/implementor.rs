@@ -157,6 +157,7 @@ impl ToTokens for ConstructionTrait<'_> {
         let impl_trait_reversed = self.impl_trait_reversed();
         let impl_trait_annotated = self.impl_trait_annotated();
         let impl_trait_reversed_annotated = self.impl_trait_reversed_annotated();
+        let impl_semigroup_with_unit_annotate = self.impl_semigroup_with_unit_annotate();
 
         tokens.extend(quote::quote! {
             #def_trait
@@ -164,6 +165,7 @@ impl ToTokens for ConstructionTrait<'_> {
             #impl_trait_reversed
             #impl_trait_annotated
             #impl_trait_reversed_annotated
+            #impl_semigroup_with_unit_annotate
         });
     }
 }
@@ -246,7 +248,7 @@ impl<'a> ConstructionTrait<'a> {
             attr,
             ..
         } = self;
-        attr.annotated.then(|| {
+        attr.is_annotated().then(|| {
             let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
             parse_quote! {
                 impl<T, A> #trait_ident for #path_annotated<#newtype_ident #ty_generics, A> #where_clause {}
@@ -267,10 +269,38 @@ impl<'a> ConstructionTrait<'a> {
             attr,
             ..
         } = self;
-        attr.annotated.then(|| {
+        attr.is_annotated().then(|| {
             let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
             parse_quote! {
                 impl<T, A> #trait_ident for #path_reversed<#path_annotated<#newtype_ident #ty_generics, A>> #where_clause {}
+            }
+        })
+    }
+    pub fn impl_semigroup_with_unit_annotate(&self) -> Option<ItemImpl> {
+        let Self {
+            constant:
+                Constant {
+                    path_semigroup,
+                    ident_semigroup_op,
+                    path_annotated_semigroup,
+                    use_annotate,
+                    ..
+                },
+            newtype_ident,
+            generics,
+            attr,
+            ..
+        } = self;
+        attr.is_annotated().then(|| {
+            let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+            let unit = attr.unit_annotate();
+            parse_quote! {
+                impl #impl_generics #path_semigroup for #newtype_ident #ty_generics #where_clause {
+                    fn #ident_semigroup_op(base: Self, other: Self) -> Self {
+                        #use_annotate
+                        #path_annotated_semigroup::annotated_op(base.annotated(#unit), other.annotated(#unit)).value
+                    }
+                }
             }
         })
     }
