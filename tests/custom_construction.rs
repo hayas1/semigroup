@@ -1,15 +1,10 @@
-use coalesced::{Annotate, Annotated, AnnotatedSemigroup, Construction, Semigroup};
+use coalesced::{Annotated, AnnotatedSemigroup, Construction, Semigroup};
 use coalesced_base::semigroup::tests::{assert_associative_law, assert_reversed_associative_law};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction)]
 #[construction(annotated, op = Coalesce)]
 pub struct Coalesced<T>(pub Option<T>);
 
-impl<T> Semigroup for Coalesced<T> {
-    fn semigroup_op(base: Self, other: Self) -> Self {
-        AnnotatedSemigroup::annotated_op(base.annotated(()), other.annotated(())).value
-    }
-}
 impl<T, A> AnnotatedSemigroup<A> for Coalesced<T> {
     fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
         match (&base.value.0, &other.value.0) {
