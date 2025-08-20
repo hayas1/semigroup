@@ -38,8 +38,8 @@ fn test_coalesce() {
         Coalesced(None),
     );
     assert_eq!(none.coalesce(none).into_inner(), None);
-    assert_eq!(some_value1.coalesce(none).into_inner(), Some("value"));
-    assert_eq!(none.coalesce(some_value1).into_inner(), Some("value"));
+    assert_eq!(some_value1.coalesce(none).into_inner(), Some("value1"));
+    assert_eq!(none.coalesce(some_value1).into_inner(), Some("value1"));
     assert_eq!(
         some_value1.coalesce(some_value2).into_inner(),
         Some("value1")
