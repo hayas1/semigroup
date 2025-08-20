@@ -8,8 +8,8 @@ mod semigroup;
 
 #[proc_macro_derive(Construction, attributes(construction))]
 pub fn derive_construction(input: TokenStream) -> TokenStream {
-    let constants = constant::Constant::new();
     let derive = syn::parse_macro_input!(input);
+    let constants = constant::Constant::new::<constant::Absolute>();
     let attr = match construction::attr::ConstructionAttr::new(&derive) {
         Ok(attr) => attr,
         Err(e) => return e.into_compile_error().into(),
@@ -25,8 +25,8 @@ pub fn derive_construction(input: TokenStream) -> TokenStream {
 #[cfg(feature = "use_scope")]
 #[proc_macro_derive(ConstructionUse, attributes(construction))]
 pub fn derive_construction_use(input: TokenStream) -> TokenStream {
-    let constants = constant::Constant::new_use();
     let derive = syn::parse_macro_input!(input);
+    let constants = constant::Constant::new::<constant::Use>();
     let attr = match construction::attr::ConstructionAttr::new(&derive) {
         Ok(attr) => attr,
         Err(e) => return e.into_compile_error().into(),

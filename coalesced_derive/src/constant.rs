@@ -12,7 +12,16 @@ pub struct Constant {
     pub path_reversed: Path,
 }
 impl Constant {
-    pub fn new() -> Self {
+    pub fn new<C: ConstantExt>() -> Self {
+        C::constant()
+    }
+}
+pub trait ConstantExt {
+    fn constant() -> Constant;
+}
+pub enum Absolute {}
+impl ConstantExt for Absolute {
+    fn constant() -> Constant {
         Constant {
             path_semigroup: parse_quote!(::coalesced::Semigroup),
             path_annotated_semigroup: parse_quote!(::coalesced::AnnotatedSemigroup),
@@ -24,8 +33,12 @@ impl Constant {
             path_reversed: parse_quote!(::coalesced::op::reverse::Reversed),
         }
     }
-    #[cfg(feature = "use_scope")]
-    pub fn new_use() -> Self {
+}
+#[cfg(feature = "use_scope")]
+pub enum Use {}
+#[cfg(feature = "use_scope")]
+impl ConstantExt for Use {
+    fn constant() -> Constant {
         Constant {
             path_semigroup: parse_quote!(Semigroup),
             path_annotated_semigroup: parse_quote!(AnnotatedSemigroup),
