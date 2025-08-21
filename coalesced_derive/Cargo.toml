@@ -22,3 +22,5 @@ syn = { version = "2.0.104", features = ["full"] }
 
 [dev-dependencies]
 coalesced = { path = "../", features = ["derive"] }
+insta = "1.43.1"
+prettyplease = "0.2.37"                             # rustfmt is cli only

@@ -19,3 +19,24 @@ pub fn gen_construction<C: ConstantExt>(derive: &DeriveInput) -> TokenStream {
     };
     construction.into_token_stream()
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::constant::Absolute;
+
+    use super::*;
+
+    #[test]
+    fn test_derive_construction() {
+        let derive = syn::parse_quote! {
+            #[derive(Construction)]
+            #[construction(annotated, op = Coalesce)]
+            pub struct Coalesced<T>(pub Option<T>);
+        };
+        let generated = gen_construction::<Absolute>(&derive);
+        let formatted = prettyplease::unparse(&syn::parse2(generated).unwrap());
+        insta::with_settings!({ snapshot_path => "../../tests/snapshots" }, {
+            insta::assert_snapshot!("construction", formatted);
+        });
+    }
+}
