@@ -11,11 +11,6 @@ pub struct Constant {
     pub path_annotated: Path,
     pub path_reversed: Path,
 }
-impl Constant {
-    pub fn new<C: ConstantExt>() -> Self {
-        C::constant()
-    }
-}
 pub trait ConstantExt {
     fn constant() -> Constant;
 }
