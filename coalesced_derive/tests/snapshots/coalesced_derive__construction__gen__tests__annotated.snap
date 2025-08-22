@@ -1,6 +1,6 @@
 ---
 source: coalesced_derive/src/construction/gen.rs
-assertion_line: 41
+assertion_line: 39
 expression: formatted
 ---
 pub trait Coalesce: Sized + Semigroup {

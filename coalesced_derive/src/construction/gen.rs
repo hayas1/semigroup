@@ -27,7 +27,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_derive_construction() {
+    fn test_derive_construction_annotation() {
         let derive = syn::parse_quote! {
             #[derive(Construction)]
             #[construction(annotated, op = Coalesce)]
@@ -36,7 +36,7 @@ mod tests {
         let generated = gen_construction::<Absolute>(&derive);
         let formatted = prettyplease::unparse(&syn::parse2(generated).unwrap());
         insta::with_settings!({ snapshot_path => "../../tests/snapshots" }, {
-            insta::assert_snapshot!("construction", formatted);
+            insta::assert_snapshot!("annotated", formatted);
         });
     }
 }
