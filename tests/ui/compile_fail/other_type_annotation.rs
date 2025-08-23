@@ -1,4 +1,4 @@
-use coalesced::{annotate::Annotate, op::annotation::coalesce::Coalesce};
+use coalesced::{op::annotation::coalesce::Coalesce, Annotate};
 
 fn main() {
     let a = Some(1).annotated("a");
