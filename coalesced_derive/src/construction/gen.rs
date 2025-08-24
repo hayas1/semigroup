@@ -22,7 +22,7 @@ pub fn gen_construction<C: ConstantExt>(derive: &DeriveInput) -> TokenStream {
 
 #[cfg(test)]
 mod tests {
-    use crate::constant::Absolute;
+    use crate::constant::{Absolute, Use};
 
     use super::*;
 
@@ -37,6 +37,20 @@ mod tests {
         let formatted = prettyplease::unparse(&syn::parse2(generated).unwrap());
         insta::with_settings!({ snapshot_path => "../../tests/snapshots" }, {
             insta::assert_snapshot!("annotated", formatted);
+        });
+    }
+
+    #[test]
+    fn test_derive_construction_use() {
+        let derive = syn::parse_quote! {
+            #[derive(ConstructionUse)]
+            #[construction(op = Coalesce)]
+            pub struct Coalesced<T>(pub Option<T>);
+        };
+        let generated = gen_construction::<Use>(&derive);
+        let formatted = prettyplease::unparse(&syn::parse2(generated).unwrap());
+        insta::with_settings!({ snapshot_path => "../../tests/snapshots" }, {
+            insta::assert_snapshot!("not_annotated", formatted);
         });
     }
 }
