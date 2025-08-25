@@ -1,8 +1,8 @@
 pub trait Annotate: Sized {
-    fn annotated<P>(self, annotation: P) -> Annotated<Self, P>;
+    fn annotated<A>(self, annotation: A) -> Annotated<Self, A>;
 }
 impl<T> Annotate for T {
-    fn annotated<P>(self, annotation: P) -> Annotated<Self, P> {
+    fn annotated<A>(self, annotation: A) -> Annotated<Self, A> {
         Annotated {
             value: self,
             annotation,
@@ -11,13 +11,13 @@ impl<T> Annotate for T {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-pub struct Annotated<T, P> {
+pub struct Annotated<T, A> {
     pub value: T,
-    pub annotation: P,
+    pub annotation: A,
 }
 
-impl<T, P> Annotated<T, P> {
-    pub fn map<U>(self, f: impl FnOnce(T) -> U) -> Annotated<U, P> {
+impl<T, A> Annotated<T, A> {
+    pub fn map<U>(self, f: impl FnOnce(T) -> U) -> Annotated<U, A> {
         Annotated {
             value: f(self.value),
             annotation: self.annotation,
