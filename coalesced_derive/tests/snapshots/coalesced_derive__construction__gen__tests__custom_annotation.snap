@@ -1,0 +1,46 @@
+---
+source: coalesced_derive/src/construction/gen.rs
+assertion_line: 67
+expression: formatted
+---
+pub trait Coalesce: Sized + Semigroup {
+    fn coalesce(self, other: Self) -> Self {
+        ::coalesced::Semigroup::semigroup_op(self, other)
+    }
+}
+impl<T> Coalesce for Coalesced<T> {}
+impl<T> Coalesce for ::coalesced::op::reverse::Reversed<Coalesced<T>> {}
+impl<T, X> Coalesce for ::coalesced::Annotated<Coalesced<T>, X> {}
+impl<T, X> Coalesce
+for ::coalesced::op::reverse::Reversed<::coalesced::Annotated<Coalesced<T>, X>> {}
+impl<T> ::coalesced::Semigroup for Coalesced<T> {
+    fn semigroup_op(base: Self, other: Self) -> Self {
+        use coalesced::Annotate;
+        ::coalesced::AnnotatedSemigroup::annotated_op(
+                base.annotated(()),
+                other.annotated(()),
+            )
+            .value
+    }
+}
+impl<T> From<Option<T>> for Coalesced<T> {
+    fn from(value: Option<T>) -> Self {
+        Coalesced(value)
+    }
+}
+impl<T> Coalesced<T> {
+    pub fn into_inner(self) -> Option<T> {
+        self.0
+    }
+}
+impl<T> std::ops::Deref for Coalesced<T> {
+    type Target = Option<T>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+impl<T> std::ops::DerefMut for Coalesced<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}

@@ -53,4 +53,18 @@ mod tests {
             insta::assert_snapshot!("not_annotated", formatted);
         });
     }
+
+    #[test]
+    fn test_derive_construction_custom_annotation_generic() {
+        let derive = syn::parse_quote! {
+            #[derive(Construction)]
+            #[construction(op = Coalesce, annotated, annotation_generic_param = X)]
+            pub struct Coalesced<T>(pub Option<T>);
+        };
+        let generated = gen_construction::<Absolute>(&derive);
+        let formatted = prettyplease::unparse(&syn::parse2(generated).unwrap());
+        insta::with_settings!({ snapshot_path => "../../tests/snapshots" }, {
+            insta::assert_snapshot!("custom_annotation", formatted);
+        });
+    }
 }
