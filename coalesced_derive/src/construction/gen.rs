@@ -41,7 +41,7 @@ mod tests {
     }
 
     #[test]
-    fn test_derive_construction_use() {
+    fn test_derive_construction_no_annotateion() {
         let derive = syn::parse_quote! {
             #[derive(ConstructionUse)]
             #[construction(op = Coalesce)]
