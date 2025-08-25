@@ -253,7 +253,7 @@ impl<'a> ConstructionTrait<'a> {
             ..
         } = self;
         attr.is_annotated().then(|| {
-            let annotated = Annotated::new(generics, path_annotated, newtype_ident, attr);
+            let annotated = Annotated::new(path_annotated, newtype_ident, generics, attr);
             let (annotated_impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
 
             parse_quote! {
@@ -276,7 +276,7 @@ impl<'a> ConstructionTrait<'a> {
             ..
         } = self;
         attr.is_annotated().then(|| {
-            let annotated = Annotated::new(generics, path_annotated, newtype_ident, attr);
+            let annotated = Annotated::new(path_annotated, newtype_ident,generics, attr);
             let (annotated_impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
             parse_quote! {
                 impl #annotated_impl_generics #trait_ident for #path_reversed<#annotated_ty> #where_clause {}

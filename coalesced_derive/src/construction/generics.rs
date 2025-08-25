@@ -5,16 +5,16 @@ use syn::{parse_quote, GenericParam, Generics, Ident, Path, Type, WhereClause};
 use crate::construction::attr::ConstructionAttr;
 
 pub struct Annotated<'a> {
-    pub generics: &'a Generics,
     pub path_annotated: &'a Path,
     pub newtype_ident: &'a Ident,
+    pub generics: &'a Generics,
     pub attr: &'a ConstructionAttr,
 }
 impl<'a> Annotated<'a> {
     pub fn new(
-        generics: &'a Generics,
         path_annotated: &'a Path,
         newtype_ident: &'a Ident,
+        generics: &'a Generics,
         attr: &'a ConstructionAttr,
     ) -> Self {
         Self {
