@@ -6,7 +6,11 @@ use syn::{
     ItemImpl, ItemTrait, Visibility,
 };
 
-use crate::{constant::Constant, construction::attr::ConstructionAttr, error::ConstructionError};
+use crate::{
+    constant::Constant,
+    construction::{attr::ConstructionAttr, generics::Annotated},
+    error::ConstructionError,
+};
 
 #[derive(Debug, Clone)]
 pub struct Construction<'a> {
@@ -249,9 +253,11 @@ impl<'a> ConstructionTrait<'a> {
             ..
         } = self;
         attr.is_annotated().then(|| {
-            let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+            let annotated = Annotated::new(generics, path_annotated, newtype_ident, attr);
+            let (annotated_impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
+
             parse_quote! {
-                impl<T, A> #trait_ident for #path_annotated<#newtype_ident #ty_generics, A> #where_clause {}
+                impl #annotated_impl_generics #trait_ident for #annotated_ty #where_clause {}
             }
         })
     }
@@ -270,9 +276,10 @@ impl<'a> ConstructionTrait<'a> {
             ..
         } = self;
         attr.is_annotated().then(|| {
-            let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+            let annotated = Annotated::new(generics, path_annotated, newtype_ident, attr);
+            let (annotated_impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
             parse_quote! {
-                impl<T, A> #trait_ident for #path_reversed<#path_annotated<#newtype_ident #ty_generics, A>> #where_clause {}
+                impl #annotated_impl_generics #trait_ident for #path_reversed<#annotated_ty> #where_clause {}
             }
         })
     }
