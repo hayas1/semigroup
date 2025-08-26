@@ -25,8 +25,8 @@ for Concatenated<T> {
     fn semigroup_op(base: Self, other: Self) -> Self {
         use coalesced::Annotate;
         ::coalesced::AnnotatedSemigroup::annotated_op(
-                base.annotated(()),
-                other.annotated(()),
+                base.annotated(vec![(); 0]),
+                other.annotated(vec![(); 0]),
             )
             .value
     }

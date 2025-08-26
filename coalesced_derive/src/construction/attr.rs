@@ -1,12 +1,12 @@
 use darling::FromDeriveInput;
-use syn::{parse_quote, DeriveInput, Ident, Type, TypeParam};
+use syn::{parse_quote, DeriveInput, Expr, Ident, TypeParam};
 
 #[derive(Debug, Clone, FromDeriveInput)]
 #[darling(attributes(construction))]
 pub struct ConstructionAttr {
     #[darling(default)]
     pub annotated: bool,
-    pub unit: Option<Type>,
+    pub unit: Option<Expr>,
 
     pub op: Ident,
 
@@ -21,7 +21,7 @@ impl ConstructionAttr {
         self.annotated || self.unit.is_some() || self.annotation_type_param.is_some()
     }
 
-    pub fn unit_annotate(&self) -> Type {
+    pub fn unit_annotate(&self) -> Expr {
         self.unit.clone().unwrap_or_else(|| parse_quote!(()))
     }
 
