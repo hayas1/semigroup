@@ -10,7 +10,6 @@ pub struct ConstructionAttr {
 
     pub op: Ident,
 
-    pub annotation_generic_param: Option<Ident>,
     pub annotation_type_param: Option<TypeParam>,
 }
 impl ConstructionAttr {
@@ -19,7 +18,7 @@ impl ConstructionAttr {
     }
 
     pub fn is_annotated(&self) -> bool {
-        self.annotated || self.unit.is_some() || self.annotation_generic_param.is_some()
+        self.annotated || self.unit.is_some() || self.annotation_type_param.is_some()
     }
 
     pub fn unit_annotate(&self) -> Type {
