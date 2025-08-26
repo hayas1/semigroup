@@ -1,10 +1,22 @@
-use crate::annotate::Annotated;
+use crate::annotate::{Annotate, Annotated};
 
 pub trait Semigroup {
     fn semigroup_op(base: Self, other: Self) -> Self;
 }
 pub trait AnnotatedSemigroup<A>: Sized {
     fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A>;
+    fn default_semigroup_op(
+        base: Self,
+        other: Self,
+        base_annotation: A,
+        other_annotation: A,
+    ) -> Self {
+        Self::annotated_op(
+            base.annotated(base_annotation),
+            other.annotated(other_annotation),
+        )
+        .value
+    }
 }
 impl<T: AnnotatedSemigroup<A>, A> Semigroup for Annotated<T, A> {
     fn semigroup_op(base: Self, other: Self) -> Self {

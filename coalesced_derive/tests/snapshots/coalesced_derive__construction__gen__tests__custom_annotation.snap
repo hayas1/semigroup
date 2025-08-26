@@ -23,12 +23,7 @@ for ::coalesced::op::reverse::Reversed<::coalesced::Annotated<Concatenated<T>, X
 impl<T: IntoIterator + FromIterator<T::Item>> ::coalesced::Semigroup
 for Concatenated<T> {
     fn semigroup_op(base: Self, other: Self) -> Self {
-        use coalesced::Annotate;
-        ::coalesced::AnnotatedSemigroup::annotated_op(
-                base.annotated(vec![(); 0]),
-                other.annotated(vec![(); 0]),
-            )
-            .value
+        Self::default_semigroup_op(base, other, vec![(); 0], vec![(); 0])
     }
 }
 impl<T: IntoIterator + FromIterator<T::Item>> From<T> for Concatenated<T> {

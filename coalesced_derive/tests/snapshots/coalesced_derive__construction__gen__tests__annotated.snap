@@ -15,12 +15,7 @@ impl<T, A> Coalesce
 for ::coalesced::op::reverse::Reversed<::coalesced::Annotated<Coalesced<T>, A>> {}
 impl<T> ::coalesced::Semigroup for Coalesced<T> {
     fn semigroup_op(base: Self, other: Self) -> Self {
-        use coalesced::Annotate;
-        ::coalesced::AnnotatedSemigroup::annotated_op(
-                base.annotated(()),
-                other.annotated(()),
-            )
-            .value
+        Self::default_semigroup_op(base, other, (), ())
     }
 }
 impl<T> From<Option<T>> for Coalesced<T> {

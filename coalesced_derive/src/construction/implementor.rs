@@ -289,8 +289,6 @@ impl<'a> ConstructionTrait<'a> {
                 Constant {
                     path_semigroup,
                     ident_semigroup_op,
-                    path_annotated_semigroup,
-                    use_annotate,
                     ..
                 },
             newtype_ident,
@@ -304,8 +302,7 @@ impl<'a> ConstructionTrait<'a> {
             parse_quote! {
                 impl #impl_generics #path_semigroup for #newtype_ident #ty_generics #where_clause {
                     fn #ident_semigroup_op(base: Self, other: Self) -> Self {
-                        #use_annotate
-                        #path_annotated_semigroup::annotated_op(base.annotated(#unit), other.annotated(#unit)).value
+                        Self::default_semigroup_op(base, other, #unit, #unit)
                     }
                 }
             }
