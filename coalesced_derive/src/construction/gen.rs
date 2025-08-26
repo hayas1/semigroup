@@ -58,8 +58,8 @@ mod tests {
     fn test_derive_construction_custom_annotation_generic() {
         let derive = syn::parse_quote! {
             #[derive(Construction)]
-            #[construction(op = Coalesce, annotated, annotation_generic_param = X)]
-            pub struct Coalesced<T>(pub Option<T>);
+            #[construction(op = Coalesce, annotated, annotation_generic_param = X, annotation_generic_bound = "X: IntoIterator + FromIterator<X::Item>")]
+            pub struct Concatenated<T: IntoIterator + FromIterator<T::Item>>(pub T);
         };
         let generated = gen_construction::<Absolute>(&derive);
         let formatted = prettyplease::unparse(&syn::parse2(generated).unwrap());

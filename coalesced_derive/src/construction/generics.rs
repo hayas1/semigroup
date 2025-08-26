@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-use syn::{parse_quote, GenericParam, Generics, Ident, Path, Type, WhereClause};
+use syn::{parse_quote, GenericParam, Generics, Ident, Path, Type, TypeParam, WhereClause};
 
 use crate::construction::attr::ConstructionAttr;
 
@@ -25,12 +25,11 @@ impl<'a> Annotated<'a> {
         }
     }
 
+    pub fn type_param(&self) -> TypeParam {
+        self.attr.annotation_type_param()
+    }
     pub fn generic_param(&self) -> GenericParam {
-        self.attr
-            .annotation_generic_param
-            .as_ref()
-            .map(|p| parse_quote!(#p))
-            .unwrap_or_else(|| syn::parse_quote!(A))
+        GenericParam::Type(self.type_param())
     }
 
     pub fn split_for_impl(&self) -> (AnnotatedImplGenerics, AnnotatedType, Option<&WhereClause>) {
@@ -62,7 +61,7 @@ impl<'a> ToTokens for AnnotatedType<'a> {
             generics,
             ..
         }) = self;
-        let a = self.0.generic_param();
+        let a = self.0.type_param().ident;
         let (_, ty_generics, _) = generics.split_for_impl();
 
         let ty: Type = parse_quote! { #path_annotated<#newtype_ident #ty_generics, #a> };

@@ -8,12 +8,20 @@ pub trait Coalesce: Sized + Semigroup {
         ::coalesced::Semigroup::semigroup_op(self, other)
     }
 }
-impl<T> Coalesce for Coalesced<T> {}
-impl<T> Coalesce for ::coalesced::op::reverse::Reversed<Coalesced<T>> {}
-impl<T, X> Coalesce for ::coalesced::Annotated<Coalesced<T>, X> {}
-impl<T, X> Coalesce
-for ::coalesced::op::reverse::Reversed<::coalesced::Annotated<Coalesced<T>, X>> {}
-impl<T> ::coalesced::Semigroup for Coalesced<T> {
+impl<T: IntoIterator + FromIterator<T::Item>> Coalesce for Concatenated<T> {}
+impl<T: IntoIterator + FromIterator<T::Item>> Coalesce
+for ::coalesced::op::reverse::Reversed<Concatenated<T>> {}
+impl<
+    T: IntoIterator + FromIterator<T::Item>,
+    X: IntoIterator + FromIterator<X::Item>,
+> Coalesce for ::coalesced::Annotated<Concatenated<T>, X> {}
+impl<
+    T: IntoIterator + FromIterator<T::Item>,
+    X: IntoIterator + FromIterator<X::Item>,
+> Coalesce
+for ::coalesced::op::reverse::Reversed<::coalesced::Annotated<Concatenated<T>, X>> {}
+impl<T: IntoIterator + FromIterator<T::Item>> ::coalesced::Semigroup
+for Concatenated<T> {
     fn semigroup_op(base: Self, other: Self) -> Self {
         use coalesced::Annotate;
         ::coalesced::AnnotatedSemigroup::annotated_op(
@@ -23,23 +31,23 @@ impl<T> ::coalesced::Semigroup for Coalesced<T> {
             .value
     }
 }
-impl<T> From<Option<T>> for Coalesced<T> {
-    fn from(value: Option<T>) -> Self {
-        Coalesced(value)
+impl<T: IntoIterator + FromIterator<T::Item>> From<T> for Concatenated<T> {
+    fn from(value: T) -> Self {
+        Concatenated(value)
     }
 }
-impl<T> Coalesced<T> {
-    pub fn into_inner(self) -> Option<T> {
+impl<T: IntoIterator + FromIterator<T::Item>> Concatenated<T> {
+    pub fn into_inner(self) -> T {
         self.0
     }
 }
-impl<T> std::ops::Deref for Coalesced<T> {
-    type Target = Option<T>;
+impl<T: IntoIterator + FromIterator<T::Item>> std::ops::Deref for Concatenated<T> {
+    type Target = T;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
-impl<T> std::ops::DerefMut for Coalesced<T> {
+impl<T: IntoIterator + FromIterator<T::Item>> std::ops::DerefMut for Concatenated<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
