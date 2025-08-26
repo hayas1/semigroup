@@ -1,21 +1,15 @@
+use coalesced_derive::ConstructionUse;
+
 use crate::{
     annotate::{Annotate, Annotated},
     op::reverse::Reversed,
     semigroup::{AnnotatedSemigroup, Semigroup},
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[construction(annotated, op = Coalesce)]
 pub struct Coalesced<T>(pub Option<T>);
-pub trait Coalesce: Sized + Semigroup {
-    fn coalesce(self, other: Self) -> Self {
-        Semigroup::semigroup_op(self, other)
-    }
-}
-impl<T> Coalesce for Coalesced<T> {}
-impl<T> Coalesce for Reversed<Coalesced<T>> {}
-impl<T, P> Coalesce for Annotated<Coalesced<T>, P> {}
-impl<T, P> Coalesce for Reversed<Annotated<Coalesced<T>, P>> {}
 
 mod sealed {
     use super::*;
@@ -35,22 +29,6 @@ mod sealed {
     }
 }
 
-impl<T> From<T> for Coalesced<T> {
-    fn from(value: T) -> Self {
-        Coalesced(Some(value))
-    }
-}
-impl<T> Coalesced<T> {
-    pub fn into_inner(self) -> Option<T> {
-        self.0
-    }
-}
-
-impl<T> Semigroup for Coalesced<T> {
-    fn semigroup_op(base: Self, other: Self) -> Self {
-        AnnotatedSemigroup::annotated_op(base.annotated(()), other.annotated(())).value
-    }
-}
 impl<T, A> AnnotatedSemigroup<A> for Coalesced<T> {
     fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
         match (&base.value.0, &other.value.0) {

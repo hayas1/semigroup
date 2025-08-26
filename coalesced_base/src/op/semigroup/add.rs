@@ -1,26 +1,11 @@
+use coalesced_derive::ConstructionUse;
+
 use crate::{op::reverse::Reversed, semigroup::Semigroup};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Added<T>(pub T);
-pub trait Add: Sized + Semigroup {
-    fn add(self, other: Self) -> Self {
-        Semigroup::semigroup_op(self, other)
-    }
-}
-impl<T: std::ops::Add<Output = T>> Add for Added<T> {}
-impl<T: std::ops::Add<Output = T>> Add for Reversed<Added<T>> {}
-
-impl<T> From<T> for Added<T> {
-    fn from(value: T) -> Self {
-        Added(value)
-    }
-}
-impl<T> Added<T> {
-    pub fn into_inner(self) -> T {
-        self.0
-    }
-}
+#[construction(op = Add)]
+pub struct Added<T: std::ops::Add<Output = T>>(pub T);
 
 impl<T: std::ops::Add<Output = T>> Semigroup for Added<T> {
     fn semigroup_op(base: Self, other: Self) -> Self {
