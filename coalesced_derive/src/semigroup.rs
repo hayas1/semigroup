@@ -4,11 +4,11 @@ use syn::DeriveInput;
 
 use crate::{
     constant::ConstantExt,
-    semigroup::{attr::ContainerAttr, implementor::Semigroup},
+    semigroup::{ast::Semigroup, attr::ContainerAttr},
 };
 
+mod ast;
 mod attr;
-mod implementor;
 
 pub fn gen_semigroup<C: ConstantExt>(derive: &DeriveInput) -> syn::Result<TokenStream> {
     let constant = C::constant();
