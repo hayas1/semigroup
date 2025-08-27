@@ -8,7 +8,7 @@ use crate::{
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[construction(annotated, op = Concat, annotation_type_param = "S: IntoIterator + FromIterator<S::Item>", unit = "vec![(); 0]")]
+#[construction(annotated, op = Concat, annotation_type_param = "A: IntoIterator + FromIterator<A::Item>", unit = "vec![(); 0]")]
 pub struct Concatenated<T: IntoIterator + FromIterator<T::Item>>(pub T);
 
 mod sealed {
