@@ -8,7 +8,7 @@ use syn::{
 
 use crate::{
     constant::Constant,
-    construction::{attr::ConstructionAttr, generics::Annotated},
+    construction::{attr::ContainerAttr, generics::Annotated},
     error::ConstructionError,
 };
 
@@ -42,7 +42,7 @@ impl<'a> Construction<'a> {
     pub fn new(
         constant: &'a Constant,
         derive: &'a DeriveInput,
-        attr: &'a ConstructionAttr,
+        attr: &'a ContainerAttr,
     ) -> syn::Result<Self> {
         let DeriveInput {
             ident,
@@ -152,7 +152,7 @@ pub struct ConstructionTrait<'a> {
     pub method_ident: Ident,
     pub generics: &'a Generics,
 
-    pub attr: &'a ConstructionAttr,
+    pub attr: &'a ContainerAttr,
 }
 impl ToTokens for ConstructionTrait<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
@@ -177,7 +177,7 @@ impl<'a> ConstructionTrait<'a> {
     pub fn new(
         constant: &'a Constant,
         vis: &'a Visibility,
-        attr: &'a ConstructionAttr,
+        attr: &'a ContainerAttr,
         ident: &'a Ident,
         generics: &'a Generics,
     ) -> syn::Result<Self> {

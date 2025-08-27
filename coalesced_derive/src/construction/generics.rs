@@ -2,20 +2,20 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{parse_quote, GenericParam, Generics, Ident, Path, Type, TypeParam, WhereClause};
 
-use crate::construction::attr::ConstructionAttr;
+use crate::construction::attr::ContainerAttr;
 
 pub struct Annotated<'a> {
     pub path_annotated: &'a Path,
     pub newtype_ident: &'a Ident,
     pub generics: &'a Generics,
-    pub attr: &'a ConstructionAttr,
+    pub attr: &'a ContainerAttr,
 }
 impl<'a> Annotated<'a> {
     pub fn new(
         path_annotated: &'a Path,
         newtype_ident: &'a Ident,
         generics: &'a Generics,
-        attr: &'a ConstructionAttr,
+        attr: &'a ContainerAttr,
     ) -> Self {
         Self {
             generics,

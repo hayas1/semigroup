@@ -4,12 +4,12 @@ use syn::DeriveInput;
 
 use crate::{
     constant::ConstantExt,
-    construction::{attr::ConstructionAttr, implementor::Construction},
+    construction::{attr::ContainerAttr, implementor::Construction},
 };
 
 pub fn gen_construction<C: ConstantExt>(derive: &DeriveInput) -> TokenStream {
     let constant = C::constant();
-    let attr = match ConstructionAttr::new(derive) {
+    let attr = match ContainerAttr::new(derive) {
         Ok(attr) => attr,
         Err(e) => return e.into_compile_error(),
     };

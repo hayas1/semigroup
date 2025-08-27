@@ -3,7 +3,7 @@ use syn::{parse_quote, DeriveInput, Expr, Ident, TypeParam};
 
 #[derive(Debug, Clone, FromDeriveInput)]
 #[darling(attributes(construction))]
-pub struct ConstructionAttr {
+pub struct ContainerAttr {
     #[darling(default)]
     pub annotated: bool,
     pub unit: Option<Expr>,
@@ -12,7 +12,7 @@ pub struct ConstructionAttr {
 
     pub annotation_type_param: Option<TypeParam>,
 }
-impl ConstructionAttr {
+impl ContainerAttr {
     pub fn new(derive: &DeriveInput) -> syn::Result<Self> {
         Ok(Self::from_derive_input(derive)?)
     }
