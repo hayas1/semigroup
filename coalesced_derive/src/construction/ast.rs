@@ -2,8 +2,8 @@ use heck::ToSnakeCase;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{
-    parse_quote, Data, DataStruct, DeriveInput, Field, Fields, FieldsUnnamed, Ident, ItemImpl,
-    ItemTrait,
+    parse_quote, Data, DataEnum, DataStruct, DeriveInput, Field, Fields, FieldsUnnamed, Ident,
+    ItemImpl, ItemTrait,
 };
 
 use crate::{
@@ -43,8 +43,7 @@ impl<'a> Construction<'a> {
         derive: &'a DeriveInput,
         attr: &'a ContainerAttr,
     ) -> syn::Result<Self> {
-        let DeriveInput { ident, data, .. } = derive;
-        match &data {
+        match &derive.data {
             Data::Struct(DataStruct {
                 fields: Fields::Unnamed(FieldsUnnamed { unnamed, .. }),
                 ..
@@ -60,8 +59,16 @@ impl<'a> Construction<'a> {
                     semigroup_trait,
                 })
             }
-            Data::Enum(_) | Data::Struct(_) | Data::Union(_) => Err(syn::Error::new_spanned(
-                ident,
+            Data::Enum(DataEnum { enum_token, .. }) => Err(syn::Error::new_spanned(
+                enum_token,
+                ConstructionError::OnlyNewType,
+            )),
+            Data::Struct(DataStruct { struct_token, .. }) => Err(syn::Error::new_spanned(
+                struct_token,
+                ConstructionError::OnlyNewType,
+            )),
+            Data::Union(union) => Err(syn::Error::new_spanned(
+                union.union_token,
                 ConstructionError::OnlyNewType,
             )),
         }

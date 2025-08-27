@@ -23,8 +23,7 @@ impl<'a> Semigroup<'a> {
         derive: &'a DeriveInput,
         attr: &'a ContainerAttr,
     ) -> syn::Result<Self> {
-        let DeriveInput { ident, data, .. } = derive;
-        match &data {
+        match &derive.data {
             Data::Enum(DataEnum { enum_token, .. }) => Err(syn::Error::new_spanned(
                 enum_token,
                 SemigroupError::UnsupportedEnum,
