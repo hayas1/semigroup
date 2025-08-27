@@ -1,6 +1,6 @@
 use coalesced_derive::ConstructionUse;
 
-use crate::{op::reverse::Reversed, semigroup::Semigroup};
+use crate::{reverse::Reversed, semigroup::Semigroup};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

@@ -9,10 +9,9 @@ pub trait Coalesce: Sized + Semigroup {
     }
 }
 impl<T> Coalesce for Coalesced<T> {}
-impl<T> Coalesce for ::coalesced::op::reverse::Reversed<Coalesced<T>> {}
+impl<T> Coalesce for ::coalesced::Reversed<Coalesced<T>> {}
 impl<T, A> Coalesce for ::coalesced::Annotated<Coalesced<T>, A> {}
-impl<T, A> Coalesce
-for ::coalesced::op::reverse::Reversed<::coalesced::Annotated<Coalesced<T>, A>> {}
+impl<T, A> Coalesce for ::coalesced::Reversed<::coalesced::Annotated<Coalesced<T>, A>> {}
 impl<T> ::coalesced::Semigroup for Coalesced<T> {
     fn semigroup_op(base: Self, other: Self) -> Self {
         Self::default_semigroup_op(base, other, (), ())

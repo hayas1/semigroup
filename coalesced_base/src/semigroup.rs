@@ -28,7 +28,7 @@ impl<T: AnnotatedSemigroup<A>, A> Semigroup for Annotated<T, A> {
 pub mod tests {
     use std::fmt::Debug;
 
-    use crate::op::reverse::Reversed;
+    use crate::reverse::Reversed;
 
     use super::*;
 

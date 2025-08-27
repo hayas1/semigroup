@@ -21,7 +21,7 @@ impl ConstantExt for Absolute {
             _path_annotated_semigroup: parse_quote!(::coalesced::AnnotatedSemigroup),
             ident_semigroup_op: parse_quote!(semigroup_op),
             path_annotated: parse_quote!(::coalesced::Annotated),
-            path_reversed: parse_quote!(::coalesced::op::reverse::Reversed),
+            path_reversed: parse_quote!(::coalesced::Reversed),
         }
     }
 }
