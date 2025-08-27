@@ -1,6 +1,7 @@
 use syn::{parse_quote, Ident, Path};
 
 pub const DERIVE_CONSTRUCTION: &str = "Construction";
+pub const DERIVE_SEMIGROUP: &str = "Semigroup";
 
 #[derive(Debug, Clone)]
 pub struct Constant {
