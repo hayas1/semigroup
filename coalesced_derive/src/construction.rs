@@ -11,17 +11,11 @@ mod attr;
 mod generics;
 mod implementor;
 
-pub fn gen_construction<C: ConstantExt>(derive: &DeriveInput) -> TokenStream {
+pub fn gen_construction<C: ConstantExt>(derive: &DeriveInput) -> syn::Result<TokenStream> {
     let constant = C::constant();
-    let attr = match ContainerAttr::new(derive) {
-        Ok(attr) => attr,
-        Err(e) => return e.into_compile_error(),
-    };
-    let construction = match Construction::new(&constant, derive, &attr) {
-        Ok(construction) => construction,
-        Err(e) => return e.into_compile_error(),
-    };
-    construction.into_token_stream()
+    let attr = ContainerAttr::new(derive)?;
+    let construction = Construction::new(&constant, derive, &attr)?;
+    Ok(construction.into_token_stream())
 }
 
 #[cfg(test)]
@@ -37,7 +31,7 @@ mod tests {
             #[construction(annotated, op = Coalesce)]
             pub struct Coalesced<T>(pub Option<T>);
         };
-        let generated = gen_construction::<Absolute>(&derive);
+        let generated = gen_construction::<Absolute>(&derive).unwrap();
         let formatted = prettyplease::unparse(&syn::parse2(generated).unwrap());
         insta::with_settings!({ snapshot_path => "../tests/snapshots" }, {
             insta::assert_snapshot!("annotated", formatted);
@@ -51,7 +45,7 @@ mod tests {
             #[construction(op = Coalesce)]
             pub struct Coalesced<T>(pub Option<T>);
         };
-        let generated = gen_construction::<Use>(&derive);
+        let generated = gen_construction::<Use>(&derive).unwrap();
         let formatted = prettyplease::unparse(&syn::parse2(generated).unwrap());
         insta::with_settings!({ snapshot_path => "../tests/snapshots" }, {
             insta::assert_snapshot!("not_annotated", formatted);
@@ -65,7 +59,7 @@ mod tests {
             #[construction(op = Coalesce, annotated, annotation_type_param = "X: IntoIterator + FromIterator<X::Item>", unit = "vec![(); 0]")]
             pub struct Concatenated<T: IntoIterator + FromIterator<T::Item>>(pub T);
         };
-        let generated = gen_construction::<Absolute>(&derive);
+        let generated = gen_construction::<Absolute>(&derive).unwrap();
         let formatted = prettyplease::unparse(&syn::parse2(generated).unwrap());
         insta::with_settings!({ snapshot_path => "../tests/snapshots" }, {
             insta::assert_snapshot!("custom_annotation", formatted);
