@@ -2,8 +2,8 @@ use heck::ToSnakeCase;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{
-    parse_quote, Data, DataStruct, DeriveInput, Field, Fields, FieldsUnnamed, Generics, Ident,
-    ItemImpl, ItemTrait, Visibility,
+    parse_quote, Data, DataStruct, DeriveInput, Field, Fields, FieldsUnnamed, Ident, ItemImpl,
+    ItemTrait,
 };
 
 use crate::{
@@ -14,8 +14,7 @@ use crate::{
 
 #[derive(Debug, Clone)]
 pub struct Construction<'a> {
-    ident: &'a Ident,
-    generics: &'a Generics,
+    derive: &'a DeriveInput,
     field: &'a Field,
 
     semigroup_trait: ConstructionTrait<'a>,
@@ -44,12 +43,7 @@ impl<'a> Construction<'a> {
         derive: &'a DeriveInput,
         attr: &'a ContainerAttr,
     ) -> syn::Result<Self> {
-        let DeriveInput {
-            ident,
-            generics,
-            data,
-            ..
-        } = derive;
+        let DeriveInput { ident, data, .. } = derive;
         match &data {
             Data::Struct(DataStruct {
                 fields: Fields::Unnamed(FieldsUnnamed { unnamed, .. }),
@@ -59,11 +53,9 @@ impl<'a> Construction<'a> {
                 let &[field] = unnamed.iter().collect::<Vec<_>>().as_slice() else {
                     unreachable!()
                 };
-                let semigroup_trait =
-                    ConstructionTrait::new(constant, &derive.vis, attr, ident, generics)?;
+                let semigroup_trait = ConstructionTrait::new(constant, derive, attr)?;
                 Ok(Self {
-                    ident,
-                    generics,
+                    derive,
                     field,
                     semigroup_trait,
                 })
@@ -77,8 +69,9 @@ impl<'a> Construction<'a> {
 
     pub fn impl_from(&self) -> ItemImpl {
         let Self {
-            ident,
-            generics,
+            derive: DeriveInput {
+                ident, generics, ..
+            },
             field,
             ..
         } = self;
@@ -94,8 +87,9 @@ impl<'a> Construction<'a> {
     }
     pub fn impl_into_inner(&self) -> ItemImpl {
         let Self {
-            ident,
-            generics,
+            derive: DeriveInput {
+                ident, generics, ..
+            },
             field,
             ..
         } = self;
@@ -111,8 +105,9 @@ impl<'a> Construction<'a> {
     }
     pub fn impl_deref(&self) -> ItemImpl {
         let Self {
-            ident,
-            generics,
+            derive: DeriveInput {
+                ident, generics, ..
+            },
             field,
             ..
         } = self;
@@ -129,7 +124,10 @@ impl<'a> Construction<'a> {
     }
     pub fn impl_deref_mut(&self) -> ItemImpl {
         let Self {
-            ident, generics, ..
+            derive: DeriveInput {
+                ident, generics, ..
+            },
+            ..
         } = self;
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
         parse_quote! {
@@ -144,15 +142,13 @@ impl<'a> Construction<'a> {
 
 #[derive(Debug, Clone)]
 pub struct ConstructionTrait<'a> {
-    pub constant: &'a Constant,
+    constant: &'a Constant,
+    derive: &'a DeriveInput,
 
-    pub vis: &'a Visibility,
-    pub newtype_ident: &'a Ident,
-    pub trait_ident: Ident,
-    pub method_ident: Ident,
-    pub generics: &'a Generics,
+    trait_ident: Ident,
+    method_ident: Ident,
 
-    pub attr: &'a ContainerAttr,
+    attr: &'a ContainerAttr,
 }
 impl ToTokens for ConstructionTrait<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
@@ -176,22 +172,17 @@ impl ToTokens for ConstructionTrait<'_> {
 impl<'a> ConstructionTrait<'a> {
     pub fn new(
         constant: &'a Constant,
-        vis: &'a Visibility,
+        derive: &'a DeriveInput,
         attr: &'a ContainerAttr,
-        ident: &'a Ident,
-        generics: &'a Generics,
     ) -> syn::Result<Self> {
-        let newtype_ident = ident;
         let trait_ident = attr.op.clone();
         let method_ident = quote::format_ident!("{}", trait_ident.to_string().to_snake_case());
 
         Ok(Self {
             constant,
-            vis,
-            newtype_ident,
+            derive,
             trait_ident,
             method_ident,
-            generics,
             attr,
         })
     }
@@ -204,7 +195,7 @@ impl<'a> ConstructionTrait<'a> {
                     ident_semigroup_op,
                     ..
                 },
-            vis,
+            derive: DeriveInput { vis, .. },
             trait_ident,
             method_ident,
             ..
@@ -220,40 +211,43 @@ impl<'a> ConstructionTrait<'a> {
     }
     pub fn impl_trait(&self) -> ItemImpl {
         let Self {
-            newtype_ident,
+            derive: DeriveInput {
+                ident, generics, ..
+            },
             trait_ident,
-            generics,
             ..
         } = self;
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
         parse_quote! {
-            impl #impl_generics #trait_ident for #newtype_ident #ty_generics #where_clause {}
+            impl #impl_generics #trait_ident for #ident #ty_generics #where_clause {}
         }
     }
     pub fn impl_trait_reversed(&self) -> ItemImpl {
         let Self {
             constant: Constant { path_reversed, .. },
-            newtype_ident,
+            derive: DeriveInput {
+                ident, generics, ..
+            },
             trait_ident,
-            generics,
             ..
         } = self;
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
         parse_quote! {
-            impl #impl_generics #trait_ident for #path_reversed<#newtype_ident #ty_generics> #where_clause {}
+            impl #impl_generics #trait_ident for #path_reversed<#ident #ty_generics> #where_clause {}
         }
     }
     pub fn impl_trait_annotated(&self) -> Option<ItemImpl> {
         let Self {
             constant: Constant { path_annotated, .. },
-            newtype_ident,
+            derive: DeriveInput {
+                ident, generics, ..
+            },
             trait_ident,
-            generics,
             attr,
             ..
         } = self;
         attr.is_annotated().then(|| {
-            let annotated = Annotated::new(path_annotated, newtype_ident, generics, attr);
+            let annotated = Annotated::new(path_annotated, ident, generics, attr);
             let (annotated_impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
 
             parse_quote! {
@@ -269,14 +263,15 @@ impl<'a> ConstructionTrait<'a> {
                     path_reversed,
                     ..
                 },
-            newtype_ident,
+            derive: DeriveInput {
+                ident, generics, ..
+            },
             trait_ident,
-            generics,
             attr,
             ..
         } = self;
         attr.is_annotated().then(|| {
-            let annotated = Annotated::new(path_annotated, newtype_ident,generics, attr);
+            let annotated = Annotated::new(path_annotated, ident, generics, attr);
             let (annotated_impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
             parse_quote! {
                 impl #annotated_impl_generics #trait_ident for #path_reversed<#annotated_ty> #where_clause {}
@@ -291,8 +286,9 @@ impl<'a> ConstructionTrait<'a> {
                     ident_semigroup_op,
                     ..
                 },
-            newtype_ident,
-            generics,
+            derive: DeriveInput {
+                ident, generics, ..
+            },
             attr,
             ..
         } = self;
@@ -300,7 +296,7 @@ impl<'a> ConstructionTrait<'a> {
             let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
             let unit = attr.unit_annotate();
             parse_quote! {
-                impl #impl_generics #path_semigroup for #newtype_ident #ty_generics #where_clause {
+                impl #impl_generics #path_semigroup for #ident #ty_generics #where_clause {
                     fn #ident_semigroup_op(base: Self, other: Self) -> Self {
                         Self::default_semigroup_op(base, other, #unit, #unit)
                     }
