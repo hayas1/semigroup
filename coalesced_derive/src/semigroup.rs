@@ -4,13 +4,11 @@ use syn::DeriveInput;
 use crate::{constant::ConstantExt, semigroup::attr::ContainerAttr};
 
 mod attr;
+mod implementor;
 
-pub fn gen_semigroup<C: ConstantExt>(derive: &DeriveInput) -> TokenStream {
+pub fn gen_semigroup<C: ConstantExt>(derive: &DeriveInput) -> syn::Result<TokenStream> {
     let constant = C::constant();
-    let attr = match ContainerAttr::new(derive) {
-        Ok(attr) => attr,
-        Err(e) => return e.into_compile_error(),
-    };
+    let attr = ContainerAttr::new(derive)?;
 
     todo!()
 }
