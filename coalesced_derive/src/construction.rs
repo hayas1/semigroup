@@ -39,7 +39,7 @@ mod tests {
         };
         let generated = gen_construction::<Absolute>(&derive);
         let formatted = prettyplease::unparse(&syn::parse2(generated).unwrap());
-        insta::with_settings!({ snapshot_path => "../../tests/snapshots" }, {
+        insta::with_settings!({ snapshot_path => "../tests/snapshots" }, {
             insta::assert_snapshot!("annotated", formatted);
         });
     }
@@ -53,7 +53,7 @@ mod tests {
         };
         let generated = gen_construction::<Use>(&derive);
         let formatted = prettyplease::unparse(&syn::parse2(generated).unwrap());
-        insta::with_settings!({ snapshot_path => "../../tests/snapshots" }, {
+        insta::with_settings!({ snapshot_path => "../tests/snapshots" }, {
             insta::assert_snapshot!("not_annotated", formatted);
         });
     }
@@ -67,7 +67,7 @@ mod tests {
         };
         let generated = gen_construction::<Absolute>(&derive);
         let formatted = prettyplease::unparse(&syn::parse2(generated).unwrap());
-        insta::with_settings!({ snapshot_path => "../../tests/snapshots" }, {
+        insta::with_settings!({ snapshot_path => "../tests/snapshots" }, {
             insta::assert_snapshot!("custom_annotation", formatted);
         });
     }
