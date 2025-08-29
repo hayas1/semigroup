@@ -5,7 +5,11 @@ use syn::{
     FieldsNamed, Ident, ItemImpl,
 };
 
-use crate::{constant::Constant, error::SemigroupError, semigroup::attr::ContainerAttr};
+use crate::{
+    constant::Constant,
+    error::SemigroupError,
+    semigroup::attr::{ContainerAttr, FieldAttr},
+};
 
 #[derive(Debug, Clone)]
 pub struct Semigroup<'a> {
@@ -34,7 +38,7 @@ impl<'a> Semigroup<'a> {
                 SemigroupError::UnsupportedEnum,
             )),
             Data::Struct(data_struct) => {
-                let semigroup_trait = SemigroupTrait::new(constant, derive, data_struct, attr)?;
+                let semigroup_trait = SemigroupTrait::new(constant, derive, attr, data_struct)?;
                 Ok(Self {
                     derive,
                     semigroup_trait,
@@ -52,12 +56,16 @@ impl<'a> Semigroup<'a> {
 pub struct SemigroupTrait<'a> {
     constant: &'a Constant,
     derive: &'a DeriveInput,
-    data_struct: &'a DataStruct,
     attr: &'a ContainerAttr,
+    data_struct: &'a DataStruct,
 }
 impl ToTokens for SemigroupTrait<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let impl_trait = self.impl_trait();
+        let impl_trait = self
+            .impl_trait()
+            .as_ref()
+            .map(ToTokens::to_token_stream)
+            .unwrap_or_else(syn::Error::to_compile_error);
         impl_trait.to_tokens(tokens)
     }
 }
@@ -65,8 +73,8 @@ impl<'a> SemigroupTrait<'a> {
     pub fn new(
         constant: &'a Constant,
         derive: &'a DeriveInput,
-        data_struct: &'a DataStruct,
         attr: &'a ContainerAttr,
+        data_struct: &'a DataStruct,
     ) -> syn::Result<Self> {
         Ok(Self {
             constant,
@@ -75,11 +83,16 @@ impl<'a> SemigroupTrait<'a> {
             attr,
         })
     }
-    pub fn impl_trait(&self) -> ItemImpl {
+    pub fn impl_trait(&self) -> syn::Result<ItemImpl> {
+        let Self {
+            constant,
+            derive,
+            attr,
+            ..
+        } = self;
         match &self.data_struct.fields {
             Fields::Named(fields_named) => {
-                let named =
-                    SemigroupTraitNamed::new(self.constant, self.derive, fields_named, self.attr);
+                let named = SemigroupTraitNamed::new(constant, derive, attr, fields_named);
                 named.impl_trait()
             }
             Fields::Unnamed(fields_unnamed) => todo!(),
@@ -92,11 +105,16 @@ impl<'a> SemigroupTrait<'a> {
 pub struct SemigroupTraitNamed<'a> {
     constant: &'a Constant,
     derive: &'a DeriveInput,
+    attr: &'a ContainerAttr,
     fields_named: &'a FieldsNamed,
 }
 impl ToTokens for SemigroupTraitNamed<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let impl_trait = self.impl_trait();
+        let impl_trait = self
+            .impl_trait()
+            .as_ref()
+            .map(ToTokens::to_token_stream)
+            .unwrap_or_else(syn::Error::to_compile_error);
         impl_trait.to_tokens(tokens)
     }
 }
@@ -104,31 +122,33 @@ impl<'a> SemigroupTraitNamed<'a> {
     pub fn new(
         constant: &'a Constant,
         derive: &'a DeriveInput,
-        fields_named: &'a FieldsNamed,
         attr: &'a ContainerAttr,
+        fields_named: &'a FieldsNamed,
     ) -> Self {
         Self {
             constant,
             derive,
+            attr,
             fields_named,
         }
     }
 
-    pub fn impl_trait(&self) -> ItemImpl {
+    pub fn impl_trait(&self) -> syn::Result<ItemImpl> {
         let Self {
-            constant:
-                Constant {
-                    path_semigroup,
-                    ident_semigroup_op,
-                    ..
-                },
-            derive: DeriveInput { ident, .. },
+            constant,
+            derive,
+            attr,
             fields_named,
             ..
         } = self;
-        let fields =
-            SemigroupTraitField::new(self.constant, self.derive, self.fields_named.named.iter());
-        parse_quote! {
+        let Constant {
+            path_semigroup,
+            ident_semigroup_op,
+            ..
+        } = constant;
+        let DeriveInput { ident, .. } = derive;
+        let fields = SemigroupTraitField::new_fields(constant, derive, attr, &fields_named.named)?;
+        Ok(parse_quote! {
             impl #path_semigroup for #ident {
                 fn #ident_semigroup_op(base: Self, other: Self) -> Self {
                     Self {
@@ -136,15 +156,17 @@ impl<'a> SemigroupTraitNamed<'a> {
                     }
                 }
             }
-        }
+        })
     }
 }
 
 pub struct SemigroupTraitField<'a> {
     constant: &'a Constant,
     derive: &'a DeriveInput,
+    container_attr: &'a ContainerAttr,
     index: usize,
     field: &'a Field,
+    field_attr: FieldAttr,
 }
 impl ToTokens for SemigroupTraitField<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
@@ -156,17 +178,31 @@ impl<'a> SemigroupTraitField<'a> {
     pub fn new(
         constant: &'a Constant,
         derive: &'a DeriveInput,
+        container_attr: &'a ContainerAttr,
+        index: usize,
+        field: &'a Field,
+    ) -> syn::Result<Self> {
+        let field_attr = FieldAttr::new(field)?;
+        Ok(Self {
+            constant,
+            derive,
+            container_attr,
+            index,
+            field,
+            field_attr,
+        })
+    }
+    pub fn new_fields(
+        constant: &'a Constant,
+        derive: &'a DeriveInput,
+        container_attr: &'a ContainerAttr,
         fields: impl 'a + IntoIterator<Item = &'a Field>,
-    ) -> impl 'a + Iterator<Item = Self> {
+    ) -> syn::Result<Vec<Self>> {
         fields
             .into_iter()
             .enumerate()
-            .map(move |(index, field)| Self {
-                constant,
-                derive,
-                index,
-                field,
-            })
+            .map(move |(index, field)| Self::new(constant, derive, container_attr, index, field))
+            .collect()
     }
     pub fn impl_trait_field(&self) -> FieldValue {
         match &self.field.ident {
@@ -177,13 +213,16 @@ impl<'a> SemigroupTraitField<'a> {
 
     pub fn impl_trait_field_named(&self, ident: &Ident) -> FieldValue {
         let Self {
-            constant: Constant {
-                ident_semigroup_op, ..
-            },
+            constant:
+                Constant {
+                    path_semigroup,
+                    ident_semigroup_op,
+                    ..
+                },
             ..
         } = self;
         parse_quote! {
-            #ident: base.#ident.#ident_semigroup_op(other.#ident)
+            #ident: #path_semigroup::#ident_semigroup_op(base.#ident, other.#ident)
         }
     }
 }
