@@ -6,4 +6,4 @@ pub use coalesced_base::{
     semigroup::{AnnotatedSemigroup, Semigroup},
 };
 
-pub use coalesced_derive::Construction;
+pub use coalesced_derive::{Construction, Semigroup};
