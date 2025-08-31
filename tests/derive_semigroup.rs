@@ -33,3 +33,34 @@ fn test_named_struct_semigroup_op() {
         }
     );
 }
+
+#[derive(Debug, Clone, PartialEq, Semigroup)]
+pub struct UnnamedStruct(
+    #[semigroup(with = "coalesced::op::annotation::replace::Replaced")] String,
+    Option<u32>,
+);
+
+#[test]
+fn test_unnamed_struct_semigroup_op() {
+    let a = UnnamedStruct("A".to_string(), Some(10));
+    let b = UnnamedStruct("B".to_string(), None);
+
+    assert_eq!(
+        UnnamedStruct::semigroup_op(a.clone(), b.clone()),
+        UnnamedStruct("B".to_string(), Some(10))
+    );
+    assert_eq!(
+        UnnamedStruct::semigroup_op(b.clone(), a.clone()),
+        UnnamedStruct("A".to_string(), Some(10))
+    );
+}
+
+#[derive(Debug, Clone, PartialEq, Semigroup)]
+pub struct UnitStruct;
+#[test]
+fn test_unit_struct_semigroup_op() {
+    let a = UnitStruct;
+    let b = UnitStruct;
+    assert_eq!(UnitStruct::semigroup_op(a.clone(), b.clone()), UnitStruct);
+    assert_eq!(UnitStruct::semigroup_op(b.clone(), a.clone()), UnitStruct);
+}

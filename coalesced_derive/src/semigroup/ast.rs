@@ -1,8 +1,8 @@
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{
-    parse_quote, Data, DataEnum, DataStruct, DataUnion, DeriveInput, Field, FieldValue, Fields,
-    FieldsNamed, Ident, ItemImpl,
+    parse_quote, Data, DataEnum, DataStruct, DataUnion, DeriveInput, FieldValue, Fields, ItemImpl,
+    Member,
 };
 
 use crate::{
@@ -87,55 +87,7 @@ impl<'a> StructSemigroup<'a> {
             constant,
             derive,
             attr,
-            ..
-        } = self;
-        match &self.data_struct.fields {
-            Fields::Named(fields_named) => {
-                StructNamedSemigroup::new(constant, derive, attr, fields_named).impl_semigroup()
-            }
-            Fields::Unnamed(fields_unnamed) => todo!(),
-            Fields::Unit => todo!(),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct StructNamedSemigroup<'a> {
-    constant: &'a Constant,
-    derive: &'a DeriveInput,
-    attr: &'a ContainerAttr,
-    fields_named: &'a FieldsNamed,
-}
-impl ToTokens for StructNamedSemigroup<'_> {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.impl_semigroup()
-            .as_ref()
-            .map(ToTokens::to_token_stream)
-            .unwrap_or_else(syn::Error::to_compile_error)
-            .to_tokens(tokens)
-    }
-}
-impl<'a> StructNamedSemigroup<'a> {
-    pub fn new(
-        constant: &'a Constant,
-        derive: &'a DeriveInput,
-        attr: &'a ContainerAttr,
-        fields_named: &'a FieldsNamed,
-    ) -> Self {
-        Self {
-            constant,
-            derive,
-            attr,
-            fields_named,
-        }
-    }
-
-    pub fn impl_semigroup(&self) -> syn::Result<ItemImpl> {
-        let Self {
-            constant,
-            derive,
-            attr,
-            fields_named,
+            data_struct,
             ..
         } = self;
         let Constant {
@@ -144,7 +96,7 @@ impl<'a> StructNamedSemigroup<'a> {
             ..
         } = constant;
         let DeriveInput { ident, .. } = derive;
-        let fields = FieldSemigroupOp::new_fields(constant, derive, attr, &fields_named.named)?;
+        let fields = FieldSemigroupOp::new_fields(constant, derive, attr, &data_struct.fields)?;
         Ok(parse_quote! {
             impl #path_semigroup for #ident {
                 fn #ident_semigroup_op(base: Self, other: Self) -> Self {
@@ -160,8 +112,7 @@ impl<'a> StructNamedSemigroup<'a> {
 pub struct FieldSemigroupOp<'a> {
     constant: &'a Constant,
     container_attr: &'a ContainerAttr,
-    index: usize,
-    field: &'a Field,
+    member: Member,
     field_attr: FieldAttr,
 }
 impl ToTokens for FieldSemigroupOp<'_> {
@@ -174,38 +125,38 @@ impl<'a> FieldSemigroupOp<'a> {
         constant: &'a Constant,
         _derive: &'a DeriveInput,
         container_attr: &'a ContainerAttr,
-        index: usize,
-        field: &'a Field,
-    ) -> syn::Result<Self> {
-        let field_attr = FieldAttr::new(field)?;
-        Ok(Self {
+        member: Member,
+        field_attr: FieldAttr,
+    ) -> Self {
+        Self {
             constant,
             container_attr,
-            index,
-            field,
+            member,
             field_attr,
-        })
+        }
     }
     pub fn new_fields(
         constant: &'a Constant,
         derive: &'a DeriveInput,
         container_attr: &'a ContainerAttr,
-        fields: impl 'a + IntoIterator<Item = &'a Field>,
+        fields: &'a Fields,
     ) -> syn::Result<Vec<Self>> {
         fields
-            .into_iter()
-            .enumerate()
-            .map(move |(index, field)| Self::new(constant, derive, container_attr, index, field))
+            .iter()
+            .zip(fields.members())
+            .map(|(field, member)| {
+                Ok(Self::new(
+                    constant,
+                    derive,
+                    container_attr,
+                    member,
+                    FieldAttr::new(field)?,
+                ))
+            })
             .collect()
     }
-    pub fn impl_semigroup_field(&self) -> FieldValue {
-        match &self.field.ident {
-            Some(ident) => self.impl_semigroup_field_named(ident),
-            None => todo!(),
-        }
-    }
 
-    pub fn impl_semigroup_field_named(&self, ident: &Ident) -> FieldValue {
+    pub fn impl_semigroup_field(&self) -> FieldValue {
         let Self {
             constant:
                 Constant {
@@ -215,19 +166,19 @@ impl<'a> FieldSemigroupOp<'a> {
                     ..
                 },
             container_attr,
+            member,
             field_attr,
             ..
         } = self;
-        field_attr
-            .with(container_attr)
-            .map(|path| {
+        let with = field_attr.with(container_attr);
+        with.map(|path| {
                 parse_quote! {
-                    #ident: <#path<_> as #path_construction_trait<_>>::lift_op(base.#ident, other.#ident)
+                    #member: <#path<_> as #path_construction_trait<_>>::lift_op(base.#member, other.#member)
                 }
             })
             .unwrap_or_else(|| {
                 parse_quote! {
-                    #ident: #path_semigroup::#ident_semigroup_op(base.#ident, other.#ident)
+                    #member: #path_semigroup::#ident_semigroup_op(base.#member, other.#member)
                 }
             })
     }
