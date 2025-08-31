@@ -16,11 +16,15 @@ impl ContainerAttr {
 }
 
 #[derive(Debug, Clone, FromField)]
+#[darling(attributes(semigroup))]
 pub struct FieldAttr {
     pub with: Option<Path>,
 }
 impl FieldAttr {
     pub fn new(field: &Field) -> syn::Result<Self> {
         Ok(Self::from_field(field)?)
+    }
+    pub fn with<'a>(&'a self, container: &'a ContainerAttr) -> Option<&'a Path> {
+        self.with.as_ref().or(container.with.as_ref())
     }
 }

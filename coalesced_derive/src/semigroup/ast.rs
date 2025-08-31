@@ -217,12 +217,24 @@ impl<'a> SemigroupTraitField<'a> {
                 Constant {
                     path_semigroup,
                     ident_semigroup_op,
+                    path_construction_trait,
                     ..
                 },
+            container_attr,
+            field_attr,
             ..
         } = self;
-        parse_quote! {
-            #ident: #path_semigroup::#ident_semigroup_op(base.#ident, other.#ident)
-        }
+        field_attr
+            .with(container_attr)
+            .map(|path| {
+                parse_quote! {
+                    #ident: <#path<_> as #path_construction_trait<_>>::lift_op(base.#ident, other.#ident)
+                }
+            })
+            .unwrap_or_else(|| {
+                parse_quote! {
+                    #ident: #path_semigroup::#ident_semigroup_op(base.#ident, other.#ident)
+                }
+            })
     }
 }
