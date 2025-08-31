@@ -95,10 +95,13 @@ impl<'a> StructSemigroup<'a> {
             ident_semigroup_op,
             ..
         } = constant;
-        let DeriveInput { ident, .. } = derive;
+        let DeriveInput {
+            ident, generics, ..
+        } = derive;
+        let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
         let fields = FieldSemigroupOp::new_fields(constant, derive, attr, &data_struct.fields)?;
         Ok(parse_quote! {
-            impl #path_semigroup for #ident {
+            impl #impl_generics #path_semigroup for #ident #ty_generics #where_clause {
                 fn #ident_semigroup_op(base: Self, other: Self) -> Self {
                     Self {
                         #(#fields),*
