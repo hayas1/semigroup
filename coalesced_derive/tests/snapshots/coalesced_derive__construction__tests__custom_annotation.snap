@@ -45,4 +45,7 @@ impl<T: IntoIterator + FromIterator<T::Item>> Concatenated<T> {
     pub fn into_inner(self) -> T {
         self.0
     }
+    pub fn lift_op(base: T, other: T) -> T {
+        ::coalesced::Semigroup::semigroup_op(Self(base), Self(other)).into_inner()
+    }
 }

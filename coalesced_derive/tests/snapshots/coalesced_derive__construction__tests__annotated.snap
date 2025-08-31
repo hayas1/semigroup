@@ -37,4 +37,7 @@ impl<T> Coalesced<T> {
     pub fn into_inner(self) -> Option<T> {
         self.0
     }
+    pub fn lift_op(base: Option<T>, other: Option<T>) -> Option<T> {
+        ::coalesced::Semigroup::semigroup_op(Self(base), Self(other)).into_inner()
+    }
 }

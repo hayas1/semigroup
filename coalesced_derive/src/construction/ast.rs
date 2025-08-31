@@ -14,6 +14,7 @@ use crate::{
 
 #[derive(Debug, Clone)]
 pub struct Construction<'a> {
+    constant: &'a Constant,
     derive: &'a DeriveInput,
     field: &'a Field,
 
@@ -54,6 +55,7 @@ impl<'a> Construction<'a> {
                 };
                 let semigroup_trait = ConstructionTrait::new(constant, derive, attr)?;
                 Ok(Self {
+                    constant,
                     derive,
                     field,
                     semigroup_trait,
@@ -101,9 +103,11 @@ impl<'a> Construction<'a> {
         } = self;
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
         let into_inner = self.impl_into_inner();
+        let lift_op = self.impl_lift_op();
         parse_quote! {
             impl #impl_generics #ident #ty_generics #where_clause {
                 #into_inner
+                #lift_op
             }
         }
     }
@@ -115,6 +119,23 @@ impl<'a> Construction<'a> {
         parse_quote! {
             pub fn into_inner(self) -> #ty {
                 self.0
+            }
+        }
+    }
+    pub fn impl_lift_op(&self) -> ItemFn {
+        let Self {
+            constant:
+                Constant {
+                    path_semigroup,
+                    ident_semigroup_op,
+                    ..
+                },
+            field: Field { ty, .. },
+            ..
+        } = self;
+        parse_quote! {
+            pub fn lift_op(base: #ty, other: #ty) -> #ty {
+                #path_semigroup::#ident_semigroup_op(Self(base), Self(other)).into_inner()
             }
         }
     }
