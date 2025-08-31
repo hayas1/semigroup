@@ -3,7 +3,7 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{
     parse_quote, Data, DataEnum, DataStruct, DeriveInput, Field, Fields, FieldsUnnamed, Ident,
-    ItemImpl, ItemTrait,
+    ItemFn, ItemImpl, ItemTrait,
 };
 
 use crate::{
@@ -25,15 +25,15 @@ impl ToTokens for Construction<'_> {
             semigroup_trait, ..
         } = self;
         let from = self.impl_from();
-        let into_inner = self.impl_into_inner();
         let deref = self.impl_deref();
         let deref_mut = self.impl_deref_mut();
+        let impl_block = self.impl_block();
         tokens.extend(quote::quote! {
             #semigroup_trait
             #from
-            #into_inner
             #deref
             #deref_mut
+            #impl_block
         });
     }
 }
@@ -92,21 +92,29 @@ impl<'a> Construction<'a> {
             }
         }
     }
-    pub fn impl_into_inner(&self) -> ItemImpl {
+    pub fn impl_block(&self) -> ItemImpl {
         let Self {
             derive: DeriveInput {
                 ident, generics, ..
             },
-            field,
             ..
         } = self;
-        let field_type = &field.ty;
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+        let into_inner = self.impl_into_inner();
         parse_quote! {
             impl #impl_generics #ident #ty_generics #where_clause {
-                pub fn into_inner(self) -> #field_type {
-                    self.0
-                }
+                #into_inner
+            }
+        }
+    }
+    pub fn impl_into_inner(&self) -> ItemFn {
+        let Self {
+            field: Field { ty, .. },
+            ..
+        } = self;
+        parse_quote! {
+            pub fn into_inner(self) -> #ty {
+                self.0
             }
         }
     }

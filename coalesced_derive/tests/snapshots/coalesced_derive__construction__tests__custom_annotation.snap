@@ -1,6 +1,6 @@
 ---
-source: coalesced_derive/src/construction/gen.rs
-assertion_line: 67
+source: coalesced_derive/src/construction.rs
+assertion_line: 65
 expression: formatted
 ---
 pub trait Coalesce: Sized + Semigroup {
@@ -30,11 +30,6 @@ impl<T: IntoIterator + FromIterator<T::Item>> From<T> for Concatenated<T> {
         Concatenated(value)
     }
 }
-impl<T: IntoIterator + FromIterator<T::Item>> Concatenated<T> {
-    pub fn into_inner(self) -> T {
-        self.0
-    }
-}
 impl<T: IntoIterator + FromIterator<T::Item>> std::ops::Deref for Concatenated<T> {
     type Target = T;
     fn deref(&self) -> &Self::Target {
@@ -44,5 +39,10 @@ impl<T: IntoIterator + FromIterator<T::Item>> std::ops::Deref for Concatenated<T
 impl<T: IntoIterator + FromIterator<T::Item>> std::ops::DerefMut for Concatenated<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
+    }
+}
+impl<T: IntoIterator + FromIterator<T::Item>> Concatenated<T> {
+    pub fn into_inner(self) -> T {
+        self.0
     }
 }
