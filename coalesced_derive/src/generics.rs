@@ -2,31 +2,29 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{parse_quote, GenericParam, Generics, Ident, Path, Type, TypeParam, WhereClause};
 
-use crate::construction::attr::ContainerAttr;
-
 pub struct Annotated<'a> {
     pub path_annotated: &'a Path,
-    pub newtype_ident: &'a Ident,
+    pub value_type_ident: &'a Ident, // TODO TypePath? Path?
     pub generics: &'a Generics,
-    pub attr: &'a ContainerAttr,
+    pub type_param: TypeParam,
 }
 impl<'a> Annotated<'a> {
     pub fn new(
         path_annotated: &'a Path,
-        newtype_ident: &'a Ident,
+        value_type_ident: &'a Ident,
         generics: &'a Generics,
-        attr: &'a ContainerAttr,
+        type_param: TypeParam,
     ) -> Self {
         Self {
             generics,
             path_annotated,
-            newtype_ident,
-            attr,
+            value_type_ident,
+            type_param,
         }
     }
 
     pub fn type_param(&self) -> TypeParam {
-        self.attr.annotation_type_param()
+        self.type_param.clone()
     }
     pub fn generic_param(&self) -> GenericParam {
         GenericParam::Type(self.type_param())
@@ -57,14 +55,14 @@ impl<'a> ToTokens for AnnotatedType<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let Self(&Annotated {
             path_annotated,
-            newtype_ident,
+            value_type_ident,
             generics,
             ..
         }) = self;
         let a = self.0.type_param().ident;
         let (_, ty_generics, _) = generics.split_for_impl();
 
-        let ty: Type = parse_quote! { #path_annotated<#newtype_ident #ty_generics, #a> };
+        let ty: Type = parse_quote! { #path_annotated<#value_type_ident #ty_generics, #a> };
         ty.to_tokens(tokens);
     }
 }

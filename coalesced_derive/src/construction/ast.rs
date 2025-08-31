@@ -7,9 +7,8 @@ use syn::{
 };
 
 use crate::{
-    constant::Constant,
-    construction::{attr::ContainerAttr, generics::Annotated},
-    error::ConstructionError,
+    constant::Constant, construction::attr::ContainerAttr, error::ConstructionError,
+    generics::Annotated,
 };
 
 #[derive(Debug, Clone)]
@@ -139,7 +138,7 @@ impl<'a> Construction<'a> {
             ..
         } = self;
         attr.is_annotated().then(|| {
-            let annotated = Annotated::new(path_annotated, ident, generics, attr);
+            let annotated = Annotated::new(path_annotated, ident, generics, attr.annotation_type_param());
             let (_, ty_generics, _) = generics.split_for_impl();
             let (annotated_impl_generics, _, where_clause) = annotated.split_for_impl();
             let a = attr.annotation_type_param().ident; // TODO split method
@@ -292,7 +291,12 @@ impl<'a> ConstructionTrait<'a> {
             ..
         } = self;
         attr.is_annotated().then(|| {
-            let annotated = Annotated::new(path_annotated, ident, generics, attr);
+            let annotated = Annotated::new(
+                path_annotated,
+                ident,
+                generics,
+                attr.annotation_type_param(),
+            );
             let (annotated_impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
 
             parse_quote! {
@@ -316,7 +320,7 @@ impl<'a> ConstructionTrait<'a> {
             ..
         } = self;
         attr.is_annotated().then(|| {
-            let annotated = Annotated::new(path_annotated, ident, generics, attr);
+            let annotated = Annotated::new(path_annotated, ident, generics, attr.annotation_type_param());
             let (annotated_impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
             parse_quote! {
                 impl #annotated_impl_generics #trait_ident for #path_reversed<#annotated_ty> #where_clause {}

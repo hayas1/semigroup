@@ -9,7 +9,6 @@ use crate::{
 
 mod ast;
 mod attr;
-mod generics;
 
 pub fn gen_construction<C: ConstantExt>(derive: &DeriveInput) -> syn::Result<TokenStream> {
     let constant = C::constant();
