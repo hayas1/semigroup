@@ -25,7 +25,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_derive_construction_annotation() {
+    fn test_derive_construction_annotated() {
         let derive = syn::parse_quote! {
             #[derive(Construction)]
             #[construction(annotated, op = Coalesce)]

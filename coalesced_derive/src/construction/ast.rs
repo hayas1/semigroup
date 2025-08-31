@@ -3,7 +3,7 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{
     parse_quote, Data, DataEnum, DataStruct, DeriveInput, Field, Fields, FieldsUnnamed, Ident,
-    ItemFn, ItemImpl, ItemTrait,
+    ItemImpl, ItemTrait,
 };
 
 use crate::{
@@ -18,6 +18,7 @@ pub struct Construction<'a> {
     derive: &'a DeriveInput,
     field: &'a Field,
 
+    attr: &'a ContainerAttr,
     semigroup_trait: ConstructionTrait<'a>,
 }
 impl ToTokens for Construction<'_> {
@@ -28,13 +29,15 @@ impl ToTokens for Construction<'_> {
         let from = self.impl_from();
         let deref = self.impl_deref();
         let deref_mut = self.impl_deref_mut();
-        let impl_block = self.impl_block();
+        let impl_construction = self.impl_construction();
+        let impl_construction_annotated = self.impl_construction_annotated();
         tokens.extend(quote::quote! {
             #semigroup_trait
             #from
             #deref
             #deref_mut
-            #impl_block
+            #impl_construction
+            #impl_construction_annotated
         });
     }
 }
@@ -58,6 +61,7 @@ impl<'a> Construction<'a> {
                     constant,
                     derive,
                     field,
+                    attr,
                     semigroup_trait,
                 })
             }
@@ -94,50 +98,55 @@ impl<'a> Construction<'a> {
             }
         }
     }
-    pub fn impl_block(&self) -> ItemImpl {
-        let Self {
-            derive: DeriveInput {
-                ident, generics, ..
-            },
-            ..
-        } = self;
-        let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-        let into_inner = self.impl_into_inner();
-        let lift_op = self.impl_lift_op();
-        parse_quote! {
-            impl #impl_generics #ident #ty_generics #where_clause {
-                #into_inner
-                #lift_op
-            }
-        }
-    }
-    pub fn impl_into_inner(&self) -> ItemFn {
-        let Self {
-            field: Field { ty, .. },
-            ..
-        } = self;
-        parse_quote! {
-            pub fn into_inner(self) -> #ty {
-                self.0
-            }
-        }
-    }
-    pub fn impl_lift_op(&self) -> ItemFn {
+    pub fn impl_construction(&self) -> ItemImpl {
         let Self {
             constant:
                 Constant {
-                    path_semigroup,
-                    ident_semigroup_op,
+                    path_construction_trait: path_construction_semigroup,
                     ..
                 },
+            derive: DeriveInput {
+                ident, generics, ..
+            },
             field: Field { ty, .. },
             ..
         } = self;
+        let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
         parse_quote! {
-            pub fn lift_op(base: #ty, other: #ty) -> #ty {
-                #path_semigroup::#ident_semigroup_op(Self(base), Self(other)).into_inner()
+            impl #impl_generics #path_construction_semigroup<#ty> for #ident #ty_generics #where_clause {
+                fn new(value: #ty) -> Self {
+                    Self(value)
+                }
+                fn into_inner(self) -> #ty {
+                    self.0
+                }
             }
         }
+    }
+    pub fn impl_construction_annotated(&self) -> Option<ItemImpl> {
+        let Self {
+            constant:
+                Constant {
+                    path_construction_annotated,
+                    path_annotated,
+                    ..
+                },
+            derive: DeriveInput {
+                ident, generics, ..
+            },
+            field: Field { ty, .. },
+            attr,
+            ..
+        } = self;
+        attr.is_annotated().then(|| {
+            let annotated = Annotated::new(path_annotated, ident, generics, attr);
+            let (_, ty_generics, _) = generics.split_for_impl();
+            let (annotated_impl_generics, _, where_clause) = annotated.split_for_impl();
+            let a = attr.annotation_type_param().ident; // TODO split method
+            parse_quote! {
+                impl #annotated_impl_generics #path_construction_annotated<#ty, #a> for #ident #ty_generics #where_clause {}
+            }
+        })
     }
     pub fn impl_deref(&self) -> ItemImpl {
         let Self {

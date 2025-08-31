@@ -1,4 +1,4 @@
-use coalesced::{Annotated, AnnotatedSemigroup, Construction, Semigroup};
+use coalesced::{op::Construction, Annotated, AnnotatedSemigroup, Construction, Semigroup};
 use coalesced_base::semigroup::tests::{assert_associative_law, assert_reversed_associative_law};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction)]

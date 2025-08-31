@@ -2,6 +2,7 @@ use coalesced_derive::ConstructionUse;
 
 use crate::{
     annotate::Annotated,
+    op::{Construction, ConstructionAnnotated},
     reverse::Reversed,
     semigroup::{AnnotatedSemigroup, Semigroup},
 };

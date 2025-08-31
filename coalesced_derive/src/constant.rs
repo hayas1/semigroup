@@ -10,6 +10,8 @@ pub struct Constant {
     pub ident_semigroup_op: Ident,
     pub path_annotated: Path,
     pub path_reversed: Path,
+    pub path_construction_trait: Path,
+    pub path_construction_annotated: Path,
 }
 pub trait ConstantExt {
     fn constant() -> Constant;
@@ -23,6 +25,8 @@ impl ConstantExt for Absolute {
             ident_semigroup_op: parse_quote!(semigroup_op),
             path_annotated: parse_quote!(::coalesced::Annotated),
             path_reversed: parse_quote!(::coalesced::Reversed),
+            path_construction_trait: parse_quote!(::coalesced::op::Construction),
+            path_construction_annotated: parse_quote!(::coalesced::op::ConstructionAnnotated),
         }
     }
 }
@@ -37,6 +41,8 @@ impl ConstantExt for Use {
             ident_semigroup_op: parse_quote!(semigroup_op),
             path_annotated: parse_quote!(Annotated),
             path_reversed: parse_quote!(Reversed),
+            path_construction_trait: parse_quote!(Construction),
+            path_construction_annotated: parse_quote!(ConstructionAnnotated),
         }
     }
 }
