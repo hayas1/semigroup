@@ -61,12 +61,12 @@ pub struct SemigroupTrait<'a> {
 }
 impl ToTokens for SemigroupTrait<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let impl_trait = self
-            .impl_trait()
+        let impl_semigroup = self
+            .impl_semigroup()
             .as_ref()
             .map(ToTokens::to_token_stream)
             .unwrap_or_else(syn::Error::to_compile_error);
-        impl_trait.to_tokens(tokens)
+        impl_semigroup.to_tokens(tokens)
     }
 }
 impl<'a> SemigroupTrait<'a> {
@@ -83,7 +83,7 @@ impl<'a> SemigroupTrait<'a> {
             attr,
         })
     }
-    pub fn impl_trait(&self) -> syn::Result<ItemImpl> {
+    pub fn impl_semigroup(&self) -> syn::Result<ItemImpl> {
         let Self {
             constant,
             derive,
@@ -93,7 +93,7 @@ impl<'a> SemigroupTrait<'a> {
         match &self.data_struct.fields {
             Fields::Named(fields_named) => {
                 let named = SemigroupTraitNamed::new(constant, derive, attr, fields_named);
-                named.impl_trait()
+                named.impl_semigroup()
             }
             Fields::Unnamed(fields_unnamed) => todo!(),
             Fields::Unit => todo!(),
@@ -110,12 +110,12 @@ pub struct SemigroupTraitNamed<'a> {
 }
 impl ToTokens for SemigroupTraitNamed<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let impl_trait = self
-            .impl_trait()
+        let impl_semigroup = self
+            .impl_semigroup()
             .as_ref()
             .map(ToTokens::to_token_stream)
             .unwrap_or_else(syn::Error::to_compile_error);
-        impl_trait.to_tokens(tokens)
+        impl_semigroup.to_tokens(tokens)
     }
 }
 impl<'a> SemigroupTraitNamed<'a> {
@@ -133,7 +133,7 @@ impl<'a> SemigroupTraitNamed<'a> {
         }
     }
 
-    pub fn impl_trait(&self) -> syn::Result<ItemImpl> {
+    pub fn impl_semigroup(&self) -> syn::Result<ItemImpl> {
         let Self {
             constant,
             derive,
@@ -170,7 +170,7 @@ pub struct SemigroupTraitField<'a> {
 }
 impl ToTokens for SemigroupTraitField<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let impl_field = self.impl_trait_field();
+        let impl_field = self.impl_semigroup_field();
         impl_field.to_tokens(tokens)
     }
 }
@@ -204,14 +204,14 @@ impl<'a> SemigroupTraitField<'a> {
             .map(move |(index, field)| Self::new(constant, derive, container_attr, index, field))
             .collect()
     }
-    pub fn impl_trait_field(&self) -> FieldValue {
+    pub fn impl_semigroup_field(&self) -> FieldValue {
         match &self.field.ident {
-            Some(ident) => self.impl_trait_field_named(ident),
+            Some(ident) => self.impl_semigroup_field_named(ident),
             None => todo!(),
         }
     }
 
-    pub fn impl_trait_field_named(&self, ident: &Ident) -> FieldValue {
+    pub fn impl_semigroup_field_named(&self, ident: &Ident) -> FieldValue {
         let Self {
             constant:
                 Constant {
