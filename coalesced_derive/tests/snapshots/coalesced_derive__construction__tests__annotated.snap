@@ -33,11 +33,12 @@ impl<T> std::ops::DerefMut for Coalesced<T> {
         &mut self.0
     }
 }
-impl<T> Coalesced<T> {
-    pub fn into_inner(self) -> Option<T> {
+impl<T> ::coalesced::op::Construction<Option<T>> for Coalesced<T> {
+    fn new(value: Option<T>) -> Self {
+        Self(value)
+    }
+    fn into_inner(self) -> Option<T> {
         self.0
     }
-    pub fn lift_op(base: Option<T>, other: Option<T>) -> Option<T> {
-        ::coalesced::Semigroup::semigroup_op(Self(base), Self(other)).into_inner()
-    }
 }
+impl<T, A> ::coalesced::op::ConstructionAnnotated<Option<T>, A> for Coalesced<T> {}

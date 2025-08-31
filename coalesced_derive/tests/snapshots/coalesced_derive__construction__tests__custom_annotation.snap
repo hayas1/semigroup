@@ -41,11 +41,16 @@ impl<T: IntoIterator + FromIterator<T::Item>> std::ops::DerefMut for Concatenate
         &mut self.0
     }
 }
-impl<T: IntoIterator + FromIterator<T::Item>> Concatenated<T> {
-    pub fn into_inner(self) -> T {
+impl<T: IntoIterator + FromIterator<T::Item>> ::coalesced::op::Construction<T>
+for Concatenated<T> {
+    fn new(value: T) -> Self {
+        Self(value)
+    }
+    fn into_inner(self) -> T {
         self.0
     }
-    pub fn lift_op(base: T, other: T) -> T {
-        ::coalesced::Semigroup::semigroup_op(Self(base), Self(other)).into_inner()
-    }
 }
+impl<
+    T: IntoIterator + FromIterator<T::Item>,
+    X: IntoIterator + FromIterator<X::Item>,
+> ::coalesced::op::ConstructionAnnotated<T, X> for Concatenated<T> {}
