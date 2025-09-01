@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, ToTokens};
-use syn::{parse_quote, DataStruct, DeriveInput, Ident, ItemStruct};
+use syn::{parse_quote, DataStruct, DeriveInput, Fields, Ident, ItemStruct};
 
 use crate::{constant::Constant, semigroup::attr::ContainerAttr};
 
@@ -43,7 +43,7 @@ impl<'a> StructAnnotate<'a> {
         } = self;
         let annotation_ident = self.annotation_ident();
         match &data_struct.fields {
-            syn::Fields::Named(fields) => {
+            Fields::Named(fields) => {
                 let idents = fields.named.iter().map(|f| &f.ident);
                 parse_quote! {
                     #vis struct #annotation_ident<A> {
@@ -51,13 +51,13 @@ impl<'a> StructAnnotate<'a> {
                     }
                 }
             }
-            syn::Fields::Unnamed(fields) => {
+            Fields::Unnamed(fields) => {
                 let annotation = fields.unnamed.iter().map(|_| format_ident!("A"));
                 parse_quote! {
                     #vis struct #annotation_ident<A>( #( #annotation ),* );
                 }
             }
-            syn::Fields::Unit => todo!(),
+            Fields::Unit => todo!(),
         }
     }
 }
