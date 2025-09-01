@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, ToTokens};
-use syn::{parse_quote, DataStruct, DeriveInput, ItemStruct};
+use syn::{parse_quote, DataStruct, DeriveInput, Ident, ItemStruct};
 
 use crate::{constant::Constant, semigroup::attr::ContainerAttr};
 
@@ -13,8 +13,7 @@ pub struct StructAnnotate<'a> {
 }
 impl ToTokens for StructAnnotate<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let _ = tokens;
-        todo!()
+        self.def_annotation().to_tokens(tokens);
     }
 }
 impl<'a> StructAnnotate<'a> {
@@ -32,13 +31,17 @@ impl<'a> StructAnnotate<'a> {
         })
     }
 
+    pub fn annotation_ident(&self) -> Ident {
+        format_ident!("{}Annotation", self.derive.ident)
+    }
+
     pub fn def_annotation(&self) -> ItemStruct {
         let Self {
-            derive: DeriveInput { vis, ident, .. },
+            derive: DeriveInput { vis, .. },
             data_struct,
             ..
         } = self;
-        let annotation_ident = format_ident!("{}Annotation", ident);
+        let annotation_ident = self.annotation_ident();
         match &data_struct.fields {
             syn::Fields::Named(fields) => {
                 let idents = fields.named.iter().map(|f| &f.ident);
