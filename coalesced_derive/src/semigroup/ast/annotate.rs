@@ -58,6 +58,7 @@ impl<'a> StructAnnotate<'a> {
             Fields::Named(fields) => {
                 let idents = fields.named.iter().map(|f| &f.ident);
                 parse_quote! {
+                    #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
                     #vis struct #annotation_ident<A> {
                         #( #idents: A ),*
                     }
@@ -66,6 +67,7 @@ impl<'a> StructAnnotate<'a> {
             Fields::Unnamed(fields) => {
                 let annotation = fields.unnamed.iter().map(|_| format_ident!("A"));
                 parse_quote! {
+                    #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
                     #vis struct #annotation_ident<A>( #( #annotation ),* );
                 }
             }
@@ -189,16 +191,16 @@ impl<'a> FieldAnnotatedOp<'a> {
         with.map(|path| {
             parse_quote! {
                 let #ident_variable = #path_annotated_semigroup::#ident_annotated_op(
-                    base.extract(|v| v.#member, |a| a.#member).map(<#path<_> as #path_construction_trait<_>>::new),
-                    other.extract(|v| v.#member, |a| a.#member).map(<#path<_> as #path_construction_trait<_>>::new),
+                    base.value.#member.annotated(base.annotation.#member).map(<#path<_> as #path_construction_trait<_>>::new),
+                    other.value.#member.annotated(other.annotation.#member).map(<#path<_> as #path_construction_trait<_>>::new),
                 );
             }
         })
         .unwrap_or_else(|| {
             parse_quote! {
                 let #ident_variable = #path_annotated_semigroup::#ident_annotated_op(
-                    base.extract(|v| v.#member, |a| a.#member),
-                    other.extract(|v| v.#member, |a| a.#member),
+                    base.value.#member.annotated(base.annotation.#member),
+                    other.value.#member.annotated(other.annotation.#member),
                 );
             }
         })

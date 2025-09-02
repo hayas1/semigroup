@@ -23,14 +23,4 @@ impl<T, A> Annotated<T, A> {
             annotation: self.annotation,
         }
     }
-    pub fn extract<U, B>(
-        self,
-        fv: impl FnOnce(T) -> U,
-        fa: impl FnOnce(A) -> B,
-    ) -> Annotated<U, B> {
-        Annotated {
-            value: fv(self.value),
-            annotation: fa(self.annotation),
-        }
-    }
 }
