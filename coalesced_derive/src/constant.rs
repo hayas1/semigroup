@@ -22,15 +22,15 @@ pub enum Absolute {}
 impl ConstantExt for Absolute {
     fn constant() -> Constant {
         Constant {
-            path_semigroup: parse_quote!(::coalesced::Semigroup),
-            ident_semigroup_op: parse_quote!(semigroup_op),
-            path_annotated_semigroup: parse_quote!(::coalesced::AnnotatedSemigroup),
-            ident_annotated_op: parse_quote!(annotated_op),
-            path_annotated: parse_quote!(::coalesced::Annotated),
-            path_annotate: parse_quote!(::coalesced::Annotate),
-            path_reversed: parse_quote!(::coalesced::Reversed),
-            path_construction_trait: parse_quote!(::coalesced::op::Construction),
-            path_construction_annotated: parse_quote!(::coalesced::op::ConstructionAnnotated),
+            path_semigroup: parse_quote! {::coalesced::Semigroup},
+            ident_semigroup_op: parse_quote! {semigroup_op},
+            path_annotated_semigroup: parse_quote! {::coalesced::AnnotatedSemigroup},
+            ident_annotated_op: parse_quote! {annotated_op},
+            path_annotated: parse_quote! {::coalesced::Annotated},
+            path_annotate: parse_quote! {::coalesced::Annotate},
+            path_reversed: parse_quote! {::coalesced::Reversed},
+            path_construction_trait: parse_quote! {::coalesced::op::Construction},
+            path_construction_annotated: parse_quote! {::coalesced::op::ConstructionAnnotated},
         }
     }
 }
@@ -40,15 +40,15 @@ pub enum Use {}
 impl ConstantExt for Use {
     fn constant() -> Constant {
         Constant {
-            path_semigroup: parse_quote!(Semigroup),
-            ident_semigroup_op: parse_quote!(semigroup_op),
-            path_annotated_semigroup: parse_quote!(AnnotatedSemigroup),
-            ident_annotated_op: parse_quote!(annotated_op),
-            path_annotated: parse_quote!(Annotated),
-            path_annotate: parse_quote!(Annotate),
-            path_reversed: parse_quote!(Reversed),
-            path_construction_trait: parse_quote!(Construction),
-            path_construction_annotated: parse_quote!(ConstructionAnnotated),
+            path_semigroup: parse_quote! {Semigroup},
+            ident_semigroup_op: parse_quote! {semigroup_op},
+            path_annotated_semigroup: parse_quote! {AnnotatedSemigroup},
+            ident_annotated_op: parse_quote! {annotated_op},
+            path_annotated: parse_quote! {Annotated},
+            path_annotate: parse_quote! {Annotate},
+            path_reversed: parse_quote! {Reversed},
+            path_construction_trait: parse_quote! {Construction},
+            path_construction_annotated: parse_quote! {ConstructionAnnotated},
         }
     }
 }
