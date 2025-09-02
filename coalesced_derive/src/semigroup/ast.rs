@@ -23,12 +23,7 @@ pub struct Semigroup<'a> {
 }
 impl ToTokens for Semigroup<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let Self {
-            struct_semigroup, ..
-        } = self;
-        tokens.extend(quote::quote! {
-            #struct_semigroup
-        });
+        self.struct_semigroup.to_tokens(tokens)
     }
 }
 impl<'a> Semigroup<'a> {
