@@ -8,8 +8,13 @@ use syn::{
 use crate::{
     constant::Constant,
     error::SemigroupError,
-    semigroup::attr::{ContainerAttr, FieldAttr},
+    semigroup::{
+        ast::annotate::StructAnnotate,
+        attr::{ContainerAttr, FieldAttr},
+    },
 };
+
+pub mod annotate;
 
 #[derive(Debug, Clone)]
 pub struct Semigroup<'a> {
@@ -65,7 +70,10 @@ impl ToTokens for StructSemigroup<'_> {
             .as_ref()
             .map(ToTokens::to_token_stream)
             .unwrap_or_else(syn::Error::to_compile_error)
-            .to_tokens(tokens)
+            .to_tokens(tokens);
+        self.struct_annotate()
+            .iter()
+            .for_each(|struct_annotate| struct_annotate.to_tokens(tokens));
     }
 }
 impl<'a> StructSemigroup<'a> {
@@ -99,30 +107,44 @@ impl<'a> StructSemigroup<'a> {
             ident, generics, ..
         } = derive;
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-        let fields = FieldSemigroupOp::new_fields(constant, derive, attr, &data_struct.fields)?;
+        let fields_op = FieldSemigroupOp::new_fields(constant, derive, attr, &data_struct.fields)?
+            .into_iter()
+            .map(|op| op.impl_field_semigroup_op());
         Ok(parse_quote! {
             impl #impl_generics #path_semigroup for #ident #ty_generics #where_clause {
                 fn #ident_semigroup_op(base: Self, other: Self) -> Self {
                     Self {
-                        #(#fields),*
+                        #(#fields_op),*
                     }
                 }
             }
         })
     }
+    pub fn struct_annotate(&self) -> Option<StructAnnotate> {
+        let Self {
+            constant,
+            derive,
+            attr,
+            data_struct,
+            ..
+        } = self;
+        attr.is_annotated()
+            .then(|| StructAnnotate::new(constant, derive, attr, data_struct))
+    }
 }
 
+#[derive(Debug, Clone)]
 pub struct FieldSemigroupOp<'a> {
     constant: &'a Constant,
     container_attr: &'a ContainerAttr,
     member: Member,
     field_attr: FieldAttr,
 }
-impl ToTokens for FieldSemigroupOp<'_> {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.impl_semigroup_field().to_tokens(tokens)
-    }
-}
+// impl ToTokens for FieldSemigroupOp<'_> {
+//     fn to_tokens(&self, tokens: &mut TokenStream) {
+//         self.impl_semigroup_field().to_tokens(tokens)
+//     }
+// }
 impl<'a> FieldSemigroupOp<'a> {
     pub fn new(
         constant: &'a Constant,
@@ -159,7 +181,7 @@ impl<'a> FieldSemigroupOp<'a> {
             .collect()
     }
 
-    pub fn impl_semigroup_field(&self) -> FieldValue {
+    pub fn impl_field_semigroup_op(&self) -> FieldValue {
         let Self {
             constant:
                 Constant {

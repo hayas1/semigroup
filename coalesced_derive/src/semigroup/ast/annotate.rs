@@ -1,8 +1,15 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, ToTokens};
-use syn::{parse_quote, DataStruct, DeriveInput, Fields, Ident, ItemStruct};
+use syn::{
+    parse_quote, DataStruct, DeriveInput, FieldValue, Fields, Ident, ItemImpl, ItemStruct, Member,
+    Stmt,
+};
 
-use crate::{constant::Constant, semigroup::attr::ContainerAttr};
+use crate::{
+    constant::Constant,
+    generics::Annotated,
+    semigroup::attr::{ContainerAttr, FieldAttr},
+};
 
 #[derive(Debug, Clone)]
 pub struct StructAnnotate<'a> {
@@ -14,6 +21,11 @@ pub struct StructAnnotate<'a> {
 impl ToTokens for StructAnnotate<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.def_annotation().to_tokens(tokens);
+        self.impl_annotated_semigroup()
+            .as_ref()
+            .map(ToTokens::to_token_stream)
+            .unwrap_or_else(syn::Error::to_compile_error)
+            .to_tokens(tokens);
     }
 }
 impl<'a> StructAnnotate<'a> {
@@ -22,13 +34,13 @@ impl<'a> StructAnnotate<'a> {
         derive: &'a DeriveInput,
         attr: &'a ContainerAttr,
         data_struct: &'a DataStruct,
-    ) -> syn::Result<Self> {
-        Ok(Self {
+    ) -> Self {
+        Self {
             constant,
             derive,
             data_struct,
             attr,
-        })
+        }
     }
 
     pub fn annotation_ident(&self) -> Ident {
@@ -58,6 +70,167 @@ impl<'a> StructAnnotate<'a> {
                 }
             }
             Fields::Unit => todo!(),
+        }
+    }
+
+    pub fn impl_annotated_semigroup(&self) -> syn::Result<ItemImpl> {
+        let Self {
+            constant,
+            derive,
+            attr,
+            data_struct,
+        } = self;
+        let Constant {
+            path_annotated_semigroup,
+            ident_annotated_op,
+            path_annotated,
+            path_annotate,
+            ..
+        } = constant;
+        let DeriveInput {
+            ident, generics, ..
+        } = derive;
+        let annotation_ident = self.annotation_ident();
+        let (local, value, annotation): (Vec<_>, Vec<_>, Vec<_>) =
+            FieldAnnotatedOp::new_fields(constant, derive, attr, &data_struct.fields)?
+                .into_iter()
+                .map(|f| {
+                    (
+                        f.impl_field_annotated_op(),
+                        f.impl_field_value(),
+                        f.impl_field_annotation(),
+                    )
+                })
+                .collect();
+        let annotated = Annotated::new(path_annotated, ident, generics, parse_quote! { A });
+        let (_, ty_generics, _) = generics.split_for_impl();
+        let (impl_generics, _, where_clause) = annotated.split_for_impl();
+        Ok(parse_quote! {
+            impl #impl_generics #path_annotated_semigroup<#annotation_ident<A>> for #ident #ty_generics #where_clause {
+                fn #ident_annotated_op(base: #path_annotated<Self, #annotation_ident<A>>, other: #path_annotated<Self, #annotation_ident<A>>) -> #path_annotated<Self, #annotation_ident<A>> {
+                    use #path_annotate as _;
+                    #( #local )*
+                    #ident {
+                        #(#value),*
+                    }.annotated(#annotation_ident {
+                        #(#annotation),*
+                    })
+                }
+            }
+        })
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct FieldAnnotatedOp<'a> {
+    constant: &'a Constant,
+    container_attr: &'a ContainerAttr,
+    member: Member,
+    field_attr: FieldAttr,
+}
+impl<'a> FieldAnnotatedOp<'a> {
+    pub fn new(
+        constant: &'a Constant,
+        _derive: &'a DeriveInput,
+        container_attr: &'a ContainerAttr,
+        member: Member,
+        field_attr: FieldAttr,
+    ) -> Self {
+        Self {
+            constant,
+            container_attr,
+            member,
+            field_attr,
+        }
+    }
+    pub fn new_fields(
+        constant: &'a Constant,
+        derive: &'a DeriveInput,
+        container_attr: &'a ContainerAttr,
+        fields: &'a Fields,
+    ) -> syn::Result<Vec<Self>> {
+        fields
+            .iter()
+            .zip(fields.members())
+            .map(|(field, member)| {
+                Ok(Self::new(
+                    constant,
+                    derive,
+                    container_attr,
+                    member,
+                    FieldAttr::new(field)?,
+                ))
+            })
+            .collect()
+    }
+
+    pub fn ident_variable(&self) -> Ident {
+        match &self.member {
+            Member::Named(ident) => ident.clone(),
+            Member::Unnamed(index) => format_ident!("_{}", index.index),
+        }
+    }
+    pub fn impl_field_annotated_op(&self) -> Stmt {
+        let Self {
+            constant,
+            container_attr,
+            member,
+            field_attr,
+        } = self;
+        let Constant {
+            path_annotated_semigroup,
+            ident_annotated_op,
+            path_construction_trait,
+            ..
+        } = constant;
+        let ident_variable = self.ident_variable();
+        let with = field_attr.with(container_attr);
+
+        with.map(|path| {
+            parse_quote! {
+                let #ident_variable = #path_annotated_semigroup::#ident_annotated_op(
+                    base.extract(|v| v.#member, |a| a.#member).map(<#path<_> as #path_construction_trait<_>>::new),
+                    other.extract(|v| v.#member, |a| a.#member).map(<#path<_> as #path_construction_trait<_>>::new),
+                );
+            }
+        })
+        .unwrap_or_else(|| {
+            parse_quote! {
+                let #ident_variable = #path_annotated_semigroup::#ident_annotated_op(
+                    base.extract(|v| v.#member, |a| a.#member),
+                    other.extract(|v| v.#member, |a| a.#member),
+                );
+            }
+        })
+    }
+    pub fn impl_field_value(&self) -> FieldValue {
+        let Self {
+            constant:
+                Constant {
+                    path_construction_trait,
+                    ..
+                },
+            member,
+            ..
+        } = self;
+        let ident_variable = self.ident_variable();
+        let with = self.field_attr.with(self.container_attr);
+        with.map(|path| {
+            parse_quote! {
+                #member: <#path<_> as #path_construction_trait<_>>::into_inner(#ident_variable.value)
+            }
+        })
+        .unwrap_or_else(|| {
+            parse_quote! {
+                #member: #ident_variable.value
+            }
+        })
+    }
+    pub fn impl_field_annotation(&self) -> FieldValue {
+        let Self { member, .. } = self;
+        let ident_variable = self.ident_variable();
+        parse_quote! {
+            #member: #ident_variable.annotation
         }
     }
 }

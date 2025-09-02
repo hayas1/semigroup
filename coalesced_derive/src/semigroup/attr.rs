@@ -13,6 +13,9 @@ impl ContainerAttr {
     pub fn new(derive: &DeriveInput) -> syn::Result<Self> {
         Ok(Self::from_derive_input(derive)?)
     }
+    pub fn is_annotated(&self) -> bool {
+        self.annotated
+    }
 }
 
 #[derive(Debug, Clone, FromField)]
