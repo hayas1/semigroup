@@ -1,5 +1,5 @@
 use crate::{
-    annotate::Annotated,
+    annotate::{Annotate, Annotated},
     semigroup::{AnnotatedSemigroup, Semigroup},
 };
 
@@ -14,7 +14,9 @@ pub trait Construction<T>: Sized + Semigroup {
     }
 }
 
-pub trait ConstructionAnnotated<T, A>: Construction<T> + AnnotatedSemigroup<A> {
+pub trait ConstructionAnnotated<T, A>:
+    Construction<T> + AnnotatedSemigroup<A> + Annotate<A>
+{
     fn lift_annotated_op(base: Annotated<T, A>, other: Annotated<T, A>) -> Annotated<T, A> {
         AnnotatedSemigroup::annotated_op(base.map(Self::new), other.map(Self::new))
             .map(Self::into_inner)

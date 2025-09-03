@@ -1,4 +1,4 @@
-use crate::annotate::{Annotate, Annotated};
+use crate::annotate::Annotated;
 
 pub trait Semigroup {
     fn semigroup_op(base: Self, other: Self) -> Self;
@@ -12,8 +12,14 @@ pub trait AnnotatedSemigroup<A>: Sized {
         other_annotation: A,
     ) -> Self {
         Self::annotated_op(
-            base.annotated(base_annotation),
-            other.annotated(other_annotation),
+            Annotated {
+                value: base,
+                annotation: base_annotation,
+            },
+            Annotated {
+                value: other,
+                annotation: other_annotation,
+            },
         )
         .value
     }

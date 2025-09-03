@@ -11,6 +11,15 @@ use crate::{
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[construction(annotated, op = Coalesce)]
 pub struct Coalesced<T>(pub Option<T>);
+impl<T, A> crate::annotate::Annotate<A> for Coalesced<T> {
+    type Annotation = A;
+    fn annotated(self, annotation: Self::Annotation) -> Annotated<Self, A> {
+        Annotated {
+            value: self,
+            annotation,
+        }
+    }
+}
 
 mod sealed {
     use super::*;

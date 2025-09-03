@@ -1,13 +1,6 @@
-pub trait Annotate: Sized {
-    fn annotated<A>(self, annotation: A) -> Annotated<Self, A>;
-}
-impl<T> Annotate for T {
-    fn annotated<A>(self, annotation: A) -> Annotated<Self, A> {
-        Annotated {
-            value: self,
-            annotation,
-        }
-    }
+pub trait Annotate<A>: Sized {
+    type Annotation;
+    fn annotated(self, annotation: Self::Annotation) -> Annotated<Self, A>;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]

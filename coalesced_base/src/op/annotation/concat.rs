@@ -1,7 +1,7 @@
 use coalesced_derive::ConstructionUse;
 
 use crate::{
-    annotate::{Annotate, Annotated},
+    annotate::Annotated,
     op::{Construction, ConstructionAnnotated},
     reverse::Reversed,
     semigroup::{AnnotatedSemigroup, Semigroup},
@@ -9,9 +9,22 @@ use crate::{
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[construction(annotated, op = Concat, annotation_type_param = "A: IntoIterator + FromIterator<A::Item>", unit = "vec![(); 0]")]
+#[construction(annotated, op = Concat, annotation_type_param = "A: IntoIterator + FromIterator<A::Item>", annotation_where = "A::Item: Clone", unit = "vec![(); 0]")]
 pub struct Concatenated<T: IntoIterator + FromIterator<T::Item>>(pub T);
-
+impl<T: IntoIterator + FromIterator<T::Item>, A: IntoIterator + FromIterator<A::Item>>
+    crate::annotate::Annotate<A> for Concatenated<T>
+where
+    A::Item: Clone,
+{
+    type Annotation = A::Item;
+    fn annotated(self, annotation: Self::Annotation) -> Annotated<Self, A> {
+        let iter = self.0.into_iter();
+        let (len, _) = iter.size_hint(); // TODO use exact size
+        let value = Self(iter.collect());
+        let annotation = std::iter::repeat_n(annotation, len).collect();
+        Annotated { value, annotation }
+    }
+}
 mod sealed {
     // use super::*;
 
@@ -29,14 +42,13 @@ impl<T: IntoIterator + FromIterator<T::Item>, A: IntoIterator + FromIterator<A::
     AnnotatedSemigroup<A> for Concatenated<T>
 {
     fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
-        let value: Concatenated<T> =
-            Concatenated(base.value.0.into_iter().chain(other.value.0).collect());
+        let value = Concatenated(base.value.0.into_iter().chain(other.value.0).collect());
         let annotation = base
             .annotation
             .into_iter()
             .chain(other.annotation)
             .collect();
-        value.annotated(annotation)
+        Annotated { value, annotation }
     }
 }
 
