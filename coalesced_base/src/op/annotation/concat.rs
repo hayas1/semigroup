@@ -9,7 +9,7 @@ use crate::{
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[construction(annotated, op = Concat, annotation_type_param = "A: IntoIterator + FromIterator<A::Item>", annotation_where = "A::Item: Clone", unit = "vec![(); 0]")]
+#[construction(annotated, op = Concat, annotation_type_param = "A: IntoIterator + FromIterator<A::Item>", annotation_where = "A::Item: Clone", unit = "vec![(); 0]", without_annotate_impl)]
 pub struct Concatenated<T: IntoIterator + FromIterator<T::Item>>(pub T);
 impl<T: IntoIterator + FromIterator<T::Item>, A: IntoIterator + FromIterator<A::Item>>
     crate::annotate::Annotate<A> for Concatenated<T>

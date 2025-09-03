@@ -1,7 +1,7 @@
 use coalesced_derive::ConstructionUse;
 
 use crate::{
-    annotate::Annotated,
+    annotate::{Annotate, Annotated},
     op::{Construction, ConstructionAnnotated},
     reverse::Reversed,
     semigroup::{AnnotatedSemigroup, Semigroup},
@@ -11,15 +11,6 @@ use crate::{
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[construction(annotated, op = Replace)]
 pub struct Replaced<T>(pub T);
-impl<T, A> crate::annotate::Annotate<A> for Replaced<T> {
-    type Annotation = A;
-    fn annotated(self, annotation: Self::Annotation) -> Annotated<Self, A> {
-        Annotated {
-            value: self,
-            annotation,
-        }
-    }
-}
 impl<T, A> AnnotatedSemigroup<A> for Replaced<T> {
     fn annotated_op(_base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
         other

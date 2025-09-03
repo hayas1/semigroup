@@ -12,6 +12,8 @@ pub struct ContainerAttr {
 
     pub annotation_type_param: Option<TypeParam>,
     pub annotation_where: Option<String>,
+    #[darling(default)]
+    pub without_annotate_impl: bool,
 }
 impl ContainerAttr {
     pub fn new(derive: &DeriveInput) -> syn::Result<Self> {
