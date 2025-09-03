@@ -86,7 +86,6 @@ impl<'a> StructAnnotate<'a> {
             path_annotated_semigroup,
             ident_annotated_op,
             path_annotated,
-            path_annotate,
             ..
         } = constant;
         let DeriveInput {
@@ -104,19 +103,21 @@ impl<'a> StructAnnotate<'a> {
                     )
                 })
                 .collect();
-        let annotated = Annotated::new(path_annotated, ident, generics, parse_quote! { A });
+        let annotated = Annotated::new(path_annotated, ident, generics, parse_quote! { A }, None);
         let (_, ty_generics, _) = generics.split_for_impl();
         let (impl_generics, _, where_clause) = annotated.split_for_impl();
         Ok(parse_quote! {
             impl #impl_generics #path_annotated_semigroup<#annotation_ident<A>> for #ident #ty_generics #where_clause {
                 fn #ident_annotated_op(base: #path_annotated<Self, #annotation_ident<A>>, other: #path_annotated<Self, #annotation_ident<A>>) -> #path_annotated<Self, #annotation_ident<A>> {
-                    use #path_annotate as _;
                     #( #local )*
-                    #ident {
-                        #(#value),*
-                    }.annotated(#annotation_ident {
-                        #(#annotation),*
-                    })
+                    #path_annotated {
+                        value: #ident {
+                            #(#value),*
+                        },
+                        annotation: #annotation_ident {
+                            #(#annotation),*
+                        },
+                    }
                 }
             }
         })
@@ -183,6 +184,7 @@ impl<'a> FieldAnnotatedOp<'a> {
             path_annotated_semigroup,
             ident_annotated_op,
             path_construction_trait,
+            path_annotated,
             ..
         } = constant;
         let ident_variable = self.ident_variable();
@@ -191,16 +193,16 @@ impl<'a> FieldAnnotatedOp<'a> {
         with.map(|path| {
             parse_quote! {
                 let #ident_variable = #path_annotated_semigroup::#ident_annotated_op(
-                    base.value.#member.annotated(base.annotation.#member).map(<#path<_> as #path_construction_trait<_>>::new),
-                    other.value.#member.annotated(other.annotation.#member).map(<#path<_> as #path_construction_trait<_>>::new),
+                    #path_annotated{ value: base.value.#member, annotation: base.annotation.#member }.map(<#path<_> as #path_construction_trait<_>>::new),
+                    #path_annotated{ value: other.value.#member, annotation: other.annotation.#member }.map(<#path<_> as #path_construction_trait<_>>::new),
                 );
             }
         })
         .unwrap_or_else(|| {
             parse_quote! {
                 let #ident_variable = #path_annotated_semigroup::#ident_annotated_op(
-                    base.value.#member.annotated(base.annotation.#member),
-                    other.value.#member.annotated(other.annotation.#member),
+                    #path_annotated{ value: base.value.#member, annotation: base.annotation.#member },
+                    #path_annotated{ value: other.value.#member, annotation: other.annotation.#member },
                 );
             }
         })

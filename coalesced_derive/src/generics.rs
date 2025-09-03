@@ -1,12 +1,13 @@
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-use syn::{parse_quote, GenericParam, Generics, Ident, Path, Type, TypeParam, WhereClause};
+use syn::{parse_quote, GenericParam, Generics, Ident, Path, Type, TypeParam, WherePredicate};
 
 pub struct Annotated<'a> {
     pub path_annotated: &'a Path,
     pub value_type_ident: &'a Ident, // TODO TypePath? Path?
     pub generics: &'a Generics,
     pub type_param: TypeParam,
+    pub annotation_where: Option<WherePredicate>,
 }
 impl<'a> Annotated<'a> {
     pub fn new(
@@ -14,12 +15,14 @@ impl<'a> Annotated<'a> {
         value_type_ident: &'a Ident,
         generics: &'a Generics,
         type_param: TypeParam,
+        annotation_where: Option<WherePredicate>,
     ) -> Self {
         Self {
             generics,
             path_annotated,
             value_type_ident,
             type_param,
+            annotation_where,
         }
     }
 
@@ -30,11 +33,11 @@ impl<'a> Annotated<'a> {
         GenericParam::Type(self.type_param())
     }
 
-    pub fn split_for_impl(&self) -> (AnnotatedImplGenerics, AnnotatedType, Option<&WhereClause>) {
+    pub fn split_for_impl(&self) -> (AnnotatedImplGenerics, AnnotatedType, AnnotatedWhereClause) {
         (
             AnnotatedImplGenerics(self),
             AnnotatedType(self),
-            self.generics.where_clause.as_ref(),
+            AnnotatedWhereClause(self),
         )
     }
 }
@@ -64,5 +67,22 @@ impl<'a> ToTokens for AnnotatedType<'a> {
 
         let ty: Type = parse_quote! { #path_annotated<#value_type_ident #ty_generics, #a> };
         ty.to_tokens(tokens);
+    }
+}
+
+pub struct AnnotatedWhereClause<'a>(&'a Annotated<'a>);
+impl<'a> ToTokens for AnnotatedWhereClause<'a> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let Self(&Annotated {
+            generics,
+            ref annotation_where,
+            ..
+        }) = self;
+        let mut g = generics.clone();
+        let where_clause = g.make_where_clause();
+        annotation_where.iter().for_each(|p| {
+            where_clause.predicates.push(p.clone());
+        });
+        where_clause.to_tokens(tokens);
     }
 }

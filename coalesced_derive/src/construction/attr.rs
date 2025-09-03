@@ -1,5 +1,5 @@
 use darling::FromDeriveInput;
-use syn::{parse_quote, DeriveInput, Expr, Ident, TypeParam};
+use syn::{parse_quote, DeriveInput, Expr, Ident, TypeParam, WherePredicate};
 
 #[derive(Debug, Clone, FromDeriveInput)]
 #[darling(attributes(construction))]
@@ -11,6 +11,7 @@ pub struct ContainerAttr {
     pub op: Ident,
 
     pub annotation_type_param: Option<TypeParam>,
+    pub annotation_where: Option<String>,
 }
 impl ContainerAttr {
     pub fn new(derive: &DeriveInput) -> syn::Result<Self> {
@@ -29,5 +30,11 @@ impl ContainerAttr {
         self.annotation_type_param
             .clone()
             .unwrap_or_else(|| parse_quote!(A))
+    }
+
+    pub fn annotation_where(&self) -> Option<WherePredicate> {
+        self.annotation_where
+            .as_ref()
+            .map(|p| syn::parse_str(p).unwrap_or_else(|_| todo!()))
     }
 }
