@@ -26,11 +26,7 @@ impl ToTokens for StructAnnotate<'_> {
             .map(ToTokens::to_token_stream)
             .unwrap_or_else(syn::Error::to_compile_error)
             .to_tokens(tokens);
-        self.impl_annotate()
-            .as_ref()
-            .map(ToTokens::to_token_stream)
-            .unwrap_or_else(syn::Error::to_compile_error)
-            .to_tokens(tokens);
+        self.impl_annotate().to_tokens(tokens)
     }
 }
 impl<'a> StructAnnotate<'a> {
@@ -128,7 +124,7 @@ impl<'a> StructAnnotate<'a> {
             }
         })
     }
-    pub fn impl_annotate(&self) -> syn::Result<ItemImpl> {
+    pub fn impl_annotate(&self) -> ItemImpl {
         let Self {
             constant, derive, ..
         } = self;
@@ -157,7 +153,7 @@ impl<'a> StructAnnotate<'a> {
             .members()
             .map(|m| parse_quote! { #m: annotation.clone() })
             .collect();
-        Ok(parse_quote! {
+        parse_quote! {
             impl #impl_generics #path_annotate<#annotation_ident<#a>> for #ident #ty_generics #where_clause {
                 type Annotation = #a;
                 fn annotated(self, annotation: Self::Annotation) -> #path_annotated<Self, #annotation_ident<#a>> {
@@ -169,7 +165,7 @@ impl<'a> StructAnnotate<'a> {
                     }
                 }
             }
-        })
+        }
     }
 }
 
