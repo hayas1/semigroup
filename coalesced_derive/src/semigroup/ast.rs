@@ -135,11 +135,6 @@ pub struct FieldSemigroupOp<'a> {
     member: Member,
     field_attr: FieldAttr,
 }
-// impl ToTokens for FieldSemigroupOp<'_> {
-//     fn to_tokens(&self, tokens: &mut TokenStream) {
-//         self.impl_semigroup_field().to_tokens(tokens)
-//     }
-// }
 impl<'a> FieldSemigroupOp<'a> {
     pub fn new(
         constant: &'a Constant,

@@ -22,22 +22,14 @@ pub struct Construction<'a> {
 }
 impl ToTokens for Construction<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let Self {
-            semigroup_trait, ..
-        } = self;
-        let from = self.impl_from();
-        let deref = self.impl_deref();
-        let deref_mut = self.impl_deref_mut();
-        let impl_construction = self.impl_construction();
-        let impl_construction_annotated = self.impl_construction_annotated();
-        tokens.extend(quote::quote! {
-            #semigroup_trait
-            #from
-            #deref
-            #deref_mut
-            #impl_construction
-            #impl_construction_annotated
-        });
+        self.semigroup_trait.to_tokens(tokens);
+        self.impl_from().to_tokens(tokens);
+        self.impl_deref().to_tokens(tokens);
+        self.impl_deref_mut().to_tokens(tokens);
+        self.impl_construction().to_tokens(tokens);
+        self.impl_construction_annotated()
+            .into_iter()
+            .for_each(|i| i.to_tokens(tokens));
     }
 }
 impl<'a> Construction<'a> {
@@ -196,23 +188,21 @@ pub struct ConstructionTrait<'a> {
 }
 impl ToTokens for ConstructionTrait<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let def_trait = self.def_trait();
-        let impl_trait = self.impl_trait();
-        let impl_trait_reversed = self.impl_trait_reversed();
-        let impl_trait_annotated = self.impl_trait_annotated();
-        let impl_trait_reversed_annotated = self.impl_trait_reversed_annotated();
-        let impl_semigroup_with_unit_annotate = self.impl_semigroup_with_unit_annotate();
-        let impl_annotate = self.impl_annotate();
-
-        tokens.extend(quote::quote! {
-            #def_trait
-            #impl_trait
-            #impl_trait_reversed
-            #impl_trait_annotated
-            #impl_trait_reversed_annotated
-            #impl_semigroup_with_unit_annotate
-            #impl_annotate
-        });
+        self.def_trait().to_tokens(tokens);
+        self.impl_trait().to_tokens(tokens);
+        self.impl_trait_reversed().to_tokens(tokens);
+        self.impl_trait_annotated()
+            .into_iter()
+            .for_each(|i| i.to_tokens(tokens));
+        self.impl_trait_reversed_annotated()
+            .into_iter()
+            .for_each(|i| i.to_tokens(tokens));
+        self.impl_semigroup_with_unit_annotate()
+            .into_iter()
+            .for_each(|i| i.to_tokens(tokens));
+        self.impl_annotate()
+            .into_iter()
+            .for_each(|i| i.to_tokens(tokens));
     }
 }
 impl<'a> ConstructionTrait<'a> {
