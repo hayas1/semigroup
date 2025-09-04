@@ -1,4 +1,4 @@
-use coalesced::{Annotated, Semigroup};
+use coalesced::{Annotate, Annotated, Semigroup};
 
 #[derive(Debug, Clone, PartialEq, Semigroup)]
 #[semigroup(annotated)]
@@ -10,26 +10,17 @@ pub struct NamedStruct {
 
 #[test]
 fn test_named_struct_semigroup_op() {
-    let a = Annotated {
-        value: NamedStruct {
-            name: "A".to_string(),
-            value: Some(10),
-        },
-        annotation: NamedStructAnnotation {
-            name: "First",
-            value: "First",
-        },
-    };
-    let b = Annotated {
-        value: NamedStruct {
-            name: "B".to_string(),
-            value: None,
-        },
-        annotation: NamedStructAnnotation {
-            name: "Second",
-            value: "First",
-        },
-    };
+    let a = NamedStruct {
+        name: "A".to_string(),
+        value: Some(10),
+    }
+    .annotated("First");
+
+    let b = NamedStruct {
+        name: "B".to_string(),
+        value: None,
+    }
+    .annotated("Second");
 
     let ab = Semigroup::semigroup_op(a.clone(), b.clone());
     assert_eq!(ab.value.name, "B");
@@ -69,26 +60,44 @@ fn test_named_struct_semigroup_op() {
     );
 }
 
-// #[derive(Debug, Clone, PartialEq, Semigroup)]
-// pub struct UnnamedStruct(
-//     #[semigroup(with = "coalesced::op::annotation::replace::Replaced")] String,
-//     Option<u32>,
-// );
+#[derive(Debug, Clone, PartialEq, Semigroup)]
+#[semigroup(annotated)]
+pub struct UnnamedStruct(
+    #[semigroup(with = "coalesced::op::annotation::replace::Replaced")] String,
+    Option<u32>,
+);
 
-// #[test]
-// fn test_unnamed_struct_semigroup_op() {
-//     let a = UnnamedStruct("A".to_string(), Some(10));
-//     let b = UnnamedStruct("B".to_string(), None);
+#[test]
+fn test_unnamed_struct_semigroup_op() {
+    let a = UnnamedStruct("A".to_string(), Some(10)).annotated(1.0);
+    let b = UnnamedStruct("B".to_string(), None).annotated(2.0);
 
-//     assert_eq!(
-//         UnnamedStruct::semigroup_op(a.clone(), b.clone()),
-//         UnnamedStruct("B".to_string(), Some(10))
-//     );
-//     assert_eq!(
-//         UnnamedStruct::semigroup_op(b.clone(), a.clone()),
-//         UnnamedStruct("A".to_string(), Some(10))
-//     );
-// }
+    let ab = Semigroup::semigroup_op(a.clone(), b.clone());
+    assert_eq!(ab.value.0, "B");
+    assert_eq!(ab.annotation.0, 2.0);
+    assert_eq!(ab.value.1, Some(10));
+    assert_eq!(ab.annotation.1, 1.0);
+    assert_eq!(
+        ab,
+        Annotated {
+            value: UnnamedStruct("B".to_string(), Some(10)),
+            annotation: UnnamedStructAnnotation(2.0, 1.0),
+        },
+    );
+
+    let ba = Semigroup::semigroup_op(b.clone(), a.clone());
+    assert_eq!(ba.value.0, "A");
+    assert_eq!(ba.annotation.0, 1.0);
+    assert_eq!(ba.value.1, Some(10));
+    assert_eq!(ba.annotation.1, 1.0);
+    assert_eq!(
+        ba,
+        Annotated {
+            value: UnnamedStruct("A".to_string(), Some(10)),
+            annotation: UnnamedStructAnnotation(1.0, 1.0),
+        },
+    );
+}
 
 // #[derive(Debug, Clone, PartialEq, Semigroup)]
 // pub struct UnitStruct;
