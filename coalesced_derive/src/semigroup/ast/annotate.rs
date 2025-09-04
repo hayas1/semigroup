@@ -26,6 +26,11 @@ impl ToTokens for StructAnnotate<'_> {
             .map(ToTokens::to_token_stream)
             .unwrap_or_else(syn::Error::to_compile_error)
             .to_tokens(tokens);
+        self.impl_annotate()
+            .as_ref()
+            .map(ToTokens::to_token_stream)
+            .unwrap_or_else(syn::Error::to_compile_error)
+            .to_tokens(tokens);
     }
 }
 impl<'a> StructAnnotate<'a> {
@@ -104,11 +109,12 @@ impl<'a> StructAnnotate<'a> {
                 })
                 .collect();
         let annotated = Annotated::new(path_annotated, ident, generics, parse_quote! { A }, None);
+        let a = annotated.type_param().ident;
         let (_, ty_generics, _) = generics.split_for_impl();
         let (impl_generics, _, where_clause) = annotated.split_for_impl();
         Ok(parse_quote! {
-            impl #impl_generics #path_annotated_semigroup<#annotation_ident<A>> for #ident #ty_generics #where_clause {
-                fn #ident_annotated_op(base: #path_annotated<Self, #annotation_ident<A>>, other: #path_annotated<Self, #annotation_ident<A>>) -> #path_annotated<Self, #annotation_ident<A>> {
+            impl #impl_generics #path_annotated_semigroup<#annotation_ident<#a>> for #ident #ty_generics #where_clause {
+                fn #ident_annotated_op(base: #path_annotated<Self, #annotation_ident<#a>>, other: #path_annotated<Self, #annotation_ident<#a>>) -> #path_annotated<Self, #annotation_ident<#a>> {
                     #( #local )*
                     #path_annotated {
                         value: #ident {
@@ -116,6 +122,49 @@ impl<'a> StructAnnotate<'a> {
                         },
                         annotation: #annotation_ident {
                             #(#annotation),*
+                        },
+                    }
+                }
+            }
+        })
+    }
+    pub fn impl_annotate(&self) -> syn::Result<ItemImpl> {
+        let Self {
+            constant, derive, ..
+        } = self;
+        let Constant {
+            path_annotate,
+            path_annotated,
+            ..
+        } = constant;
+        let DeriveInput {
+            ident, generics, ..
+        } = derive;
+        let annotation_ident = self.annotation_ident();
+        let annotated = Annotated::new(
+            path_annotated,
+            ident,
+            generics,
+            parse_quote! { A: Clone },
+            None,
+        );
+        let (_, ty_generics, _) = generics.split_for_impl();
+        let (impl_generics, _, where_clause) = annotated.split_for_impl();
+        let a = annotated.type_param().ident;
+        let fields: Vec<FieldValue> = self
+            .data_struct
+            .fields
+            .members()
+            .map(|m| parse_quote! { #m: annotation.clone() })
+            .collect();
+        Ok(parse_quote! {
+            impl #impl_generics #path_annotate<#annotation_ident<#a>> for #ident #ty_generics #where_clause {
+                type Annotation = #a;
+                fn annotated(self, annotation: Self::Annotation) -> #path_annotated<Self, #annotation_ident<#a>> {
+                    #path_annotated {
+                        value: self,
+                        annotation: #annotation_ident {
+                            #( #fields ),*
                         },
                     }
                 }
