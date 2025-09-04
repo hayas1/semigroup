@@ -1,6 +1,6 @@
 ---
 source: coalesced_derive/src/construction.rs
-assertion_line: 37
+assertion_line: 36
 expression: formatted
 ---
 pub trait Coalesce: Sized + Semigroup {
@@ -15,6 +15,15 @@ impl<T, A> Coalesce for ::coalesced::Reversed<::coalesced::Annotated<Coalesced<T
 impl<T> ::coalesced::Semigroup for Coalesced<T> {
     fn semigroup_op(base: Self, other: Self) -> Self {
         Self::default_semigroup_op(base, other, (), ())
+    }
+}
+impl<T, A> ::coalesced::Annotate<A> for Coalesced<T> {
+    type Annotation = A;
+    fn annotated(self, annotation: Self::Annotation) -> ::coalesced::Annotated<Self, A> {
+        ::coalesced::Annotated {
+            value: self,
+            annotation,
+        }
     }
 }
 impl<T> From<Option<T>> for Coalesced<T> {

@@ -32,8 +32,8 @@ mod tests {
         };
         let generated = gen_construction::<Absolute>(&derive).unwrap();
         let formatted = prettyplease::unparse(&syn::parse2(generated).unwrap());
-        insta::with_settings!({ snapshot_path => "../tests/snapshots" }, {
-            insta::assert_snapshot!("annotated", formatted);
+        insta::with_settings!({ snapshot_path => "../tests/snapshots", prepend_module_to_snapshot => false }, {
+            insta::assert_snapshot!("construction_annotated", formatted);
         });
     }
 
@@ -46,8 +46,8 @@ mod tests {
         };
         let generated = gen_construction::<Use>(&derive).unwrap();
         let formatted = prettyplease::unparse(&syn::parse2(generated).unwrap());
-        insta::with_settings!({ snapshot_path => "../tests/snapshots" }, {
-            insta::assert_snapshot!("not_annotated", formatted);
+        insta::with_settings!({ snapshot_path => "../tests/snapshots", prepend_module_to_snapshot => false }, {
+            insta::assert_snapshot!("construction_not_annotated", formatted);
         });
     }
 
@@ -55,13 +55,19 @@ mod tests {
     fn test_derive_construction_custom_annotation_generic() {
         let derive = syn::parse_quote! {
             #[derive(Construction)]
-            #[construction(op = Coalesce, annotated, annotation_type_param = "X: IntoIterator + FromIterator<X::Item>", unit = "vec![(); 0]")]
+            #[construction(
+                op = Coalesce,
+                annotated,
+                annotation_type_param = "X: IntoIterator + FromIterator<X::Item>",
+                annotation_where = "X::Item: Clone",
+                unit = "vec![(); 0]"
+            )]
             pub struct Concatenated<T: IntoIterator + FromIterator<T::Item>>(pub T);
         };
         let generated = gen_construction::<Absolute>(&derive).unwrap();
         let formatted = prettyplease::unparse(&syn::parse2(generated).unwrap());
-        insta::with_settings!({ snapshot_path => "../tests/snapshots" }, {
-            insta::assert_snapshot!("custom_annotation", formatted);
+        insta::with_settings!({ snapshot_path => "../tests/snapshots", prepend_module_to_snapshot => false }, {
+            insta::assert_snapshot!("construction_custom_annotation", formatted);
         });
     }
 }
