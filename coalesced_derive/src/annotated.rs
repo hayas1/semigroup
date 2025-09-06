@@ -2,35 +2,33 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{parse_quote, GenericParam, Generics, Ident, Path, Type, TypeParam, WherePredicate};
 
+#[derive(Debug, Clone)]
 pub struct Annotated<'a> {
-    pub path_annotated: &'a Path,
-    pub value_type_ident: &'a Ident, // TODO TypePath? Path?
-    pub generics: &'a Generics,
-    pub type_param: TypeParam,
-    pub annotation_where: Option<WherePredicate>,
+    path_annotated: &'a Path,
+    type_ident: &'a Ident, // TODO TypePath? Path?
+    generics: &'a Generics,
+    annotation: TypeParam,
+    annotation_where: Option<WherePredicate>,
 }
 impl<'a> Annotated<'a> {
     pub fn new(
         path_annotated: &'a Path,
-        value_type_ident: &'a Ident,
+        type_ident: &'a Ident,
         generics: &'a Generics,
-        type_param: TypeParam,
+        annotation: TypeParam,
         annotation_where: Option<WherePredicate>,
     ) -> Self {
         Self {
             generics,
             path_annotated,
-            value_type_ident,
-            type_param,
+            type_ident,
+            annotation,
             annotation_where,
         }
     }
 
-    pub fn type_param(&self) -> TypeParam {
-        self.type_param.clone()
-    }
-    pub fn generic_param(&self) -> GenericParam {
-        GenericParam::Type(self.type_param())
+    pub fn annotation(&self) -> TypeParam {
+        self.annotation.clone()
     }
 
     pub fn split_for_impl(&self) -> (AnnotatedImplGenerics, AnnotatedType, AnnotatedWhereClause) {
@@ -47,7 +45,9 @@ impl<'a> ToTokens for AnnotatedImplGenerics<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let Self(&Annotated { generics, .. }) = self;
         let mut new_generics = generics.clone();
-        new_generics.params.push(self.0.generic_param());
+        new_generics
+            .params
+            .push(GenericParam::Type(self.0.annotation()));
 
         let (impl_generics, _, _) = new_generics.split_for_impl();
         impl_generics.to_tokens(tokens);
@@ -58,14 +58,14 @@ impl<'a> ToTokens for AnnotatedType<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let Self(&Annotated {
             path_annotated,
-            value_type_ident,
+            type_ident,
             generics,
             ..
         }) = self;
-        let a = self.0.type_param().ident;
+        let a = self.0.annotation().ident;
         let (_, ty_generics, _) = generics.split_for_impl();
 
-        let ty: Type = parse_quote! { #path_annotated<#value_type_ident #ty_generics, #a> };
+        let ty: Type = parse_quote! { #path_annotated<#type_ident #ty_generics, #a> };
         ty.to_tokens(tokens);
     }
 }

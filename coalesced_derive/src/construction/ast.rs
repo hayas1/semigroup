@@ -7,8 +7,8 @@ use syn::{
 };
 
 use crate::{
-    constant::Constant, construction::attr::ContainerAttr, error::ConstructionError,
-    generics::Annotated,
+    annotated::Annotated, constant::Constant, construction::attr::ContainerAttr,
+    error::ConstructionError,
 };
 
 #[derive(Debug, Clone)]
@@ -18,6 +18,7 @@ pub struct Construction<'a> {
     field: &'a Field,
 
     attr: &'a ContainerAttr,
+    annotated: Annotated<'a>,
     semigroup_trait: ConstructionTrait<'a>,
 }
 impl ToTokens for Construction<'_> {
@@ -47,12 +48,20 @@ impl<'a> Construction<'a> {
                 let &[field] = unnamed.iter().collect::<Vec<_>>().as_slice() else {
                     unreachable!()
                 };
+                let annotated = Annotated::new(
+                    &constant.path_annotated,
+                    &derive.ident,
+                    &derive.generics,
+                    attr.annotation_type_param(),
+                    attr.annotation_where(),
+                );
                 let semigroup_trait = ConstructionTrait::new(constant, derive, attr)?;
                 Ok(Self {
                     constant,
                     derive,
                     field,
                     attr,
+                    annotated,
                     semigroup_trait,
                 })
             }
@@ -119,7 +128,6 @@ impl<'a> Construction<'a> {
             constant:
                 Constant {
                     path_construction_annotated,
-                    path_annotated,
                     ..
                 },
             derive: DeriveInput {
@@ -130,9 +138,8 @@ impl<'a> Construction<'a> {
             ..
         } = self;
         attr.is_annotated().then(|| {
-            let annotated = Annotated::new(path_annotated, ident, generics, attr.annotation_type_param(), attr.annotation_where());
             let (_, ty_generics, _) = generics.split_for_impl();
-            let (annotated_impl_generics, _, where_clause) = annotated.split_for_impl();
+            let (annotated_impl_generics, _, where_clause) = self.annotated.split_for_impl();
             let a = attr.annotation_type_param().ident; // TODO split method
             parse_quote! {
                 impl #annotated_impl_generics #path_construction_annotated<#ty, #a> for #ident #ty_generics #where_clause {}
@@ -185,6 +192,7 @@ pub struct ConstructionTrait<'a> {
     method_ident: Ident,
 
     attr: &'a ContainerAttr,
+    annotated: Annotated<'a>,
 }
 impl ToTokens for ConstructionTrait<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
@@ -213,6 +221,13 @@ impl<'a> ConstructionTrait<'a> {
     ) -> syn::Result<Self> {
         let trait_ident = attr.op.clone();
         let method_ident = quote::format_ident!("{}", trait_ident.to_string().to_snake_case());
+        let annotated = Annotated::new(
+            &constant.path_annotated,
+            &derive.ident,
+            &derive.generics,
+            attr.annotation_type_param(),
+            attr.annotation_where(),
+        );
 
         Ok(Self {
             constant,
@@ -220,6 +235,7 @@ impl<'a> ConstructionTrait<'a> {
             trait_ident,
             method_ident,
             attr,
+            annotated,
         })
     }
 
@@ -274,23 +290,11 @@ impl<'a> ConstructionTrait<'a> {
     }
     pub fn impl_trait_annotated(&self) -> Option<ItemImpl> {
         let Self {
-            constant: Constant { path_annotated, .. },
-            derive: DeriveInput {
-                ident, generics, ..
-            },
-            trait_ident,
-            attr,
-            ..
+            trait_ident, attr, ..
         } = self;
         attr.is_annotated().then(|| {
-            let annotated = Annotated::new(
-                path_annotated,
-                ident,
-                generics,
-                attr.annotation_type_param(),
-                attr.annotation_where(),
-            );
-            let (annotated_impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
+            let (annotated_impl_generics, annotated_ty, where_clause) =
+                self.annotated.split_for_impl();
 
             parse_quote! {
                 impl #annotated_impl_generics #trait_ident for #annotated_ty #where_clause {}
@@ -299,22 +303,13 @@ impl<'a> ConstructionTrait<'a> {
     }
     pub fn impl_trait_reversed_annotated(&self) -> Option<ItemImpl> {
         let Self {
-            constant:
-                Constant {
-                    path_annotated,
-                    path_reversed,
-                    ..
-                },
-            derive: DeriveInput {
-                ident, generics, ..
-            },
+            constant: Constant { path_reversed, .. },
             trait_ident,
             attr,
             ..
         } = self;
         attr.is_annotated().then(|| {
-            let annotated = Annotated::new(path_annotated, ident, generics, attr.annotation_type_param(), attr.annotation_where());
-            let (annotated_impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
+            let (annotated_impl_generics, annotated_ty, where_clause) = self.annotated.split_for_impl();
             parse_quote! {
                 impl #annotated_impl_generics #trait_ident for #path_reversed<#annotated_ty> #where_clause {}
             }
@@ -362,15 +357,8 @@ impl<'a> ConstructionTrait<'a> {
             ..
         } = self;
         (attr.is_annotated() && !attr.without_annotate_impl).then(|| {
-            let annotated = Annotated::new(
-                path_annotated,
-                ident,
-                generics,
-                attr.annotation_type_param(),
-                attr.annotation_where(),
-            );
             let (_, ty_generics, _) = generics.split_for_impl();
-            let (annotated_impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
+            let (annotated_impl_generics, annotated_ty, where_clause) = self.annotated.split_for_impl();
             let a = attr.annotation_type_param().ident; // TODO split method
             parse_quote! {
                 impl #annotated_impl_generics #path_annotate<#a> for #ident #ty_generics #where_clause {

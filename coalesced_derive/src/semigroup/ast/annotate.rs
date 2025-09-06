@@ -6,8 +6,8 @@ use syn::{
 };
 
 use crate::{
+    annotated::Annotated,
     constant::Constant,
-    generics::Annotated,
     semigroup::attr::{ContainerAttr, FieldAttr},
 };
 
@@ -105,7 +105,7 @@ impl<'a> StructAnnotate<'a> {
                 })
                 .collect();
         let annotated = Annotated::new(path_annotated, ident, generics, parse_quote! { A }, None);
-        let a = annotated.type_param().ident;
+        let a = annotated.annotation().ident;
         let (_, ty_generics, _) = generics.split_for_impl();
         let (impl_generics, _, where_clause) = annotated.split_for_impl();
         Ok(parse_quote! {
@@ -146,7 +146,7 @@ impl<'a> StructAnnotate<'a> {
         );
         let (_, ty_generics, _) = generics.split_for_impl();
         let (impl_generics, _, where_clause) = annotated.split_for_impl();
-        let a = annotated.type_param().ident;
+        let a = annotated.annotation().ident;
         let fields: Vec<FieldValue> = self
             .data_struct
             .fields

@@ -1,7 +1,7 @@
+mod annotated;
 mod constant;
 mod construction;
 mod error;
-mod generics;
 mod semigroup;
 
 #[proc_macro_derive(Construction, attributes(construction))]
