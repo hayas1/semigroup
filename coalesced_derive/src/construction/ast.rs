@@ -93,7 +93,7 @@ impl<'a> Construction<'a> {
         let Self {
             constant:
                 Constant {
-                    path_construction_trait: path_construction_semigroup,
+                    path_construction_trait,
                     ..
                 },
             derive: DeriveInput {
@@ -104,7 +104,7 @@ impl<'a> Construction<'a> {
         } = self;
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
         parse_quote! {
-            impl #impl_generics #path_construction_semigroup<#ty> for #ident #ty_generics #where_clause {
+            impl #impl_generics #path_construction_trait<#ty> for #ident #ty_generics #where_clause {
                 fn new(value: #ty) -> Self {
                     Self(value)
                 }
