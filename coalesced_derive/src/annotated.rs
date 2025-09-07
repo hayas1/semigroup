@@ -1,6 +1,9 @@
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-use syn::{parse_quote, GenericParam, Generics, Ident, Path, Type, TypeParam, WherePredicate};
+use syn::{
+    parse_quote, GenericParam, Generics, Ident, ImplGenerics, Path, Type, TypeParam, WhereClause,
+    WherePredicate,
+};
 
 #[derive(Debug, Clone)]
 pub struct Annotated<'a> {
@@ -43,19 +46,27 @@ impl<'a> Annotated<'a> {
 pub struct AnnotatedImplGenerics<'a>(&'a Annotated<'a>);
 impl<'a> ToTokens for AnnotatedImplGenerics<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let Self(&Annotated { generics, .. }) = self;
-        let mut new_generics = generics.clone();
-        new_generics
-            .params
-            .push(GenericParam::Type(self.0.annotation()));
-
-        let (impl_generics, _, _) = new_generics.split_for_impl();
-        impl_generics.to_tokens(tokens);
+        let mut generics = self.0.generics.clone();
+        self.impl_generics(&mut generics).to_tokens(tokens);
     }
 }
+impl<'a> AnnotatedImplGenerics<'a> {
+    pub fn impl_generics(&self, generics: &'a mut Generics) -> ImplGenerics<'a> {
+        let generic_param = GenericParam::Type(self.0.annotation());
+        generics.params.push(generic_param);
+        let (impl_generics, _, _) = generics.split_for_impl();
+        impl_generics
+    }
+}
+
 pub struct AnnotatedType<'a>(&'a Annotated<'a>);
 impl<'a> ToTokens for AnnotatedType<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.ty().to_tokens(tokens);
+    }
+}
+impl AnnotatedType<'_> {
+    pub fn ty(&self) -> Type {
         let Self(&Annotated {
             path_annotated,
             type_ident,
@@ -65,24 +76,28 @@ impl<'a> ToTokens for AnnotatedType<'a> {
         let a = self.0.annotation().ident;
         let (_, ty_generics, _) = generics.split_for_impl();
 
-        let ty: Type = parse_quote! { #path_annotated<#type_ident #ty_generics, #a> };
-        ty.to_tokens(tokens);
+        parse_quote! { #path_annotated<#type_ident #ty_generics, #a> }
+    }
+    pub fn ty_self(&self) -> Type {
+        let Self(&Annotated { path_annotated, .. }) = self;
+        let a = self.0.annotation().ident;
+        parse_quote! { #path_annotated<Self, #a> }
     }
 }
 
 pub struct AnnotatedWhereClause<'a>(&'a Annotated<'a>);
 impl<'a> ToTokens for AnnotatedWhereClause<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let Self(&Annotated {
-            generics,
-            ref annotation_where,
-            ..
-        }) = self;
-        let mut g = generics.clone();
-        let where_clause = g.make_where_clause();
-        annotation_where.iter().for_each(|p| {
+        let mut generics = self.0.generics.clone();
+        let where_clause = generics.make_where_clause();
+        self.push_where_clause(where_clause);
+        where_clause.to_tokens(tokens);
+    }
+}
+impl AnnotatedWhereClause<'_> {
+    pub fn push_where_clause(&self, where_clause: &mut WhereClause) {
+        self.0.annotation_where.iter().for_each(|p| {
             where_clause.predicates.push(p.clone());
         });
-        where_clause.to_tokens(tokens);
     }
 }

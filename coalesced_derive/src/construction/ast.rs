@@ -359,11 +359,12 @@ impl<'a> ConstructionTrait<'a> {
         (attr.is_annotated() && !attr.without_annotate_impl).then(|| {
             let (_, ty_generics, _) = generics.split_for_impl();
             let (annotated_impl_generics, annotated_ty, where_clause) = self.annotated.split_for_impl();
-            let a = attr.annotation_type_param().ident; // TODO split method
+            let annotated_self = annotated_ty.ty_self();
+            let a = self.annotated.annotation().ident;
             parse_quote! {
                 impl #annotated_impl_generics #path_annotate<#a> for #ident #ty_generics #where_clause {
                     type Annotation = #a;
-                    fn annotated(self, annotation: Self::Annotation) -> #path_annotated<Self, #a> {
+                    fn annotated(self, annotation: Self::Annotation) -> #annotated_self {
                         #path_annotated {
                             value: self,
                             annotation
