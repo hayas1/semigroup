@@ -166,13 +166,11 @@ impl<'a> StructAnnotate<'a> {
                 })
                 .collect();
         let annotation = attr.annotation(&annotation_ident);
-        let annotated = annotation.annotated(path_annotated, ident, generics);
         let (_, ty_generics, _) = generics.split_for_impl();
-        let (impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
-        let (annotation_type, annotated_self) = (annotation.ty(), annotated_ty.ty_self());
+        let (impl_generics, annotation_type, where_clause) = annotation.split_for_impl(generics);
         Ok(parse_quote! {
             impl #impl_generics #path_annotated_semigroup<#annotation_type> for #ident #ty_generics #where_clause {
-                fn #ident_annotated_op(base: #annotated_self, other: #annotated_self) -> #annotated_self {
+                fn #ident_annotated_op(base: #path_annotated<Self, #annotation_type>, other: #path_annotated<Self, #annotation_type>) -> #path_annotated<Self, #annotation_type> {
                     #( #local )*
                     #path_annotated {
                         value: #ident {
@@ -203,14 +201,9 @@ impl<'a> StructAnnotate<'a> {
         } = derive;
         let annotation_ident = self.annotation_ident();
         let annotation = attr.annotation(&annotation_ident);
-        let annotated = annotation.annotated(path_annotated, ident, generics);
         let (_, ty_generics, _) = generics.split_for_impl();
-        let (impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
-        let (a, annotation_type, annotated_self) = (
-            &annotation.param().ident,
-            annotation.ty(),
-            annotated_ty.ty_self(),
-        );
+        let (impl_generics, annotation_type, where_clause) = annotation.split_for_impl(generics);
+        let a = &annotation.param().ident; // TODO ?
         let fields: Vec<FieldValue> = self
             .data_struct
             .fields
@@ -220,7 +213,7 @@ impl<'a> StructAnnotate<'a> {
         parse_quote! {
             impl #impl_generics #path_annotate<#annotation_type> for #ident #ty_generics #where_clause {
                 type Annotation = #a;
-                fn annotated(self, annotation: Self::Annotation) -> #annotated_self {
+                fn annotated(self, annotation: Self::Annotation) -> #path_annotated<Self, #annotation_type> {
                     #path_annotated {
                         value: self,
                         annotation: #annotation_ident {

@@ -115,15 +115,17 @@ impl<'a> OpTrait<'a> {
             },
             trait_ident,
             attr,
+            annotation,
             ..
         } = self;
 
         attr.is_annotated().then(|| {
-            let annotated = self.annotation.annotated(path_annotated, ident, generics);
-            let (annotated_impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
+            let (_, ty_generics, _) = generics.split_for_impl();
+            let (impl_generics, annotated_type, where_clause) =
+                annotation.split_for_impl(generics);
 
             parse_quote! {
-                impl #annotated_impl_generics #trait_ident for #annotated_ty #where_clause {}
+                impl #impl_generics #trait_ident for #path_annotated<#ident #ty_generics, #annotated_type> #where_clause {}
             }
         })
     }
@@ -140,14 +142,15 @@ impl<'a> OpTrait<'a> {
                 },
             trait_ident,
             attr,
+            annotation,
             ..
         } = self;
 
         attr.is_annotated().then(|| {
-            let annotated = self.annotation.annotated(path_annotated, ident, generics);
-            let (annotated_impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
+            let (_, ty_generics, _) = generics.split_for_impl();
+            let (impl_generics, annotated_type, where_clause) = annotation.split_for_impl(generics);
             parse_quote! {
-                impl #annotated_impl_generics #trait_ident for #path_reversed<#annotated_ty> #where_clause {}
+                impl #impl_generics #trait_ident for #path_reversed<#path_annotated<#ident #ty_generics, #annotated_type>> #where_clause {}
             }
         })
     }
@@ -191,18 +194,17 @@ impl<'a> OpTrait<'a> {
                 ident, generics, ..
             },
             attr,
+            annotation,
             ..
         } = self;
 
         (attr.is_annotated() && !attr.without_annotate_impl).then(|| {
             let (_, ty_generics, _) = generics.split_for_impl();
-            let annotated = self.annotation.annotated(path_annotated, ident, generics);
-            let (annotated_impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
-            let (a, annotated_self) = (&self.annotation.param().ident, annotated_ty.ty_self());
+            let (impl_generics, annotated_type, where_clause) = annotation.split_for_impl(generics);
             parse_quote! {
-                impl #annotated_impl_generics #path_annotate<#a> for #ident #ty_generics #where_clause {
-                    type Annotation = #a;
-                    fn annotated(self, annotation: Self::Annotation) -> #annotated_self {
+                impl #impl_generics #path_annotate<#annotated_type> for #ident #ty_generics #where_clause {
+                    type Annotation = #annotated_type;
+                    fn annotated(self, annotation: Self::Annotation) -> #path_annotated<Self, #annotated_type> {
                         #path_annotated {
                             value: self,
                             annotation

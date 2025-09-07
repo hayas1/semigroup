@@ -89,7 +89,6 @@ impl<'a> ConstructionTrait<'a> {
         let Self {
             constant:
                 Constant {
-                    path_annotated,
                     path_construction_annotated,
                     ..
                 },
@@ -98,16 +97,15 @@ impl<'a> ConstructionTrait<'a> {
             },
             field: Field { ty, .. },
             attr,
+            annotation,
             ..
         } = self;
 
         attr.is_annotated().then(|| {
             let (_, ty_generics, _) = generics.split_for_impl();
-            let annotated= self.annotation.annotated(path_annotated, ident, generics);
-            let (annotated_impl_generics, _, where_clause) = annotated.split_for_impl();
-            let a = &self.annotation.param().ident;
+            let (impl_generics, annotated_type, where_clause) = annotation.split_for_impl(generics);
             parse_quote! {
-                impl #annotated_impl_generics #path_construction_annotated<#ty, #a> for #ident #ty_generics #where_clause {}
+                impl #impl_generics #path_construction_annotated<#ty, #annotated_type> for #ident #ty_generics #where_clause {}
             }
         })
     }
