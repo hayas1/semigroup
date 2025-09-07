@@ -1,29 +1,37 @@
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-use syn::{
-    parse_quote, Data, DataEnum, DataStruct, DataUnion, DeriveInput, FieldValue, Fields, ItemImpl,
-    Member,
-};
+use syn::{Data, DataEnum, DataUnion, DeriveInput};
 
 use crate::{
     constant::Constant,
     error::SemigroupError,
     semigroup::{
-        ast::annotate::StructAnnotate,
-        attr::{ContainerAttr, FieldAttr},
+        ast::struct_semigroup::{StructAnnotate, StructSemigroup},
+        attr::ContainerAttr,
     },
 };
 
-pub mod annotate;
+pub mod field_semigroup;
+pub mod struct_semigroup;
 
 #[derive(Debug, Clone)]
-pub struct Semigroup<'a> {
-    derive: &'a DeriveInput,
-    struct_semigroup: StructSemigroup<'a>,
+pub enum Semigroup<'a> {
+    Struct {
+        struct_semigroup: StructSemigroup<'a>,
+        struct_annotate: Option<StructAnnotate<'a>>,
+    },
 }
 impl ToTokens for Semigroup<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.struct_semigroup.to_tokens(tokens)
+        match self {
+            Self::Struct {
+                struct_semigroup,
+                struct_annotate,
+            } => {
+                struct_semigroup.to_tokens(tokens);
+                struct_annotate.iter().for_each(|s| s.to_tokens(tokens));
+            }
+        }
     }
 }
 impl<'a> Semigroup<'a> {
@@ -39,9 +47,12 @@ impl<'a> Semigroup<'a> {
             )),
             Data::Struct(data_struct) => {
                 let struct_semigroup = StructSemigroup::new(constant, derive, attr, data_struct)?;
-                Ok(Self {
-                    derive,
+                let struct_annotate = attr
+                    .is_annotated()
+                    .then(|| StructAnnotate::new(constant, derive, attr, data_struct));
+                Ok(Self::Struct {
                     struct_semigroup,
+                    struct_annotate,
                 })
             }
             Data::Union(DataUnion { union_token, .. }) => Err(syn::Error::new_spanned(
@@ -49,152 +60,5 @@ impl<'a> Semigroup<'a> {
                 SemigroupError::UnsupportedUnion,
             )),
         }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct StructSemigroup<'a> {
-    constant: &'a Constant,
-    derive: &'a DeriveInput,
-    attr: &'a ContainerAttr,
-    data_struct: &'a DataStruct,
-}
-impl ToTokens for StructSemigroup<'_> {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.impl_semigroup()
-            .as_ref()
-            .map(ToTokens::to_token_stream)
-            .unwrap_or_else(syn::Error::to_compile_error)
-            .to_tokens(tokens);
-        self.struct_annotate()
-            .iter()
-            .for_each(|struct_annotate| struct_annotate.to_tokens(tokens));
-    }
-}
-impl<'a> StructSemigroup<'a> {
-    pub fn new(
-        constant: &'a Constant,
-        derive: &'a DeriveInput,
-        attr: &'a ContainerAttr,
-        data_struct: &'a DataStruct,
-    ) -> syn::Result<Self> {
-        Ok(Self {
-            constant,
-            derive,
-            data_struct,
-            attr,
-        })
-    }
-    pub fn impl_semigroup(&self) -> syn::Result<ItemImpl> {
-        let Self {
-            constant,
-            derive,
-            attr,
-            data_struct,
-            ..
-        } = self;
-        let Constant {
-            path_semigroup,
-            ident_semigroup_op,
-            ..
-        } = constant;
-        let DeriveInput {
-            ident, generics, ..
-        } = derive;
-        let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-        let fields_op = FieldSemigroupOp::new_fields(constant, derive, attr, &data_struct.fields)?
-            .into_iter()
-            .map(|op| op.impl_field_semigroup_op());
-        Ok(parse_quote! {
-            impl #impl_generics #path_semigroup for #ident #ty_generics #where_clause {
-                fn #ident_semigroup_op(base: Self, other: Self) -> Self {
-                    Self {
-                        #(#fields_op),*
-                    }
-                }
-            }
-        })
-    }
-    pub fn struct_annotate(&self) -> Option<StructAnnotate> {
-        let Self {
-            constant,
-            derive,
-            attr,
-            data_struct,
-            ..
-        } = self;
-        attr.is_annotated()
-            .then(|| StructAnnotate::new(constant, derive, attr, data_struct))
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct FieldSemigroupOp<'a> {
-    constant: &'a Constant,
-    container_attr: &'a ContainerAttr,
-    member: Member,
-    field_attr: FieldAttr,
-}
-impl<'a> FieldSemigroupOp<'a> {
-    pub fn new(
-        constant: &'a Constant,
-        _derive: &'a DeriveInput,
-        container_attr: &'a ContainerAttr,
-        member: Member,
-        field_attr: FieldAttr,
-    ) -> Self {
-        Self {
-            constant,
-            container_attr,
-            member,
-            field_attr,
-        }
-    }
-    pub fn new_fields(
-        constant: &'a Constant,
-        derive: &'a DeriveInput,
-        container_attr: &'a ContainerAttr,
-        fields: &'a Fields,
-    ) -> syn::Result<Vec<Self>> {
-        fields
-            .iter()
-            .zip(fields.members())
-            .map(|(field, member)| {
-                Ok(Self::new(
-                    constant,
-                    derive,
-                    container_attr,
-                    member,
-                    FieldAttr::new(field)?,
-                ))
-            })
-            .collect()
-    }
-
-    pub fn impl_field_semigroup_op(&self) -> FieldValue {
-        let Self {
-            constant:
-                Constant {
-                    path_semigroup,
-                    ident_semigroup_op,
-                    path_construction_trait,
-                    ..
-                },
-            container_attr,
-            member,
-            field_attr,
-            ..
-        } = self;
-        let with = field_attr.with(container_attr);
-        with.map(|path| {
-                parse_quote! {
-                    #member: <#path<_> as #path_construction_trait<_>>::lift_op(base.#member, other.#member)
-                }
-            })
-            .unwrap_or_else(|| {
-                parse_quote! {
-                    #member: #path_semigroup::#ident_semigroup_op(base.#member, other.#member)
-                }
-            })
     }
 }
