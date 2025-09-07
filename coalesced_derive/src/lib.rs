@@ -1,4 +1,4 @@
-mod annotated;
+mod annotation;
 mod constant;
 mod construction;
 mod error;

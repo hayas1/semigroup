@@ -1,7 +1,7 @@
 use darling::FromDeriveInput;
 use syn::{parse_quote, DeriveInput, Expr, Ident, TypeParam};
 
-use crate::annotated::Annotation;
+use crate::annotation::Annotation;
 
 #[derive(Debug, Clone, FromDeriveInput)]
 #[darling(attributes(construction))]

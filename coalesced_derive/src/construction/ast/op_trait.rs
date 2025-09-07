@@ -3,7 +3,7 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{parse_quote, DeriveInput, Field, Ident, ItemImpl, ItemTrait};
 
-use crate::{annotated::Annotation, constant::Constant, construction::attr::ContainerAttr};
+use crate::{annotation::Annotation, constant::Constant, construction::attr::ContainerAttr};
 
 #[derive(Debug, Clone)]
 pub struct OpTrait<'a> {
