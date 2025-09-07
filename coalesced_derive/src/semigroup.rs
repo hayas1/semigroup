@@ -24,57 +24,55 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_derive_semigroup_annotated() {
-        let derive = syn::parse_quote! {
-            #[derive(Semigroup)]
-            #[semigroup(annotated)]
-            pub struct NamedStruct {
-                #[semigroup(with = "coalesced::op::annotation::replace::Replaced")]
-                pub foo: String,
-                pub bar: Option<u32>,
-                pub baz: coalesced::op::annotation::replace::Replaced<bool>,
-            }
-        };
-        let generated = gen_semigroup::<Absolute>(&derive).unwrap();
-        let formatted = prettyplease::unparse(&syn::parse2(generated).unwrap());
-        insta::with_settings!({ snapshot_path => "../tests/snapshots", prepend_module_to_snapshot => false }, {
-            insta::assert_snapshot!("semigroup_annotated", formatted);
-        });
-    }
-
-    #[test]
-    fn test_derive_semigroup_not_annotated() {
-        let derive = syn::parse_quote! {
-            #[derive(SemigroupUse)]
-            #[semigroup(with = "coalesced::op::annotation::replace::Replaced")]
-            pub struct UnnamedStruct<T: std::ops::Add> (
-                #[semigroup(with = "coalesced::op::semigroup::add::Added")]
-                T,
-                u64
-            );
-        };
-        let generated = gen_semigroup::<Use>(&derive).unwrap();
-        let formatted = prettyplease::unparse(&syn::parse2(generated).unwrap());
-        insta::with_settings!({ snapshot_path => "../tests/snapshots", prepend_module_to_snapshot => false }, {
-            insta::assert_snapshot!("semigroup_not_annotated", formatted);
-        });
-    }
-
-    #[test]
-    fn test_derive_semigroup_custom_annotation_param() {
-        let derive = syn::parse_quote! {
-            #[derive(Semigroup)]
-            #[semigroup(annotated, annotation_param = X, with = "coalesced::op::annotation::replace::Replaced")]
-            pub struct NamedStruct{
-                pub foo: String,
-                pub bar: Option<u32>,
-                pub baz: bool,
-            }
-        };
-        let generated = gen_semigroup::<Absolute>(&derive).unwrap();
-        let formatted = prettyplease::unparse(&syn::parse2(generated).unwrap());
-        insta::with_settings!({ snapshot_path => "../tests/snapshots", prepend_module_to_snapshot => false }, {
-            insta::assert_snapshot!("semigroup_custom_annotation", formatted);
+    fn test_derive_snapshot() {
+        let cases = vec![
+            (
+                "semigroup_annotated",
+                Box::new(gen_semigroup::<Absolute> as fn(&_) -> _),
+                syn::parse_quote! {
+                    #[derive(Semigroup)]
+                    #[semigroup(annotated)]
+                    pub struct NamedStruct {
+                        #[semigroup(with = "coalesced::op::annotation::replace::Replaced")]
+                        pub foo: String,
+                        pub bar: Option<u32>,
+                        pub baz: coalesced::op::annotation::replace::Replaced<bool>,
+                    }
+                },
+            ),
+            (
+                "semigroup_not_annotated",
+                Box::new(gen_semigroup::<Use>),
+                syn::parse_quote! {
+                    #[derive(SemigroupUse)]
+                    #[semigroup(with = "coalesced::op::annotation::replace::Replaced")]
+                    pub struct UnnamedStruct<T: std::ops::Add> (
+                        #[semigroup(with = "coalesced::op::semigroup::add::Added")]
+                        T,
+                        u64
+                    );
+                },
+            ),
+            (
+                "semigroup_custom_annotation",
+                Box::new(gen_semigroup::<Absolute>),
+                syn::parse_quote! {
+                    #[derive(Semigroup)]
+                    #[semigroup(annotated, annotation_param = X, with = "coalesced::op::annotation::replace::Replaced")]
+                    pub struct NamedStruct{
+                        pub foo: String,
+                        pub bar: Option<u32>,
+                        pub baz: bool,
+                    }
+                },
+            ),
+        ];
+        cases.into_iter().for_each(|(case, f, derive)| {
+            let generated = f(&derive).unwrap();
+            let formatted = prettyplease::unparse(&syn::parse2(generated).unwrap());
+            insta::with_settings!({ snapshot_path => "../tests/snapshots", prepend_module_to_snapshot => false }, {
+                insta::assert_snapshot!(case, formatted);
+            });
         });
     }
 }
