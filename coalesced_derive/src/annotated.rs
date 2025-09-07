@@ -27,11 +27,8 @@ impl<'a> Annotated<'a> {
         }
     }
 
-    pub fn annotation_param(&'a self) -> &'a TypeParam {
-        &self.annotation.type_param
-    }
-    pub fn annotation_type(&'a self) -> &'a Type {
-        &self.annotation.ty
+    pub fn annotation(&self) -> &Annotation {
+        &self.annotation
     }
 
     pub fn split_for_impl(&self) -> (AnnotatedImplGenerics, AnnotatedType, AnnotatedWhereClause) {
@@ -52,7 +49,7 @@ impl<'a> ToTokens for AnnotatedImplGenerics<'a> {
 }
 impl<'a> AnnotatedImplGenerics<'a> {
     pub fn impl_generics(&self, generics: &'a mut Generics) -> ImplGenerics<'a> {
-        let generic_param = GenericParam::Type(self.0.annotation_param().clone());
+        let generic_param = GenericParam::Type(self.0.annotation().param().clone());
         generics.params.push(generic_param);
         let (impl_generics, _, _) = generics.split_for_impl();
         impl_generics
@@ -73,14 +70,14 @@ impl AnnotatedType<'_> {
             generics,
             ..
         }) = self;
-        let a = self.0.annotation_type();
+        let a = self.0.annotation().ty();
         let (_, ty_generics, _) = generics.split_for_impl();
 
         parse_quote! { #path_annotated<#type_ident #ty_generics, #a> }
     }
     pub fn ty_self(&self) -> Type {
         let Self(&Annotated { path_annotated, .. }) = self;
-        let a = self.0.annotation_type();
+        let a = self.0.annotation().ty();
         parse_quote! { #path_annotated<Self, #a> }
     }
 }
@@ -96,7 +93,7 @@ impl<'a> ToTokens for AnnotatedWhereClause<'a> {
 }
 impl AnnotatedWhereClause<'_> {
     pub fn push_where_clause(&self, where_clause: &mut WhereClause) {
-        let mut annotation_generics = self.0.annotation.generics.clone();
+        let mut annotation_generics = self.0.annotation().generics.clone();
         let annotation_where = annotation_generics.make_where_clause();
         where_clause
             .predicates
@@ -133,5 +130,12 @@ impl Annotation {
             ty,
             generics,
         }
+    }
+
+    pub fn param(&self) -> &TypeParam {
+        &self.type_param
+    }
+    pub fn ty(&self) -> &Type {
+        &self.ty
     }
 }

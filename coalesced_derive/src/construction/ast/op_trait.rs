@@ -187,7 +187,7 @@ impl<'a> OpTrait<'a> {
         (attr.is_annotated() && !attr.without_annotate_impl).then(|| {
             let (_, ty_generics, _) = generics.split_for_impl();
             let (annotated_impl_generics, annotated_ty, where_clause) = self.annotated.split_for_impl();
-            let (a, annotated_self) = (&self.annotated.annotation_param().ident, annotated_ty.ty_self());
+            let (a, annotated_self) = (&self.annotated.annotation().param().ident, annotated_ty.ty_self());
             parse_quote! {
                 impl #annotated_impl_generics #path_annotate<#a> for #ident #ty_generics #where_clause {
                     type Annotation = #a;
