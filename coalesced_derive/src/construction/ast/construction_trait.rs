@@ -52,15 +52,14 @@ impl<'a> ConstructionTrait<'a> {
             derive: DeriveInput {
                 ident, generics, ..
             },
-            field,
+            field: Field { ty, .. },
             ..
         } = self;
-        let field_type = &field.ty;
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
         parse_quote! {
-            impl #impl_generics From<#field_type> for #ident #ty_generics #where_clause {
-                fn from(value: #field_type) -> Self {
+            impl #impl_generics From<#ty> for #ident #ty_generics #where_clause {
+                fn from(value: #ty) -> Self {
                     #ident(value)
                 }
             }
@@ -121,15 +120,14 @@ impl<'a> ConstructionTrait<'a> {
             derive: DeriveInput {
                 ident, generics, ..
             },
-            field,
+            field: Field { ty, .. },
             ..
         } = self;
-        let field_type = &field.ty;
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
         parse_quote! {
             impl #impl_generics std::ops::Deref for #ident #ty_generics #where_clause {
-                type Target = #field_type;
+                type Target = #ty;
                 fn deref(&self) -> &Self::Target {
                     &self.0
                 }
