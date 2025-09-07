@@ -1,5 +1,7 @@
 use darling::FromDeriveInput;
-use syn::{parse_quote, DeriveInput, Expr, Ident, TypeParam, WherePredicate};
+use syn::{parse_quote, DeriveInput, Expr, Ident, TypeParam};
+
+use crate::annotated::Annotation;
 
 #[derive(Debug, Clone, FromDeriveInput)]
 #[darling(attributes(construction))]
@@ -28,15 +30,15 @@ impl ContainerAttr {
         self.unit.clone().unwrap_or_else(|| parse_quote!(()))
     }
 
-    pub fn annotation_type_param(&self) -> TypeParam {
-        self.annotation_type_param
-            .clone()
-            .unwrap_or_else(|| parse_quote!(A))
-    }
-
-    pub fn annotation_where(&self) -> Option<WherePredicate> {
-        self.annotation_where
-            .as_ref()
-            .map(|p| syn::parse_str(p).unwrap_or_else(|_| todo!()))
+    pub fn annotation(&self) -> Annotation {
+        Annotation::new(
+            self.annotation_type_param
+                .clone()
+                .unwrap_or_else(|| parse_quote! { A }),
+            None,
+            self.annotation_where
+                .as_ref()
+                .map(|p| syn::parse_str(p).unwrap_or_else(|_| todo!())),
+        )
     }
 }

@@ -8,40 +8,30 @@ use syn::{
 #[derive(Debug, Clone)]
 pub struct Annotated<'a> {
     path_annotated: &'a Path,
-    type_ident: &'a Ident, // TODO TypePath? Path?
+    type_ident: &'a Ident, // TODO Type?
     generics: &'a Generics,
-    annotation: TypeParam,
-    annotation_type: Type,
-    annotation_where: Option<WherePredicate>,
+    annotation: Annotation,
 }
 impl<'a> Annotated<'a> {
     pub fn new(
         path_annotated: &'a Path,
         type_ident: &'a Ident,
         generics: &'a Generics,
-        annotation: TypeParam,
-        annotation_type: Option<Type>,
-        annotation_where: Option<WherePredicate>,
+        annotation: Annotation,
     ) -> Self {
-        let annotation_type = annotation_type.unwrap_or_else(|| {
-            let TypeParam { ident, .. } = &annotation;
-            parse_quote! { #ident }
-        });
         Self {
             generics,
             path_annotated,
             type_ident,
             annotation,
-            annotation_type,
-            annotation_where,
         }
     }
 
     pub fn annotation_param(&'a self) -> &'a TypeParam {
-        &self.annotation
+        &self.annotation.type_param
     }
     pub fn annotation_type(&'a self) -> &'a Type {
-        &self.annotation_type
+        &self.annotation.ty
     }
 
     pub fn split_for_impl(&self) -> (AnnotatedImplGenerics, AnnotatedType, AnnotatedWhereClause) {
@@ -106,8 +96,42 @@ impl<'a> ToTokens for AnnotatedWhereClause<'a> {
 }
 impl AnnotatedWhereClause<'_> {
     pub fn push_where_clause(&self, where_clause: &mut WhereClause) {
-        self.0.annotation_where.iter().for_each(|p| {
-            where_clause.predicates.push(p.clone());
+        let mut annotation_generics = self.0.annotation.generics.clone();
+        let annotation_where = annotation_generics.make_where_clause();
+        where_clause
+            .predicates
+            .extend(annotation_where.predicates.iter().cloned());
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Annotation {
+    type_param: TypeParam,
+    ty: Type,
+    generics: Generics,
+}
+impl Annotation {
+    pub fn new(
+        type_param: TypeParam,
+        ty: Option<Type>,
+        where_predicate: Option<WherePredicate>,
+    ) -> Self {
+        let ty = ty.unwrap_or_else(|| {
+            let TypeParam { ident, .. } = &type_param;
+            parse_quote! { #ident }
         });
+
+        let mut generics = Generics::default();
+        generics.params.push(GenericParam::Type(type_param.clone()));
+        let where_clause = generics.make_where_clause();
+        where_predicate
+            .into_iter()
+            .for_each(|p| where_clause.predicates.push(p));
+
+        Self {
+            type_param,
+            ty,
+            generics,
+        }
     }
 }

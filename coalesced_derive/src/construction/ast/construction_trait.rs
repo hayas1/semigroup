@@ -35,9 +35,7 @@ impl<'a> ConstructionTrait<'a> {
             &constant.path_annotated,
             &derive.ident,
             &derive.generics,
-            attr.annotation_type_param(),
-            None,
-            attr.annotation_where(),
+            attr.annotation(),
         );
 
         Ok(Self {

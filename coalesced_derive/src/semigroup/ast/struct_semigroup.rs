@@ -170,9 +170,7 @@ impl<'a> StructAnnotate<'a> {
             path_annotated,
             ident,
             generics,
-            parse_quote! { A },
-            Some(parse_quote! { #annotation_ident<A> }),
-            None,
+            attr.annotation(&annotation_ident),
         );
         let (_, ty_generics, _) = generics.split_for_impl();
         let (impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
@@ -196,7 +194,10 @@ impl<'a> StructAnnotate<'a> {
     }
     pub fn impl_annotate(&self) -> ItemImpl {
         let Self {
-            constant, derive, ..
+            constant,
+            derive,
+            attr,
+            ..
         } = self;
         let Constant {
             path_annotate,
@@ -211,9 +212,7 @@ impl<'a> StructAnnotate<'a> {
             path_annotated,
             ident,
             generics,
-            parse_quote! { A: Clone },
-            Some(parse_quote! { #annotation_ident<A> }),
-            None,
+            attr.annotation(&annotation_ident),
         );
         let (_, ty_generics, _) = generics.split_for_impl();
         let (impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
