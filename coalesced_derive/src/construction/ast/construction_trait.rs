@@ -36,6 +36,7 @@ impl<'a> ConstructionTrait<'a> {
             &derive.ident,
             &derive.generics,
             attr.annotation_type_param(),
+            None,
             attr.annotation_where(),
         );
 

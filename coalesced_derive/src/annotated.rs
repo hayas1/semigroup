@@ -11,6 +11,7 @@ pub struct Annotated<'a> {
     type_ident: &'a Ident, // TODO TypePath? Path?
     generics: &'a Generics,
     annotation: TypeParam,
+    annotation_type: Type,
     annotation_where: Option<WherePredicate>,
 }
 impl<'a> Annotated<'a> {
@@ -19,19 +20,28 @@ impl<'a> Annotated<'a> {
         type_ident: &'a Ident,
         generics: &'a Generics,
         annotation: TypeParam,
+        annotation_type: Option<Type>,
         annotation_where: Option<WherePredicate>,
     ) -> Self {
+        let annotation_type = annotation_type.unwrap_or_else(|| {
+            let TypeParam { ident, .. } = &annotation;
+            parse_quote! { #ident }
+        });
         Self {
             generics,
             path_annotated,
             type_ident,
             annotation,
+            annotation_type,
             annotation_where,
         }
     }
 
-    pub fn annotation(&self) -> TypeParam {
+    pub fn annotation_param(&self) -> TypeParam {
         self.annotation.clone()
+    }
+    pub fn annotation_type(&self) -> Type {
+        self.annotation_type.clone()
     }
 
     pub fn split_for_impl(&self) -> (AnnotatedImplGenerics, AnnotatedType, AnnotatedWhereClause) {
@@ -52,7 +62,7 @@ impl<'a> ToTokens for AnnotatedImplGenerics<'a> {
 }
 impl<'a> AnnotatedImplGenerics<'a> {
     pub fn impl_generics(&self, generics: &'a mut Generics) -> ImplGenerics<'a> {
-        let generic_param = GenericParam::Type(self.0.annotation());
+        let generic_param = GenericParam::Type(self.0.annotation_param());
         generics.params.push(generic_param);
         let (impl_generics, _, _) = generics.split_for_impl();
         impl_generics
@@ -73,14 +83,14 @@ impl AnnotatedType<'_> {
             generics,
             ..
         }) = self;
-        let a = self.0.annotation().ident;
+        let a = self.0.annotation_type();
         let (_, ty_generics, _) = generics.split_for_impl();
 
         parse_quote! { #path_annotated<#type_ident #ty_generics, #a> }
     }
     pub fn ty_self(&self) -> Type {
         let Self(&Annotated { path_annotated, .. }) = self;
-        let a = self.0.annotation().ident;
+        let a = self.0.annotation_type();
         parse_quote! { #path_annotated<Self, #a> }
     }
 }

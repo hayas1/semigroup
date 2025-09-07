@@ -49,6 +49,7 @@ impl<'a> OpTrait<'a> {
             &derive.ident,
             &derive.generics,
             attr.annotation_type_param(),
+            None,
             attr.annotation_where(),
         );
 
@@ -189,7 +190,7 @@ impl<'a> OpTrait<'a> {
             let (_, ty_generics, _) = generics.split_for_impl();
             let (annotated_impl_generics, annotated_ty, where_clause) = self.annotated.split_for_impl();
             let annotated_self = annotated_ty.ty_self();
-            let a = self.annotated.annotation().ident;
+            let a = self.annotated.annotation_param().ident;
             parse_quote! {
                 impl #annotated_impl_generics #path_annotate<#a> for #ident #ty_generics #where_clause {
                     type Annotation = #a;

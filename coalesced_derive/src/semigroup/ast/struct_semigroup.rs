@@ -166,13 +166,21 @@ impl<'a> StructAnnotate<'a> {
                     )
                 })
                 .collect();
-        let annotated = Annotated::new(path_annotated, ident, generics, parse_quote! { A }, None);
-        let a = annotated.annotation().ident;
+        let annotated = Annotated::new(
+            path_annotated,
+            ident,
+            generics,
+            parse_quote! { A },
+            Some(parse_quote! { #annotation_ident<A> }),
+            None,
+        );
         let (_, ty_generics, _) = generics.split_for_impl();
-        let (impl_generics, _, where_clause) = annotated.split_for_impl();
+        let (impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
+        let (annotation_type, annotated_self) =
+            (annotated.annotation_type(), annotated_ty.ty_self());
         Ok(parse_quote! {
-            impl #impl_generics #path_annotated_semigroup<#annotation_ident<#a>> for #ident #ty_generics #where_clause {
-                fn #ident_annotated_op(base: #path_annotated<Self, #annotation_ident<#a>>, other: #path_annotated<Self, #annotation_ident<#a>>) -> #path_annotated<Self, #annotation_ident<#a>> {
+            impl #impl_generics #path_annotated_semigroup<#annotation_type> for #ident #ty_generics #where_clause {
+                fn #ident_annotated_op(base: #annotated_self, other: #annotated_self) -> #annotated_self {
                     #( #local )*
                     #path_annotated {
                         value: #ident {
@@ -204,11 +212,16 @@ impl<'a> StructAnnotate<'a> {
             ident,
             generics,
             parse_quote! { A: Clone },
+            Some(parse_quote! { #annotation_ident<A> }),
             None,
         );
         let (_, ty_generics, _) = generics.split_for_impl();
-        let (impl_generics, _, where_clause) = annotated.split_for_impl();
-        let a = annotated.annotation().ident;
+        let (impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
+        let (a, annotation_type, annotated_self) = (
+            annotated.annotation_param().ident,
+            annotated.annotation_type(),
+            annotated_ty.ty_self(),
+        );
         let fields: Vec<FieldValue> = self
             .data_struct
             .fields
@@ -216,9 +229,9 @@ impl<'a> StructAnnotate<'a> {
             .map(|m| parse_quote! { #m: annotation.clone() })
             .collect();
         parse_quote! {
-            impl #impl_generics #path_annotate<#annotation_ident<#a>> for #ident #ty_generics #where_clause {
+            impl #impl_generics #path_annotate<#annotation_type> for #ident #ty_generics #where_clause {
                 type Annotation = #a;
-                fn annotated(self, annotation: Self::Annotation) -> #path_annotated<Self, #annotation_ident<#a>> {
+                fn annotated(self, annotation: Self::Annotation) -> #annotated_self {
                     #path_annotated {
                         value: self,
                         annotation: #annotation_ident {
