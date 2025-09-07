@@ -123,10 +123,10 @@ impl Annotation {
 
         let mut generics = Generics::default();
         generics.params.push(GenericParam::Type(type_param.clone()));
-        let where_clause = generics.make_where_clause();
-        where_predicate
-            .into_iter()
-            .for_each(|p| where_clause.predicates.push(p));
+        generics
+            .make_where_clause()
+            .predicates
+            .extend(where_predicate);
 
         Self {
             type_param,
