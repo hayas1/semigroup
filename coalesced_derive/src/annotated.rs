@@ -37,11 +37,11 @@ impl<'a> Annotated<'a> {
         }
     }
 
-    pub fn annotation_param(&self) -> TypeParam {
-        self.annotation.clone()
+    pub fn annotation_param(&'a self) -> &'a TypeParam {
+        &self.annotation
     }
-    pub fn annotation_type(&self) -> Type {
-        self.annotation_type.clone()
+    pub fn annotation_type(&'a self) -> &'a Type {
+        &self.annotation_type
     }
 
     pub fn split_for_impl(&self) -> (AnnotatedImplGenerics, AnnotatedType, AnnotatedWhereClause) {
@@ -62,7 +62,7 @@ impl<'a> ToTokens for AnnotatedImplGenerics<'a> {
 }
 impl<'a> AnnotatedImplGenerics<'a> {
     pub fn impl_generics(&self, generics: &'a mut Generics) -> ImplGenerics<'a> {
-        let generic_param = GenericParam::Type(self.0.annotation_param());
+        let generic_param = GenericParam::Type(self.0.annotation_param().clone());
         generics.params.push(generic_param);
         let (impl_generics, _, _) = generics.split_for_impl();
         impl_generics

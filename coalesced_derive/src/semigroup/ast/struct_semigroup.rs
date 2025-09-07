@@ -218,7 +218,7 @@ impl<'a> StructAnnotate<'a> {
         let (_, ty_generics, _) = generics.split_for_impl();
         let (impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
         let (a, annotation_type, annotated_self) = (
-            annotated.annotation_param().ident,
+            &annotated.annotation_param().ident,
             annotated.annotation_type(),
             annotated_ty.ty_self(),
         );
