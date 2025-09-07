@@ -38,7 +38,7 @@ mod tests {
     }
 
     #[test]
-    fn test_derive_construction_no_annotation() {
+    fn test_derive_construction_not_annotated() {
         let derive = syn::parse_quote! {
             #[derive(ConstructionUse)]
             #[construction(op = Coalesce)]
@@ -52,7 +52,7 @@ mod tests {
     }
 
     #[test]
-    fn test_derive_construction_custom_annotation_generic() {
+    fn test_derive_construction_custom_annotation_param() {
         let derive = syn::parse_quote! {
             #[derive(Construction)]
             #[construction(
