@@ -121,23 +121,25 @@ impl<'a> StructAnnotate<'a> {
             derive: DeriveInput { vis, .. },
             data_struct,
             annotation_ident,
+            annotation,
             ..
         } = self;
+        let a = &annotation.param().ident;
         match &data_struct.fields {
             Fields::Named(fields) => {
                 let idents = fields.named.iter().map(|f| &f.ident);
                 parse_quote! {
                     #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-                    #vis struct #annotation_ident<A> {
-                        #( #idents: A ),*
+                    #vis struct #annotation_ident<#a> {
+                        #( #idents: #a ),*
                     }
                 }
             }
             Fields::Unnamed(fields) => {
-                let annotation = fields.unnamed.iter().map(|_| format_ident!("A"));
+                let annotation = fields.unnamed.iter().map(|_| a);
                 parse_quote! {
                     #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-                    #vis struct #annotation_ident<A>( #( #annotation ),* );
+                    #vis struct #annotation_ident<#a>( #( #annotation ),* );
                 }
             }
             Fields::Unit => todo!(),
