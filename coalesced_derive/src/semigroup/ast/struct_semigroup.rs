@@ -3,7 +3,6 @@ use quote::{format_ident, ToTokens};
 use syn::{parse_quote, DataStruct, DeriveInput, FieldValue, Fields, Ident, ItemImpl, ItemStruct};
 
 use crate::{
-    annotated::Annotated,
     constant::Constant,
     semigroup::{
         ast::field_semigroup::{FieldAnnotatedOp, FieldSemigroupOp},
@@ -155,7 +154,7 @@ impl<'a> StructAnnotate<'a> {
             ident, generics, ..
         } = derive;
         let annotation_ident = self.annotation_ident();
-        let (local, value, annotation): (Vec<_>, Vec<_>, Vec<_>) =
+        let (local, value, field_annotation): (Vec<_>, Vec<_>, Vec<_>) =
             FieldAnnotatedOp::new_fields(constant, derive, attr, &data_struct.fields)?
                 .into_iter()
                 .map(|f| {
@@ -166,26 +165,21 @@ impl<'a> StructAnnotate<'a> {
                     )
                 })
                 .collect();
-        let annotated = Annotated::new(
-            path_annotated,
-            ident,
-            generics,
-            attr.annotation(&annotation_ident),
-        );
+        let annotation = attr.annotation(&annotation_ident);
+        let annotated = annotation.annotated(path_annotated, ident, generics);
         let (_, ty_generics, _) = generics.split_for_impl();
         let (impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
-        let (annotation_type, annotated_self) =
-            (annotated.annotation().ty(), annotated_ty.ty_self());
+        let (annotation_type, annotated_self) = (annotation.ty(), annotated_ty.ty_self());
         Ok(parse_quote! {
             impl #impl_generics #path_annotated_semigroup<#annotation_type> for #ident #ty_generics #where_clause {
                 fn #ident_annotated_op(base: #annotated_self, other: #annotated_self) -> #annotated_self {
                     #( #local )*
                     #path_annotated {
                         value: #ident {
-                            #(#value),*
+                            #( #value ),*
                         },
                         annotation: #annotation_ident {
-                            #(#annotation),*
+                            #( #field_annotation ),*
                         },
                     }
                 }
@@ -208,17 +202,13 @@ impl<'a> StructAnnotate<'a> {
             ident, generics, ..
         } = derive;
         let annotation_ident = self.annotation_ident();
-        let annotated = Annotated::new(
-            path_annotated,
-            ident,
-            generics,
-            attr.annotation(&annotation_ident),
-        );
+        let annotation = attr.annotation(&annotation_ident);
+        let annotated = annotation.annotated(path_annotated, ident, generics);
         let (_, ty_generics, _) = generics.split_for_impl();
         let (impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
         let (a, annotation_type, annotated_self) = (
-            &annotated.annotation().param().ident,
-            annotated.annotation().ty(),
+            &annotation.param().ident,
+            annotation.ty(),
             annotated_ty.ty_self(),
         );
         let fields: Vec<FieldValue> = self

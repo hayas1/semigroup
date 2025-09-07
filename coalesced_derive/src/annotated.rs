@@ -10,14 +10,14 @@ pub struct Annotated<'a> {
     path_annotated: &'a Path,
     type_ident: &'a Ident, // TODO Type?
     generics: &'a Generics,
-    annotation: Annotation,
+    annotation: &'a Annotation,
 }
 impl<'a> Annotated<'a> {
     pub fn new(
         path_annotated: &'a Path,
         type_ident: &'a Ident,
         generics: &'a Generics,
-        annotation: Annotation,
+        annotation: &'a Annotation,
     ) -> Self {
         Self {
             generics,
@@ -28,7 +28,7 @@ impl<'a> Annotated<'a> {
     }
 
     pub fn annotation(&self) -> &Annotation {
-        &self.annotation
+        self.annotation
     }
 
     pub fn split_for_impl(&self) -> (AnnotatedImplGenerics, AnnotatedType, AnnotatedWhereClause) {
@@ -137,5 +137,14 @@ impl Annotation {
     }
     pub fn ty(&self) -> &Type {
         &self.ty
+    }
+
+    pub fn annotated<'a>(
+        &'a self,
+        path_annotated: &'a Path,
+        type_ident: &'a Ident,
+        generics: &'a Generics,
+    ) -> Annotated<'a> {
+        Annotated::new(path_annotated, type_ident, generics, self)
     }
 }

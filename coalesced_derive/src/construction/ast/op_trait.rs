@@ -3,7 +3,7 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{parse_quote, DeriveInput, Field, Ident, ItemImpl, ItemTrait};
 
-use crate::{annotated::Annotated, constant::Constant, construction::attr::ContainerAttr};
+use crate::{annotated::Annotation, constant::Constant, construction::attr::ContainerAttr};
 
 #[derive(Debug, Clone)]
 pub struct OpTrait<'a> {
@@ -14,7 +14,7 @@ pub struct OpTrait<'a> {
     method_ident: Ident,
 
     attr: &'a ContainerAttr,
-    annotated: Annotated<'a>,
+    annotation: Annotation,
 }
 impl ToTokens for OpTrait<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
@@ -44,12 +44,7 @@ impl<'a> OpTrait<'a> {
     ) -> syn::Result<Self> {
         let trait_ident = &attr.op;
         let method_ident = quote::format_ident!("{}", attr.op.to_string().to_snake_case());
-        let annotated = Annotated::new(
-            &constant.path_annotated,
-            &derive.ident,
-            &derive.generics,
-            attr.annotation(),
-        );
+        let annotation = attr.annotation();
 
         Ok(Self {
             constant,
@@ -57,7 +52,7 @@ impl<'a> OpTrait<'a> {
             trait_ident,
             method_ident,
             attr,
-            annotated,
+            annotation,
         })
     }
 
@@ -114,12 +109,18 @@ impl<'a> OpTrait<'a> {
     }
     pub fn impl_trait_annotated(&self) -> Option<ItemImpl> {
         let Self {
-            trait_ident, attr, ..
+            constant: Constant { path_annotated, .. },
+            derive: DeriveInput {
+                ident, generics, ..
+            },
+            trait_ident,
+            attr,
+            ..
         } = self;
 
         attr.is_annotated().then(|| {
-            let (annotated_impl_generics, annotated_ty, where_clause) =
-                self.annotated.split_for_impl();
+            let annotated = self.annotation.annotated(path_annotated, ident, generics);
+            let (annotated_impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
 
             parse_quote! {
                 impl #annotated_impl_generics #trait_ident for #annotated_ty #where_clause {}
@@ -128,14 +129,23 @@ impl<'a> OpTrait<'a> {
     }
     pub fn impl_trait_reversed_annotated(&self) -> Option<ItemImpl> {
         let Self {
-            constant: Constant { path_reversed, .. },
+            derive: DeriveInput {
+                ident, generics, ..
+            },
+            constant:
+                Constant {
+                    path_annotated,
+                    path_reversed,
+                    ..
+                },
             trait_ident,
             attr,
             ..
         } = self;
 
         attr.is_annotated().then(|| {
-            let (annotated_impl_generics, annotated_ty, where_clause) = self.annotated.split_for_impl();
+            let annotated = self.annotation.annotated(path_annotated, ident, generics);
+            let (annotated_impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
             parse_quote! {
                 impl #annotated_impl_generics #trait_ident for #path_reversed<#annotated_ty> #where_clause {}
             }
@@ -186,8 +196,9 @@ impl<'a> OpTrait<'a> {
 
         (attr.is_annotated() && !attr.without_annotate_impl).then(|| {
             let (_, ty_generics, _) = generics.split_for_impl();
-            let (annotated_impl_generics, annotated_ty, where_clause) = self.annotated.split_for_impl();
-            let (a, annotated_self) = (&self.annotated.annotation().param().ident, annotated_ty.ty_self());
+            let annotated = self.annotation.annotated(path_annotated, ident, generics);
+            let (annotated_impl_generics, annotated_ty, where_clause) = annotated.split_for_impl();
+            let (a, annotated_self) = (&self.annotation.param().ident, annotated_ty.ty_self());
             parse_quote! {
                 impl #annotated_impl_generics #path_annotate<#a> for #ident #ty_generics #where_clause {
                     type Annotation = #a;

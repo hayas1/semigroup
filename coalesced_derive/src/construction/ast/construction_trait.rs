@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{parse_quote, DeriveInput, Field, ItemImpl};
 
-use crate::{annotated::Annotated, constant::Constant, construction::attr::ContainerAttr};
+use crate::{annotated::Annotation, constant::Constant, construction::attr::ContainerAttr};
 
 #[derive(Debug, Clone)]
 pub struct ConstructionTrait<'a> {
@@ -11,7 +11,7 @@ pub struct ConstructionTrait<'a> {
     field: &'a Field,
 
     attr: &'a ContainerAttr,
-    annotated: Annotated<'a>,
+    annotation: Annotation,
 }
 impl ToTokens for ConstructionTrait<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
@@ -31,19 +31,14 @@ impl<'a> ConstructionTrait<'a> {
         _field: &'a Field,
         attr: &'a ContainerAttr,
     ) -> syn::Result<Self> {
-        let annotated = Annotated::new(
-            &constant.path_annotated,
-            &derive.ident,
-            &derive.generics,
-            attr.annotation(),
-        );
+        let annotation = attr.annotation();
 
         Ok(Self {
             constant,
             derive,
             field: _field,
             attr,
-            annotated,
+            annotation,
         })
     }
     pub fn impl_from(&self) -> ItemImpl {
@@ -94,6 +89,7 @@ impl<'a> ConstructionTrait<'a> {
         let Self {
             constant:
                 Constant {
+                    path_annotated,
                     path_construction_annotated,
                     ..
                 },
@@ -107,8 +103,9 @@ impl<'a> ConstructionTrait<'a> {
 
         attr.is_annotated().then(|| {
             let (_, ty_generics, _) = generics.split_for_impl();
-            let (annotated_impl_generics, _, where_clause) = self.annotated.split_for_impl();
-            let a = &self.annotated.annotation().param().ident;
+            let annotated= self.annotation.annotated(path_annotated, ident, generics);
+            let (annotated_impl_generics, _, where_clause) = annotated.split_for_impl();
+            let a = &self.annotation.param().ident;
             parse_quote! {
                 impl #annotated_impl_generics #path_construction_annotated<#ty, #a> for #ident #ty_generics #where_clause {}
             }
