@@ -1,6 +1,8 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, ToTokens};
-use syn::{parse_quote, DataStruct, DeriveInput, FieldValue, Fields, Ident, ItemImpl, ItemStruct};
+use syn::{
+    parse_quote, DataStruct, DeriveInput, FieldValue, Fields, Ident, ItemImpl, ItemStruct, Stmt,
+};
 
 use crate::{
     annotation::Annotation,
@@ -134,13 +136,24 @@ impl<'a> StructAnnotate<'a> {
         }
     }
 
+    pub fn impl_annotated_semigroup_fields(&self) -> (Vec<Stmt>, Vec<FieldValue>, Vec<FieldValue>) {
+        self.field_ops
+            .iter()
+            .map(|f| {
+                (
+                    f.impl_field_annotated_op(),
+                    f.impl_field_value(),
+                    f.impl_field_annotation(),
+                )
+            })
+            .collect()
+    }
     pub fn impl_annotated_semigroup(&self) -> ItemImpl {
         let Self {
             constant,
             derive,
             annotation_ident,
             annotation,
-            field_ops,
             ..
         } = self;
         let Constant {
@@ -152,16 +165,7 @@ impl<'a> StructAnnotate<'a> {
         let DeriveInput {
             ident, generics, ..
         } = derive;
-        let (local, value, field_annotation): (Vec<_>, Vec<_>, Vec<_>) = field_ops
-            .iter()
-            .map(|f| {
-                (
-                    f.impl_field_annotated_op(),
-                    f.impl_field_value(),
-                    f.impl_field_annotation(),
-                )
-            })
-            .collect();
+        let (local, value, field_annotation) = self.impl_annotated_semigroup_fields();
         let (_, ty_generics, _) = generics.split_for_impl();
         let (impl_generics, annotation_type, where_clause) = annotation.split_for_impl(generics);
         parse_quote! {
