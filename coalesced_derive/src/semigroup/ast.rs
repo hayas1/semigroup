@@ -49,7 +49,8 @@ impl<'a> Semigroup<'a> {
                 let struct_semigroup = StructSemigroup::new(constant, derive, attr, data_struct)?;
                 let struct_annotate = attr
                     .is_annotated()
-                    .then(|| StructAnnotate::new(constant, derive, attr, data_struct));
+                    .then(|| StructAnnotate::new(constant, derive, attr, data_struct))
+                    .transpose()?;
                 Ok(Self::Struct {
                     struct_semigroup,
                     struct_annotate,

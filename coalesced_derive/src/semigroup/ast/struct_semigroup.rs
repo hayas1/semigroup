@@ -15,16 +15,11 @@ use crate::{
 pub struct StructSemigroup<'a> {
     constant: &'a Constant,
     derive: &'a DeriveInput,
-    attr: &'a ContainerAttr,
-    data_struct: &'a DataStruct,
+    field_ops: Vec<FieldSemigroupOp<'a>>,
 }
 impl ToTokens for StructSemigroup<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.impl_semigroup()
-            .as_ref()
-            .map(ToTokens::to_token_stream)
-            .unwrap_or_else(syn::Error::to_compile_error)
-            .to_tokens(tokens);
+        self.impl_semigroup().to_tokens(tokens);
     }
 }
 impl<'a> StructSemigroup<'a> {
@@ -34,20 +29,18 @@ impl<'a> StructSemigroup<'a> {
         attr: &'a ContainerAttr,
         data_struct: &'a DataStruct,
     ) -> syn::Result<Self> {
+        let field_ops = FieldSemigroupOp::new_fields(constant, derive, attr, &data_struct.fields)?;
         Ok(Self {
             constant,
             derive,
-            data_struct,
-            attr,
+            field_ops,
         })
     }
-    pub fn impl_semigroup(&self) -> syn::Result<ItemImpl> {
+    pub fn impl_semigroup(&self) -> ItemImpl {
         let Self {
             constant,
             derive,
-            attr,
-            data_struct,
-            ..
+            field_ops,
         } = self;
         let Constant {
             path_semigroup,
@@ -58,10 +51,8 @@ impl<'a> StructSemigroup<'a> {
             ident, generics, ..
         } = derive;
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-        let fields_op = FieldSemigroupOp::new_fields(constant, derive, attr, &data_struct.fields)?
-            .into_iter()
-            .map(|op| op.impl_field_semigroup_op());
-        Ok(parse_quote! {
+        let fields_op = field_ops.iter().map(|op| op.impl_field_semigroup_op());
+        parse_quote! {
             impl #impl_generics #path_semigroup for #ident #ty_generics #where_clause {
                 fn #ident_semigroup_op(base: Self, other: Self) -> Self {
                     Self {
@@ -69,7 +60,7 @@ impl<'a> StructSemigroup<'a> {
                     }
                 }
             }
-        })
+        }
     }
 }
 
@@ -77,19 +68,15 @@ impl<'a> StructSemigroup<'a> {
 pub struct StructAnnotate<'a> {
     constant: &'a Constant,
     derive: &'a DeriveInput,
-    attr: &'a ContainerAttr,
     data_struct: &'a DataStruct,
     annotation_ident: Ident,
     annotation: Annotation,
+    field_ops: Vec<FieldAnnotatedOp<'a>>,
 }
 impl ToTokens for StructAnnotate<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.def_annotation().to_tokens(tokens);
-        self.impl_annotated_semigroup()
-            .as_ref()
-            .map(ToTokens::to_token_stream)
-            .unwrap_or_else(syn::Error::to_compile_error)
-            .to_tokens(tokens);
+        self.impl_annotated_semigroup().to_tokens(tokens);
         self.impl_annotate().to_tokens(tokens)
     }
 }
@@ -99,17 +86,18 @@ impl<'a> StructAnnotate<'a> {
         derive: &'a DeriveInput,
         attr: &'a ContainerAttr,
         data_struct: &'a DataStruct,
-    ) -> Self {
+    ) -> syn::Result<Self> {
         let annotation_ident = Self::annotation_ident(&derive.ident);
         let annotation = attr.annotation(&annotation_ident);
-        Self {
+        let field_ops = FieldAnnotatedOp::new_fields(constant, derive, attr, &data_struct.fields)?;
+        Ok(Self {
             constant,
             derive,
-            attr,
             data_struct,
             annotation_ident,
             annotation,
-        }
+            field_ops,
+        })
     }
 
     pub fn annotation_ident(ident: &Ident) -> Ident {
@@ -146,14 +134,14 @@ impl<'a> StructAnnotate<'a> {
         }
     }
 
-    pub fn impl_annotated_semigroup(&self) -> syn::Result<ItemImpl> {
+    pub fn impl_annotated_semigroup(&self) -> ItemImpl {
         let Self {
             constant,
             derive,
-            attr,
-            data_struct,
             annotation_ident,
             annotation,
+            field_ops,
+            ..
         } = self;
         let Constant {
             path_annotated_semigroup,
@@ -164,20 +152,19 @@ impl<'a> StructAnnotate<'a> {
         let DeriveInput {
             ident, generics, ..
         } = derive;
-        let (local, value, field_annotation): (Vec<_>, Vec<_>, Vec<_>) =
-            FieldAnnotatedOp::new_fields(constant, derive, attr, &data_struct.fields)?
-                .into_iter()
-                .map(|f| {
-                    (
-                        f.impl_field_annotated_op(),
-                        f.impl_field_value(),
-                        f.impl_field_annotation(),
-                    )
-                })
-                .collect();
+        let (local, value, field_annotation): (Vec<_>, Vec<_>, Vec<_>) = field_ops
+            .iter()
+            .map(|f| {
+                (
+                    f.impl_field_annotated_op(),
+                    f.impl_field_value(),
+                    f.impl_field_annotation(),
+                )
+            })
+            .collect();
         let (_, ty_generics, _) = generics.split_for_impl();
         let (impl_generics, annotation_type, where_clause) = annotation.split_for_impl(generics);
-        Ok(parse_quote! {
+        parse_quote! {
             impl #impl_generics #path_annotated_semigroup<#annotation_type> for #ident #ty_generics #where_clause {
                 fn #ident_annotated_op(base: #path_annotated<Self, #annotation_type>, other: #path_annotated<Self, #annotation_type>) -> #path_annotated<Self, #annotation_type> {
                     #( #local )*
@@ -191,7 +178,7 @@ impl<'a> StructAnnotate<'a> {
                     }
                 }
             }
-        })
+        }
     }
     pub fn impl_annotate(&self) -> ItemImpl {
         let Self {
