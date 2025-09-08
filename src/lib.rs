@@ -6,4 +6,5 @@ pub use coalesced_base::{
     semigroup::{AnnotatedSemigroup, Semigroup},
 };
 
+#[cfg(feature = "derive")]
 pub use coalesced_derive::{Construction, Semigroup};
