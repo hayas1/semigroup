@@ -6,7 +6,6 @@ use crate::{op::Construction, reverse::Reversed, semigroup::Semigroup};
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[construction(op = Add)]
 pub struct Added<T: std::ops::Add<Output = T>>(pub T);
-
 impl<T: std::ops::Add<Output = T>> Semigroup for Added<T> {
     fn semigroup_op(base: Self, other: Self) -> Self {
         Added(base.0 + other.0)

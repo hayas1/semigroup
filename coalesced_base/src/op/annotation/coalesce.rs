@@ -11,7 +11,14 @@ use crate::{
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[construction(annotated, op = Coalesce)]
 pub struct Coalesced<T>(pub Option<T>);
-
+impl<T, A> AnnotatedSemigroup<A> for Coalesced<T> {
+    fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
+        match (&base.value.0, &other.value.0) {
+            (Some(_), _) | (None, None) => base,
+            (None, Some(_)) => other,
+        }
+    }
+}
 mod sealed {
     use super::*;
 
@@ -21,19 +28,19 @@ mod sealed {
             Coalesced::lift_op(base, other)
         }
     }
+    impl<T, A> Annotate<A> for Option<T> {
+        type Annotation = A;
+        fn annotated(self, annotation: Self::Annotation) -> Annotated<Self, A> {
+            Annotated {
+                value: self,
+                annotation,
+            }
+        }
+    }
     impl<T, A> Coalesce for Annotated<Option<T>, A> {}
     impl<T, A> AnnotatedSemigroup<A> for Option<T> {
         fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
             Coalesced::lift_annotated_op(base, other)
-        }
-    }
-}
-
-impl<T, A> AnnotatedSemigroup<A> for Coalesced<T> {
-    fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
-        match (&base.value.0, &other.value.0) {
-            (Some(_), _) | (None, None) => base,
-            (None, Some(_)) => other,
         }
     }
 }
