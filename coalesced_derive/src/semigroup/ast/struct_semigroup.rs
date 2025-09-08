@@ -105,8 +105,8 @@ impl<'a> StructAnnotate<'a> {
         Self {
             constant,
             derive,
-            data_struct,
             attr,
+            data_struct,
             annotation_ident,
             annotation,
         }

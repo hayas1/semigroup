@@ -8,10 +8,10 @@ use crate::{annotation::Annotation, constant::Constant, construction::attr::Cont
 pub struct ConstructionTrait<'a> {
     constant: &'a Constant,
     derive: &'a DeriveInput,
-    field: &'a Field,
-
     attr: &'a ContainerAttr,
     annotation: Annotation,
+
+    field: &'a Field,
 }
 impl ToTokens for ConstructionTrait<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
@@ -28,17 +28,17 @@ impl<'a> ConstructionTrait<'a> {
     pub fn new(
         constant: &'a Constant,
         derive: &'a DeriveInput,
-        _field: &'a Field,
         attr: &'a ContainerAttr,
+        field: &'a Field,
     ) -> syn::Result<Self> {
         let annotation = attr.annotation();
 
         Ok(Self {
             constant,
             derive,
-            field: _field,
             attr,
             annotation,
+            field,
         })
     }
     pub fn impl_from(&self) -> ItemImpl {

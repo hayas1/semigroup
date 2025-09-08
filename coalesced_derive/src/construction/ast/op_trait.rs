@@ -39,8 +39,8 @@ impl<'a> OpTrait<'a> {
     pub fn new(
         constant: &'a Constant,
         derive: &'a DeriveInput,
-        _field: &'a Field,
         attr: &'a ContainerAttr,
+        _field: &'a Field,
     ) -> syn::Result<Self> {
         let trait_ident = &attr.op;
         let method_ident = quote::format_ident!("{}", attr.op.to_string().to_snake_case());

@@ -32,8 +32,8 @@ impl<'a> Construction<'a> {
         attr: &'a ContainerAttr,
     ) -> syn::Result<Self> {
         let field = Self::newtype_field(derive)?;
-        let construction_trait = ConstructionTrait::new(constant, derive, field, attr)?;
-        let op_trait = OpTrait::new(constant, derive, field, attr)?;
+        let construction_trait = ConstructionTrait::new(constant, derive, attr, field)?;
+        let op_trait = OpTrait::new(constant, derive, attr, field)?;
         Ok(Self {
             construction_trait,
             op_trait,
