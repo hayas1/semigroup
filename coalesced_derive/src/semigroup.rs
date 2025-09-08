@@ -10,7 +10,7 @@ use crate::{
 mod ast;
 mod attr;
 
-pub fn gen_semigroup<C: ConstantExt>(derive: &DeriveInput) -> syn::Result<TokenStream> {
+pub fn impl_semigroup<C: ConstantExt>(derive: &DeriveInput) -> syn::Result<TokenStream> {
     let constant = C::constant();
     let attr = ContainerAttr::new(derive)?;
     let semigroup = Semigroup::new(&constant, derive, &attr)?;
@@ -28,7 +28,7 @@ mod tests {
         let cases = vec![
             (
                 "semigroup_annotated",
-                Box::new(gen_semigroup::<Absolute> as fn(&_) -> _),
+                Box::new(impl_semigroup::<Absolute> as fn(&_) -> _),
                 syn::parse_quote! {
                     #[derive(Semigroup)]
                     #[semigroup(annotated)]
@@ -42,7 +42,7 @@ mod tests {
             ),
             (
                 "semigroup_not_annotated",
-                Box::new(gen_semigroup::<Use>),
+                Box::new(impl_semigroup::<Use>),
                 syn::parse_quote! {
                     #[derive(SemigroupUse)]
                     #[semigroup(with = "coalesced::op::annotation::replace::Replaced")]
@@ -55,7 +55,7 @@ mod tests {
             ),
             (
                 "semigroup_custom_annotation",
-                Box::new(gen_semigroup::<Absolute>),
+                Box::new(impl_semigroup::<Absolute>),
                 syn::parse_quote! {
                     #[derive(Semigroup)]
                     #[semigroup(annotated, annotation_param = X, with = "coalesced::op::annotation::replace::Replaced")]

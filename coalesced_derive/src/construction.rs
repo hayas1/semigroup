@@ -10,7 +10,7 @@ use crate::{
 mod ast;
 mod attr;
 
-pub fn gen_construction<C: ConstantExt>(derive: &DeriveInput) -> syn::Result<TokenStream> {
+pub fn impl_construction<C: ConstantExt>(derive: &DeriveInput) -> syn::Result<TokenStream> {
     let constant = C::constant();
     let attr = ContainerAttr::new(derive)?;
     let construction = Construction::new(&constant, derive, &attr)?;
@@ -28,7 +28,7 @@ mod tests {
         let cases = vec![
             (
                 "construction_annotated",
-                Box::new(gen_construction::<Absolute> as fn(&_) -> _),
+                Box::new(impl_construction::<Absolute> as fn(&_) -> _),
                 syn::parse_quote! {
                     #[derive(Construction)]
                     #[construction(annotated, op = Coalesce)]
@@ -37,7 +37,7 @@ mod tests {
             ),
             (
                 "construction_not_annotated",
-                Box::new(gen_construction::<Use>),
+                Box::new(impl_construction::<Use>),
                 syn::parse_quote! {
                     #[derive(ConstructionUse)]
                     #[construction(op = Coalesce)]
@@ -46,7 +46,7 @@ mod tests {
             ),
             (
                 "construction_custom_annotation",
-                Box::new(gen_construction::<Absolute>),
+                Box::new(impl_construction::<Absolute>),
                 syn::parse_quote! {
                     #[derive(Construction)]
                     #[construction(
