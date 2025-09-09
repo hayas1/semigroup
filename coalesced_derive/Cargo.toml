@@ -21,6 +21,6 @@ quote = "1.0.39"
 syn = { version = "2.0.104", features = ["full"] }
 
 [dev-dependencies]
-coalesced = { path = "../", features = ["derive"] }
+coalesced_derive = { path = ".", features = ["use_scope"] }
 insta = "1.43.1"
-prettyplease = "0.2.37"                             # rustfmt is cli only
+prettyplease = "0.2.37"                                     # rustfmt is cli only
