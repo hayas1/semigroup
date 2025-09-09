@@ -113,3 +113,59 @@ impl AnnotationWhereClause<'_> {
             .extend(annotation_where.predicates.iter().cloned());
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_annotation_without_type() {
+        let syn::DeriveInput { generics, .. } = parse_quote! {
+            struct Construction<T> (T) where T: Clone;
+        };
+
+        let annotation = Annotation::new(parse_quote! { A }, None, None);
+        let (impl_generics, annotation_type, where_clause) = annotation.split_for_impl(&generics);
+        assert_eq!(
+            impl_generics.into_token_stream().to_string(),
+            quote::quote! { <T, A> }.to_string(),
+        );
+        assert_eq!(
+            annotation_type.into_token_stream().to_string(),
+            quote::quote! { A }.to_string(),
+        );
+        assert_eq!(
+            where_clause.into_token_stream().to_string(),
+            quote::quote! { where T: Clone }.to_string(),
+        );
+    }
+
+    #[test]
+    fn test_annotation_with_type() {
+        let syn::DeriveInput { generics, .. } = parse_quote! {
+            struct NamedStruct<T> where T: Clone {
+                name: String,
+                value: Option<T>,
+            }
+        };
+
+        let annotation = Annotation::new(
+            parse_quote! { A },
+            Some(parse_quote! { NamedStructAnnotation<A> }),
+            Some(parse_quote! { A: Clone }),
+        );
+        let (impl_generics, annotation_type, where_clause) = annotation.split_for_impl(&generics);
+        assert_eq!(
+            impl_generics.into_token_stream().to_string(),
+            quote::quote! { <T, A> }.to_string(),
+        );
+        assert_eq!(
+            annotation_type.into_token_stream().to_string(),
+            quote::quote! { NamedStructAnnotation<A> }.to_string(),
+        );
+        assert_eq!(
+            where_clause.into_token_stream().to_string(),
+            quote::quote! { where T: Clone, A: Clone }.to_string(),
+        );
+    }
+}
