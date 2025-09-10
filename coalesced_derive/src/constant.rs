@@ -1,4 +1,4 @@
-use syn::{parse_quote, Ident, Path};
+use syn::{parse_quote, Ident, Path, TypeParam};
 
 pub const DERIVE_CONSTRUCTION: &str = "Construction";
 pub const DERIVE_SEMIGROUP: &str = "Semigroup";
@@ -14,6 +14,7 @@ pub struct Constant {
     pub path_reversed: Path,
     pub path_construction_trait: Path,
     pub path_construction_annotated: Path,
+    pub default_type_param: TypeParam,
 }
 pub trait ConstantExt {
     fn constant() -> Constant;
@@ -31,6 +32,7 @@ impl ConstantExt for Absolute {
             path_reversed: parse_quote! {::coalesced::Reversed},
             path_construction_trait: parse_quote! {::coalesced::op::Construction},
             path_construction_annotated: parse_quote! {::coalesced::op::ConstructionAnnotated},
+            default_type_param: parse_quote! { A },
         }
     }
 }
@@ -49,6 +51,7 @@ impl ConstantExt for Use {
             path_reversed: parse_quote! {Reversed},
             path_construction_trait: parse_quote! {Construction},
             path_construction_annotated: parse_quote! {ConstructionAnnotated},
+            default_type_param: parse_quote! { A },
         }
     }
 }

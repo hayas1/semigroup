@@ -1,7 +1,7 @@
 use darling::{FromDeriveInput, FromField};
-use syn::{parse_quote, DeriveInput, Field, Ident, Path, TypeParam};
+use syn::{parse_quote, DeriveInput, Field, Ident, Path};
 
-use crate::{annotation::Annotation, error::SemigroupError};
+use crate::{annotation::Annotation, constant::Constant, error::SemigroupError};
 
 #[derive(Debug, Clone, PartialEq, FromDeriveInput)]
 #[darling(attributes(semigroup), and_then = Self::validate)]
@@ -32,12 +32,11 @@ impl ContainerAttr {
         self.annotated
     }
 
-    pub fn annotation(&self, annotation_ident: &Ident) -> Annotation {
-        let default_param: TypeParam = parse_quote! { A };
+    pub fn annotation(&self, constant: &Constant, annotation_ident: &Ident) -> Annotation {
         let a = self
             .annotation_param
             .as_ref()
-            .unwrap_or(&default_param.ident);
+            .unwrap_or(&constant.default_type_param.ident);
         Annotation::new(
             parse_quote! { #a: Clone },
             Some(parse_quote! { #annotation_ident<#a> }),

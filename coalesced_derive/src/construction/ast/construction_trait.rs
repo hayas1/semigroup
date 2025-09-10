@@ -31,7 +31,7 @@ impl<'a> ConstructionTrait<'a> {
         attr: &'a ContainerAttr,
         field: &'a Field,
     ) -> syn::Result<Self> {
-        let annotation = attr.annotation();
+        let annotation = attr.annotation(constant);
 
         Ok(Self {
             constant,

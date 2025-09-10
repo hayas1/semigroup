@@ -42,7 +42,7 @@ impl<'a> OpTrait<'a> {
         _field: &'a Field,
     ) -> syn::Result<Self> {
         let (trait_ident, method_ident) = (attr.op_trait(), attr.op_method());
-        let annotation = attr.annotation();
+        let annotation = attr.annotation(constant);
 
         Ok(Self {
             constant,

@@ -90,7 +90,7 @@ impl<'a> StructAnnotate<'a> {
         data_struct: &'a DataStruct,
     ) -> syn::Result<Self> {
         let annotation_ident = Self::annotation_ident(&derive.ident);
-        let annotation = attr.annotation(&annotation_ident);
+        let annotation = attr.annotation(constant, &annotation_ident);
         let field_ops = FieldAnnotatedOp::new_fields(constant, derive, attr, &data_struct.fields)?;
         Ok(Self {
             constant,

@@ -3,7 +3,7 @@ use heck::ToSnakeCase;
 use quote::format_ident;
 use syn::{parse_quote, DeriveInput, Expr, Ident, TypeParam};
 
-use crate::{annotation::Annotation, error::ConstructionError};
+use crate::{annotation::Annotation, constant::Constant, error::ConstructionError};
 
 #[derive(Debug, Clone, PartialEq, FromDeriveInput)]
 #[darling(attributes(construction), and_then = Self::validate)]
@@ -59,11 +59,12 @@ impl ContainerAttr {
         self.unit.clone().unwrap_or_else(|| parse_quote!(()))
     }
 
-    pub fn annotation(&self) -> Annotation {
+    pub fn annotation(&self, constant: &Constant) -> Annotation {
         Annotation::new(
             self.annotation_type_param
-                .clone()
-                .unwrap_or_else(|| parse_quote! { A }),
+                .as_ref()
+                .unwrap_or(&constant.default_type_param)
+                .clone(),
             None,
             self.annotation_where
                 .as_ref()
