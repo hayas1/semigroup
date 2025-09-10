@@ -1,4 +1,3 @@
-use heck::ToSnakeCase;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{parse_quote, DeriveInput, Field, Ident, ItemImpl, ItemTrait};
@@ -42,8 +41,7 @@ impl<'a> OpTrait<'a> {
         attr: &'a ContainerAttr,
         _field: &'a Field,
     ) -> syn::Result<Self> {
-        let trait_ident = &attr.op;
-        let method_ident = quote::format_ident!("{}", attr.op.to_string().to_snake_case());
+        let (trait_ident, method_ident) = (attr.op_trait(), attr.op_method());
         let annotation = attr.annotation();
 
         Ok(Self {
@@ -198,7 +196,7 @@ impl<'a> OpTrait<'a> {
             ..
         } = self;
 
-        (attr.is_annotated() && !attr.without_annotate_impl).then(|| {
+        (attr.is_annotated() && attr.with_annotate_impl()).then(|| {
             let (_, ty_generics, _) = generics.split_for_impl();
             let (impl_generics, annotated_type, where_clause) = annotation.split_for_impl(generics);
             parse_quote! {

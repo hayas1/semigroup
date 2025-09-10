@@ -1,23 +1,35 @@
 use darling::{FromDeriveInput, FromField};
 use syn::{parse_quote, DeriveInput, Field, Ident, Path, TypeParam};
 
-use crate::annotation::Annotation;
+use crate::{annotation::Annotation, error::SemigroupError};
 
 #[derive(Debug, Clone, FromDeriveInput)]
-#[darling(attributes(semigroup))]
+#[darling(attributes(semigroup), and_then = Self::validate)]
 pub struct ContainerAttr {
     #[darling(default)]
-    pub annotated: bool,
+    annotated: bool,
 
-    pub with: Option<Path>,
-    pub annotation_param: Option<Ident>,
+    with: Option<Path>,
+    annotation_param: Option<Ident>,
 }
 impl ContainerAttr {
     pub fn new(derive: &DeriveInput) -> syn::Result<Self> {
         Ok(Self::from_derive_input(derive)?)
     }
+    pub fn validate(self) -> darling::Result<Self> {
+        let Self {
+            annotated,
+            annotation_param,
+            ..
+        } = &self;
+        if !annotated && annotation_param.is_some() {
+            Err(darling::Error::custom(SemigroupError::OnlyAnnotated))
+        } else {
+            Ok(self)
+        }
+    }
     pub fn is_annotated(&self) -> bool {
-        self.annotated || self.annotation_param.is_some()
+        self.annotated
     }
 
     pub fn annotation(&self, annotation_ident: &Ident) -> Annotation {
@@ -37,7 +49,7 @@ impl ContainerAttr {
 #[derive(Debug, Clone, FromField)]
 #[darling(attributes(semigroup))]
 pub struct FieldAttr {
-    pub with: Option<Path>,
+    with: Option<Path>,
 }
 impl FieldAttr {
     pub fn new(field: &Field) -> syn::Result<Self> {

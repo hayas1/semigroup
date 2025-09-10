@@ -8,6 +8,7 @@ use crate::constant::{DERIVE_CONSTRUCTION, DERIVE_SEMIGROUP};
 #[derive(Debug, Clone)]
 pub enum ConstructionError {
     OnlyNewType,
+    OnlyAnnotated,
 }
 impl Error for ConstructionError {}
 impl Display for ConstructionError {
@@ -19,6 +20,9 @@ impl Display for ConstructionError {
                     "derive {DERIVE_CONSTRUCTION} only supports newtype structs",
                 )
             }
+            Self::OnlyAnnotated => {
+                write!(f, "some attributes are supported only with `annotated`")
+            }
         }
     }
 }
@@ -27,6 +31,7 @@ impl Display for ConstructionError {
 pub enum SemigroupError {
     UnsupportedEnum,
     UnsupportedUnion,
+    OnlyAnnotated,
 }
 impl Error for SemigroupError {}
 impl Display for SemigroupError {
@@ -37,6 +42,9 @@ impl Display for SemigroupError {
             }
             Self::UnsupportedUnion => {
                 write!(f, "derive {DERIVE_SEMIGROUP} does not support unions")
+            }
+            Self::OnlyAnnotated => {
+                write!(f, "some attributes are supported only with `annotated`")
             }
         }
     }
