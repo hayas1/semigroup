@@ -62,6 +62,8 @@ impl FieldAttr {
 
 #[cfg(test)]
 mod tests {
+    use rstest::rstest;
+
     use super::*;
 
     fn default_container_attr() -> ContainerAttr {
@@ -72,41 +74,38 @@ mod tests {
         .unwrap()
     }
 
-    #[test]
-    fn test_semigroup_container_attr() {
-        let cases = vec![
-            (
-                syn::parse_quote! {
-                    #[derive(Semigroup)]
-                    #[semigroup(annotated)]
-                    pub struct NamedStruct {
-                        name: String,
-                    }
-                },
-                Ok(ContainerAttr {
-                    annotated: true,
-                    ..default_container_attr()
-                }),
-            ),
-            (
-                syn::parse_quote! {
-                    #[derive(Semigroup)]
-                    #[semigroup(annotation_param = "X")]
-                    pub struct UnnamedStruct();
-                },
-                Err(darling::Error::custom(SemigroupError::OnlyAnnotated)),
-            ),
-        ];
-        cases.into_iter().for_each(|(input, expected)| {
-            let actual = ContainerAttr::new(&input);
-            match (actual, expected) {
-                (Ok(actual), Ok(expected)) => assert_eq!(actual, expected),
-                (Ok(actual), Err(expected)) => panic!("actual: {actual:?}, expected: {expected:?}"),
-                (Err(actual), Ok(expected)) => panic!("actual: {actual:?}, expected: {expected:?}"),
-                (Err(actual), Err(expected)) => {
-                    assert_eq!(actual.to_string(), expected.to_string())
-                }
+    #[rstest]
+    #[case::ok(
+        syn::parse_quote! {
+            #[derive(Semigroup)]
+            #[semigroup(annotated)]
+            pub struct NamedStruct {}
+        },
+        Ok(ContainerAttr {
+            annotated: true,
+            ..default_container_attr()
+        }),
+    )]
+    #[case::invalid_annotated_attr(
+        syn::parse_quote! {
+            #[derive(Semigroup)]
+            #[semigroup(annotation_param = "X")]
+            pub struct UnnamedStruct();
+        },
+        Err(darling::Error::custom(SemigroupError::OnlyAnnotated)),
+    )]
+    fn test_semigroup_container_attr(
+        #[case] input: DeriveInput,
+        #[case] expected: darling::Result<ContainerAttr>,
+    ) {
+        let actual = ContainerAttr::new(&input);
+        match (actual, expected) {
+            (Ok(actual), Ok(expected)) => assert_eq!(actual, expected),
+            (Ok(actual), Err(expected)) => panic!("actual: {actual:?}, expected: {expected:?}"),
+            (Err(actual), Ok(expected)) => panic!("actual: {actual:?}, expected: {expected:?}"),
+            (Err(actual), Err(expected)) => {
+                assert_eq!(actual.to_string(), expected.to_string())
             }
-        });
+        }
     }
 }

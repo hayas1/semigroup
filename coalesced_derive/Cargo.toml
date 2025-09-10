@@ -24,3 +24,4 @@ syn = { version = "2.0.104", features = ["full"] }
 coalesced_derive = { path = ".", features = ["use_scope"] }
 insta = "1.43.1"
 prettyplease = "0.2.37"                                     # rustfmt is cli only
+rstest = "0.26.1"

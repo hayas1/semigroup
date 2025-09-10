@@ -77,6 +77,8 @@ impl ContainerAttr {
 
 #[cfg(test)]
 mod tests {
+    use rstest::rstest;
+
     use super::*;
 
     fn default_container_attr() -> ContainerAttr {
@@ -88,47 +90,46 @@ mod tests {
         .unwrap()
     }
 
-    #[test]
-    fn test_construction_container_attr() {
-        let cases = vec![
-            (
-                syn::parse_quote! {
-                    #[derive(Construction)]
-                    #[construction(annotated, op = Coalesce)]
-                    pub struct Coalesced<T>(pub Option<T>);
-                },
-                Ok(ContainerAttr {
-                    annotated: true,
-                    op: format_ident!("Coalesce"),
-                    ..default_container_attr()
-                }),
-            ),
-            (
-                syn::parse_quote! {
-                    #[derive(Construction)]
-                    pub struct Construct<T>(T);
-                },
-                Err(darling::Error::custom("Missing field `op`")),
-            ),
-            (
-                syn::parse_quote! {
-                    #[derive(Construction)]
-                    #[construction(op = Coalesce, unit = ())]
-                    pub struct Coalesced<T>(pub Option<T>);
-                },
-                Err(darling::Error::custom(ConstructionError::OnlyAnnotated)),
-            ),
-        ];
-        cases.into_iter().for_each(|(input, expected)| {
-            let actual = ContainerAttr::new(&input);
-            match (actual, expected) {
-                (Ok(actual), Ok(expected)) => assert_eq!(actual, expected),
-                (Ok(actual), Err(expected)) => panic!("actual: {actual:?}, expected: {expected:?}"),
-                (Err(actual), Ok(expected)) => panic!("actual: {actual:?}, expected: {expected:?}"),
-                (Err(actual), Err(expected)) => {
-                    assert_eq!(actual.to_string(), expected.to_string())
-                }
+    #[rstest]
+    #[case::ok(
+        syn::parse_quote! {
+            #[derive(Construction)]
+            #[construction(annotated, op = Coalesce)]
+            pub struct Coalesced<T>(pub Option<T>);
+        },
+        Ok(ContainerAttr {
+            annotated: true,
+            op: format_ident!("Coalesce"),
+            ..default_container_attr()
+        }),
+    )]
+    #[case::missing_required_attr(
+        syn::parse_quote! {
+            #[derive(Construction)]
+            pub struct Construct<T>(T);
+        },
+        Err(darling::Error::custom("Missing field `op`")),
+    )]
+    #[case::invalid_annotated_attr(
+        syn::parse_quote! {
+            #[derive(Construction)]
+            #[construction(op = Coalesce, unit = ())]
+            pub struct Construct<T>(T);
+        },
+        Err(darling::Error::custom(ConstructionError::OnlyAnnotated)),
+    )]
+    fn test_construction_container_attr(
+        #[case] input: DeriveInput,
+        #[case] expected: darling::Result<ContainerAttr>,
+    ) {
+        let actual = ContainerAttr::new(&input);
+        match (actual, expected) {
+            (Ok(actual), Ok(expected)) => assert_eq!(actual, expected),
+            (Ok(actual), Err(expected)) => panic!("actual: {actual:?}, expected: {expected:?}"),
+            (Err(actual), Ok(expected)) => panic!("actual: {actual:?}, expected: {expected:?}"),
+            (Err(actual), Err(expected)) => {
+                assert_eq!(actual.to_string(), expected.to_string())
             }
-        });
+        }
     }
 }
