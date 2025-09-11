@@ -1,7 +1,11 @@
 use darling::{FromDeriveInput, FromField};
 use syn::{parse_quote, DeriveInput, Field, Ident, Path};
 
-use crate::{annotation::Annotation, constant::Constant, error::SemigroupError};
+use crate::{
+    annotation::Annotation,
+    constant::Constant,
+    error::{attr_name, SemigroupError},
+};
 
 #[derive(Debug, Clone, PartialEq, FromDeriveInput)]
 #[darling(attributes(semigroup), and_then = Self::validate)]
@@ -22,11 +26,17 @@ impl ContainerAttr {
             annotation_param,
             ..
         } = &self;
-        if !annotated && annotation_param.is_some() {
-            Err(darling::Error::custom(SemigroupError::OnlyAnnotated))
-        } else {
-            Ok(self)
+        if !annotated {
+            let err_attr_name = if annotation_param.is_some() {
+                Some(attr_name!(annotation_param))
+            } else {
+                None
+            };
+            err_attr_name.map_or(Ok(()), |a| {
+                Err(darling::Error::custom(SemigroupError::OnlyAnnotated(a)))
+            })?;
         }
+        Ok(self)
     }
     pub fn is_annotated(&self) -> bool {
         self.annotated
@@ -63,6 +73,8 @@ impl FieldAttr {
 mod tests {
     use rstest::rstest;
 
+    use crate::error::AttrName;
+
     use super::*;
 
     fn default_container_attr() -> ContainerAttr {
@@ -91,7 +103,7 @@ mod tests {
             #[semigroup(annotation_param = "X")]
             pub struct UnnamedStruct();
         },
-        Err(darling::Error::custom(SemigroupError::OnlyAnnotated)),
+        Err(darling::Error::custom(SemigroupError::OnlyAnnotated(AttrName("annotation_param")))),
     )]
     fn test_semigroup_container_attr(
         #[case] input: DeriveInput,

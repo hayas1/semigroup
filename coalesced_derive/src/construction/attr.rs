@@ -3,7 +3,11 @@ use heck::ToSnakeCase;
 use quote::format_ident;
 use syn::{parse_quote, DeriveInput, Expr, Ident, TypeParam};
 
-use crate::{annotation::Annotation, constant::Constant, error::ConstructionError};
+use crate::{
+    annotation::Annotation,
+    constant::Constant,
+    error::{attr_name, ConstructionError},
+};
 
 #[derive(Debug, Clone, PartialEq, FromDeriveInput)]
 #[darling(attributes(construction), and_then = Self::validate)]
@@ -32,16 +36,23 @@ impl ContainerAttr {
             without_annotate_impl,
             ..
         } = &self;
-        if !annotated
-            && (unit.is_some()
-                || annotation_type_param.is_some()
-                || annotation_where.is_some()
-                || *without_annotate_impl)
-        {
-            Err(darling::Error::custom(ConstructionError::OnlyAnnotated))
-        } else {
-            Ok(self)
+        if !annotated {
+            let err_attr_name = if unit.is_some() {
+                Some(attr_name!(unit))
+            } else if annotation_type_param.is_some() {
+                Some(attr_name!(annotation_type_param))
+            } else if annotation_where.is_some() {
+                Some(attr_name!(annotation_where))
+            } else if *without_annotate_impl {
+                Some(attr_name!(without_annotate_impl))
+            } else {
+                None
+            };
+            err_attr_name.map_or(Ok(()), |a| {
+                Err(darling::Error::custom(ConstructionError::OnlyAnnotated(a)))
+            })?;
         }
+        Ok(self)
     }
 
     pub fn is_annotated(&self) -> bool {
@@ -80,6 +91,8 @@ impl ContainerAttr {
 mod tests {
     use rstest::rstest;
 
+    use crate::error::AttrName;
+
     use super::*;
 
     fn default_container_attr() -> ContainerAttr {
@@ -117,7 +130,7 @@ mod tests {
             #[construction(op = Coalesce, unit = ())]
             pub struct Construct<T>(T);
         },
-        Err(darling::Error::custom(ConstructionError::OnlyAnnotated)),
+        Err(darling::Error::custom(ConstructionError::OnlyAnnotated(AttrName("unit")))),
     )]
     fn test_construction_container_attr(
         #[case] input: DeriveInput,

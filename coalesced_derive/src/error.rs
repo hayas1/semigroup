@@ -8,7 +8,7 @@ use crate::constant::{DERIVE_CONSTRUCTION, DERIVE_SEMIGROUP};
 #[derive(Debug, Clone)]
 pub enum ConstructionError {
     OnlyNewType,
-    OnlyAnnotated,
+    OnlyAnnotated(AttrName),
 }
 impl Error for ConstructionError {}
 impl Display for ConstructionError {
@@ -20,8 +20,8 @@ impl Display for ConstructionError {
                     "derive {DERIVE_CONSTRUCTION} only supports newtype structs",
                 )
             }
-            Self::OnlyAnnotated => {
-                write!(f, "some attributes are supported only with `annotated`")
+            Self::OnlyAnnotated(AttrName(name)) => {
+                write!(f, "attribute `{name}` are supported only with `annotated`")
             }
         }
     }
@@ -31,7 +31,7 @@ impl Display for ConstructionError {
 pub enum SemigroupError {
     UnsupportedEnum,
     UnsupportedUnion,
-    OnlyAnnotated,
+    OnlyAnnotated(AttrName),
 }
 impl Error for SemigroupError {}
 impl Display for SemigroupError {
@@ -43,9 +43,19 @@ impl Display for SemigroupError {
             Self::UnsupportedUnion => {
                 write!(f, "derive {DERIVE_SEMIGROUP} does not support unions")
             }
-            Self::OnlyAnnotated => {
-                write!(f, "some attributes are supported only with `annotated`")
+            Self::OnlyAnnotated(AttrName(name)) => {
+                write!(f, "attribute `{name}` are supported only with `annotated`")
             }
         }
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct AttrName(pub &'static str);
+macro_rules! attr_name {
+    ($var:ident) => {{
+        let _ = &$var; // to follow the renaming
+        crate::error::AttrName(stringify!($var))
+    }};
+}
+pub(crate) use attr_name;
