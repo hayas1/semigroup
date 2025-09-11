@@ -91,8 +91,6 @@ impl ContainerAttr {
 mod tests {
     use rstest::rstest;
 
-    use crate::error::AttrName;
-
     use super::*;
 
     fn default_container_attr() -> ContainerAttr {
@@ -122,7 +120,7 @@ mod tests {
             #[derive(Construction)]
             pub struct Construct<T>(T);
         },
-        Err(darling::Error::custom("Missing field `op`")),
+        Err("Missing field `op`"),
     )]
     #[case::invalid_annotated_attr(
         syn::parse_quote! {
@@ -130,11 +128,11 @@ mod tests {
             #[construction(op = Coalesce, unit = ())]
             pub struct Construct<T>(T);
         },
-        Err(darling::Error::custom(ConstructionError::OnlyAnnotated(AttrName("unit")))),
+        Err("attribute `unit` are supported only with `annotated`"),
     )]
     fn test_construction_container_attr(
         #[case] input: DeriveInput,
-        #[case] expected: darling::Result<ContainerAttr>,
+        #[case] expected: Result<ContainerAttr, &str>,
     ) {
         let actual = ContainerAttr::new(&input);
         match (actual, expected) {
@@ -142,7 +140,7 @@ mod tests {
             (Ok(actual), Err(expected)) => panic!("actual: {actual:?}, expected: {expected:?}"),
             (Err(actual), Ok(expected)) => panic!("actual: {actual:?}, expected: {expected:?}"),
             (Err(actual), Err(expected)) => {
-                assert_eq!(actual.to_string(), expected.to_string())
+                assert_eq!(actual.to_string(), expected)
             }
         }
     }

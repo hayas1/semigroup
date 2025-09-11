@@ -73,8 +73,6 @@ impl FieldAttr {
 mod tests {
     use rstest::rstest;
 
-    use crate::error::AttrName;
-
     use super::*;
 
     fn default_container_attr() -> ContainerAttr {
@@ -103,11 +101,11 @@ mod tests {
             #[semigroup(annotation_param = "X")]
             pub struct UnnamedStruct();
         },
-        Err(darling::Error::custom(SemigroupError::OnlyAnnotated(AttrName("annotation_param")))),
+        Err("attribute `annotation_param` are supported only with `annotated`"),
     )]
     fn test_semigroup_container_attr(
         #[case] input: DeriveInput,
-        #[case] expected: darling::Result<ContainerAttr>,
+        #[case] expected: Result<ContainerAttr, &str>,
     ) {
         let actual = ContainerAttr::new(&input);
         match (actual, expected) {
@@ -115,7 +113,7 @@ mod tests {
             (Ok(actual), Err(expected)) => panic!("actual: {actual:?}, expected: {expected:?}"),
             (Err(actual), Ok(expected)) => panic!("actual: {actual:?}, expected: {expected:?}"),
             (Err(actual), Err(expected)) => {
-                assert_eq!(actual.to_string(), expected.to_string())
+                assert_eq!(actual.to_string(), expected)
             }
         }
     }
