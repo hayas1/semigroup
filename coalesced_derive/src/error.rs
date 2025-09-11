@@ -50,7 +50,7 @@ impl Display for SemigroupError {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct AttrName(pub &'static str);
 macro_rules! attr_name {
     ($var:ident) => {{
@@ -59,3 +59,18 @@ macro_rules! attr_name {
     }};
 }
 pub(crate) use attr_name;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_attr_name() {
+        let foo = ();
+        assert_eq!(attr_name!(foo), AttrName("foo"));
+        let bar = ();
+        assert_eq!(attr_name!(bar), AttrName("bar"));
+        let baz = ();
+        assert_eq!(attr_name!(baz), AttrName("baz"));
+    }
+}
