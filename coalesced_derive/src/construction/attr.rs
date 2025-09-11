@@ -135,13 +135,9 @@ mod tests {
         #[case] expected: Result<ContainerAttr, &str>,
     ) {
         let actual = ContainerAttr::new(&input);
-        match (actual, expected) {
-            (Ok(actual), Ok(expected)) => assert_eq!(actual, expected),
-            (Ok(actual), Err(expected)) => panic!("actual: {actual:?}, expected: {expected:?}"),
-            (Err(actual), Ok(expected)) => panic!("actual: {actual:?}, expected: {expected:?}"),
-            (Err(actual), Err(expected)) => {
-                assert_eq!(actual.to_string(), expected)
-            }
-        }
+        assert_eq!(
+            actual.as_ref().map_err(ToString::to_string),
+            expected.as_ref().map_err(ToString::to_string),
+        );
     }
 }
