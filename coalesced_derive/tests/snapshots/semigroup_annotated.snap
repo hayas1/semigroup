@@ -1,6 +1,6 @@
 ---
 source: coalesced_derive/src/semigroup.rs
-assertion_line: 41
+assertion_line: 77
 expression: formatted
 ---
 impl ::coalesced::Semigroup for NamedStruct {
@@ -31,20 +31,12 @@ for NamedStruct {
                 value: base.value.foo,
                 annotation: base.annotation.foo,
             }
-                .map(
-                    <coalesced::op::annotation::replace::Replaced<
-                        _,
-                    > as ::coalesced::op::Construction<_>>::new,
-                ),
+                .map(coalesced::op::annotation::replace::Replaced::<_>::from),
             ::coalesced::Annotated {
                 value: other.value.foo,
                 annotation: other.annotation.foo,
             }
-                .map(
-                    <coalesced::op::annotation::replace::Replaced<
-                        _,
-                    > as ::coalesced::op::Construction<_>>::new,
-                ),
+                .map(coalesced::op::annotation::replace::Replaced::<_>::from),
         );
         let bar = ::coalesced::AnnotatedSemigroup::annotated_op(
             ::coalesced::Annotated {

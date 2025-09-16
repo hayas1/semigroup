@@ -64,9 +64,6 @@ impl<T: IntoIterator + FromIterator<T::Item>> std::ops::DerefMut for Concatenate
 }
 impl<T: IntoIterator + FromIterator<T::Item>> ::coalesced::op::Construction<T>
 for Concatenated<T> {
-    fn new(value: T) -> Self {
-        Self(value)
-    }
     fn into_inner(self) -> T {
         self.0
     }
