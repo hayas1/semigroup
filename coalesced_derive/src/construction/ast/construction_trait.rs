@@ -76,9 +76,6 @@ impl<'a> ConstructionTrait<'a> {
 
         parse_quote! {
             impl #impl_generics #path_construction_trait<#ty> for #ident #ty_generics #where_clause {
-                fn new(value: #ty) -> Self {
-                    Self(value)
-                }
                 fn into_inner(self) -> #ty {
                     self.0
                 }

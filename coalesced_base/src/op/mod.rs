@@ -9,7 +9,6 @@ pub mod annotation;
 pub mod semigroup;
 
 pub trait Construction<T>: Semigroup + Sized + From<T> + Deref<Target = T> + DerefMut {
-    fn new(value: T) -> Self;
     fn into_inner(self) -> T;
     fn lift_op(base: T, other: T) -> T {
         Semigroup::semigroup_op(Self::from(base), Self::from(other)).into_inner()

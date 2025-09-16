@@ -136,7 +136,6 @@ impl<'a> FieldAnnotatedOp<'a> {
         let Constant {
             path_annotated_semigroup,
             ident_annotated_op,
-            path_construction_trait,
             path_annotated,
             ..
         } = constant;
@@ -146,8 +145,8 @@ impl<'a> FieldAnnotatedOp<'a> {
         with.map(|path| {
             parse_quote! {
                 let #ident_variable = #path_annotated_semigroup::#ident_annotated_op(
-                    #path_annotated{ value: base.value.#member, annotation: base.annotation.#member }.map(<#path<_> as #path_construction_trait<_>>::new),
-                    #path_annotated{ value: other.value.#member, annotation: other.annotation.#member }.map(<#path<_> as #path_construction_trait<_>>::new),
+                    #path_annotated{ value: base.value.#member, annotation: base.annotation.#member }.map(#path::<_>::from),
+                    #path_annotated{ value: other.value.#member, annotation: other.annotation.#member }.map(#path::<_>::from),
                 );
             }
         })
