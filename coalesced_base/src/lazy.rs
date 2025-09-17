@@ -12,12 +12,12 @@ impl<T> Semigroup for LazySemigroup<T> {
     }
 }
 impl<T: Semigroup> LazySemigroup<T> {
-    pub fn evaluate(self) -> T {
+    pub fn fold(self) -> T {
         let Self { head, tail } = self;
         tail.into_iter()
             .fold(head, |acc, item| T::semigroup_op(acc, item))
     }
-    pub fn evaluate_cloned(&self) -> T
+    pub fn fold_cloned(&self) -> T
     where
         T: Clone,
     {
@@ -29,11 +29,20 @@ impl<T: Semigroup> LazySemigroup<T> {
 }
 
 impl<T> LazySemigroup<T> {
-    pub fn with(t: T) -> Self {
+    pub fn with(value: T) -> Self {
         Self {
-            head: t,
+            head: value,
             tail: Vec::new(),
         }
+    }
+    pub fn push(&mut self, value: T) {
+        self.tail.push(value)
+    }
+    pub fn first(&self) -> &T {
+        &self.head
+    }
+    pub fn last(&self) -> &T {
+        self.tail.last().unwrap_or(&self.head)
     }
 }
 impl<T> IntoIterator for LazySemigroup<T> {
