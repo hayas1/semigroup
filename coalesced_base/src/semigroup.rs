@@ -51,6 +51,13 @@ pub mod tests {
         b: T,
         c: T,
     ) {
+        let (op, rev_op) = reverse(a.clone(), b.clone());
+        assert_eq!(op, rev_op);
+        let (op, rev_op) = reverse(b.clone(), c.clone());
+        assert_eq!(op, rev_op);
+        let (op, rev_op) = reverse(a.clone(), c.clone());
+        assert_eq!(op, rev_op);
+
         let (ra, rb, rc) = (Reversed(a), Reversed(b), Reversed(c));
         assert_associative_law(ra, rb, rc);
     }
