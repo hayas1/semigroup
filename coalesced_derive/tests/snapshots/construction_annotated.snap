@@ -20,10 +20,7 @@ impl<T> ::coalesced::Semigroup for Coalesced<T> {
 impl<T, A> ::coalesced::Annotate<A> for Coalesced<T> {
     type Annotation = A;
     fn annotated(self, annotation: Self::Annotation) -> ::coalesced::Annotated<Self, A> {
-        ::coalesced::Annotated {
-            value: self,
-            annotation,
-        }
+        ::coalesced::Annotated::new(self, annotation)
     }
 }
 impl<T> From<Option<T>> for Coalesced<T> {

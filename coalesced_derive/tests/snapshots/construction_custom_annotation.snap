@@ -40,10 +40,7 @@ where
 {
     type Annotation = X;
     fn annotated(self, annotation: Self::Annotation) -> ::coalesced::Annotated<Self, X> {
-        ::coalesced::Annotated {
-            value: self,
-            annotation,
-        }
+        ::coalesced::Annotated::new(self, annotation)
     }
 }
 impl<T: IntoIterator + FromIterator<T::Item>> From<T> for Concatenated<T> {
