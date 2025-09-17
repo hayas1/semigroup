@@ -79,3 +79,18 @@ impl<T> Iterator for IntoIter<T> {
         }
     }
 }
+
+#[cfg(any(test, feature = "test"))]
+pub mod tests {
+    use std::fmt::Debug;
+
+    use super::*;
+
+    pub fn assert_lazy_evaluation<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
+        let mut lazy = LazySemigroup::with(a.clone());
+        lazy.push(b.clone());
+        lazy.push(c.clone());
+
+        assert_eq!(lazy.fold(), T::semigroup_op(T::semigroup_op(a, b), c))
+    }
+}

@@ -28,7 +28,9 @@ impl<T: AnnotatedSemigroup<A>, A> Semigroup for Annotated<T, A> {
 pub mod tests {
     use std::fmt::Debug;
 
-    use crate::{lazy::LazySemigroup, reverse::Reversed};
+    use crate::{
+        lazy::tests::assert_lazy_evaluation, reverse::tests::assert_reversed_associative_law,
+    };
 
     use super::*;
 
@@ -53,33 +55,5 @@ pub mod tests {
     pub fn assert_associative_law<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
         let (ab_c, a_bc) = associative_law(a, b, c);
         assert_eq!(ab_c, a_bc);
-    }
-
-    pub fn reverse<T: Semigroup + Clone>(a: T, b: T) -> (T, T) {
-        let (ra, rb) = (Reversed(a.clone()), Reversed(b.clone()));
-        (T::semigroup_op(a, b), Reversed::<T>::semigroup_op(rb, ra).0)
-    }
-    pub fn assert_reversed_associative_law<T: Semigroup + Clone + PartialEq + Debug>(
-        a: T,
-        b: T,
-        c: T,
-    ) {
-        let (op, rev_op) = reverse(a.clone(), b.clone());
-        assert_eq!(op, rev_op);
-        let (op, rev_op) = reverse(b.clone(), c.clone());
-        assert_eq!(op, rev_op);
-        let (op, rev_op) = reverse(a.clone(), c.clone());
-        assert_eq!(op, rev_op);
-
-        let (ra, rb, rc) = (Reversed(a), Reversed(b), Reversed(c));
-        assert_associative_law(ra, rb, rc);
-    }
-
-    pub fn assert_lazy_evaluation<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
-        let mut lazy = LazySemigroup::with(a.clone());
-        lazy.push(b.clone());
-        lazy.push(c.clone());
-
-        assert_eq!(lazy.fold(), T::semigroup_op(T::semigroup_op(a, b), c))
     }
 }
