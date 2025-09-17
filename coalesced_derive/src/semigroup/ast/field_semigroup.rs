@@ -126,7 +126,8 @@ impl<'a> FieldAnnotatedOp<'a> {
             Member::Unnamed(index) => format_ident!("_{}", index.index),
         }
     }
-    pub fn ident_parts(ident: &Ident) -> (Ident, Ident) {
+    pub fn ident_parts(&self) -> (Ident, Ident) {
+        let ident = self.ident_variable();
         (
             format_ident!("{}_value", ident),
             format_ident!("{}_annotation", ident),
@@ -145,7 +146,7 @@ impl<'a> FieldAnnotatedOp<'a> {
             path_annotated,
             ..
         } = constant;
-        let (ident_value, ident_annotation) = Self::ident_parts(&self.ident_variable());
+        let (ident_value, ident_annotation) = self.ident_parts();
         let with = field_attr.with(container_attr);
 
         with.map(|path| {
@@ -175,7 +176,7 @@ impl<'a> FieldAnnotatedOp<'a> {
             member,
             ..
         } = self;
-        let (ident_value, _ident_annotation) = Self::ident_parts(&self.ident_variable());
+        let (ident_value, _ident_annotation) = self.ident_parts();
         let with = self.field_attr.with(self.container_attr);
         with.map(|path| {
             parse_quote! {
@@ -190,7 +191,7 @@ impl<'a> FieldAnnotatedOp<'a> {
     }
     pub fn impl_field_annotation(&self) -> FieldValue {
         let Self { member, .. } = self;
-        let (_ident_value, ident_annotation) = Self::ident_parts(&self.ident_variable());
+        let (_ident_value, ident_annotation) = self.ident_parts();
         parse_quote! {
             #member: #ident_annotation
         }
