@@ -44,30 +44,20 @@ mod sealed {
 
 #[cfg(test)]
 mod tests {
-    use crate::semigroup::tests::{
-        assert_associative_law, assert_lazy_evaluation, assert_reversed_associative_law,
-    };
+    use crate::assert_semigroup_op;
 
     use super::*;
 
     #[test]
     fn test_coalesce_as_semigroup_op() {
         let (a, b, c) = (Coalesced(Some(1)), Coalesced(Some(2)), Coalesced(Some(3)));
-        assert_associative_law(a, b, c);
-        assert_reversed_associative_law(a, b, c);
-        assert_lazy_evaluation(a, b, c);
+        assert_semigroup_op!(a, b, c);
         let (a, b, c) = (Coalesced(None), Coalesced(Some(2)), Coalesced(Some(3)));
-        assert_associative_law(a, b, c);
-        assert_reversed_associative_law(a, b, c);
-        assert_lazy_evaluation(a, b, c);
+        assert_semigroup_op!(a, b, c);
         let (a, b, c) = (Coalesced(None), Coalesced(Some(2)), Coalesced(None));
-        assert_associative_law(a, b, c);
-        assert_reversed_associative_law(a, b, c);
-        assert_lazy_evaluation(a, b, c);
+        assert_semigroup_op!(a, b, c);
         let (a, b, c) = (Coalesced::<u32>(None), Coalesced(None), Coalesced(None));
-        assert_associative_law(a, b, c);
-        assert_reversed_associative_law(a, b, c);
-        assert_lazy_evaluation(a, b, c);
+        assert_semigroup_op!(a, b, c);
     }
 
     #[test]

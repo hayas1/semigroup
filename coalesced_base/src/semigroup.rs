@@ -32,6 +32,19 @@ pub mod tests {
 
     use super::*;
 
+    #[macro_export]
+    macro_rules! assert_semigroup_op {
+        ($a:expr, $b: expr, $c: expr) => {
+            $crate::semigroup::tests::assert_semigroup_op_impl($a, $b, $c)
+        };
+    }
+
+    pub fn assert_semigroup_op_impl<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
+        assert_associative_law(a.clone(), b.clone(), c.clone());
+        assert_reversed_associative_law(a.clone(), b.clone(), c.clone());
+        assert_lazy_evaluation(a.clone(), b.clone(), c.clone());
+    }
+
     pub fn associative_law<T: Semigroup + Clone>(a: T, b: T, c: T) -> (T, T) {
         let ab_c = T::semigroup_op(T::semigroup_op(a.clone(), b.clone()), c.clone());
         let a_bc = T::semigroup_op(a.clone(), T::semigroup_op(b.clone(), c.clone()));

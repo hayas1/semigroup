@@ -1,5 +1,6 @@
-use coalesced::{op::Construction, Annotated, AnnotatedSemigroup, Construction, Semigroup};
-use coalesced_base::semigroup::tests::{assert_associative_law, assert_reversed_associative_law};
+use coalesced::{
+    assert_semigroup_op, op::Construction, Annotated, AnnotatedSemigroup, Construction, Semigroup,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction)]
 #[construction(annotated, op = Coalesce)]
@@ -17,17 +18,13 @@ impl<T, A> AnnotatedSemigroup<A> for Coalesced<T> {
 #[test]
 fn test_coalesce_as_semigroup_op() {
     let (a, b, c) = (Coalesced(Some(1)), Coalesced(Some(2)), Coalesced(Some(3)));
-    assert_associative_law(a, b, c);
-    assert_reversed_associative_law(a, b, c);
+    assert_semigroup_op!(a, b, c);
     let (a, b, c) = (Coalesced(None), Coalesced(Some(2)), Coalesced(Some(3)));
-    assert_associative_law(a, b, c);
-    assert_reversed_associative_law(a, b, c);
+    assert_semigroup_op!(a, b, c);
     let (a, b, c) = (Coalesced(None), Coalesced(Some(2)), Coalesced(None));
-    assert_associative_law(a, b, c);
-    assert_reversed_associative_law(a, b, c);
+    assert_semigroup_op!(a, b, c);
     let (a, b, c) = (Coalesced::<u32>(None), Coalesced(None), Coalesced(None));
-    assert_associative_law(a, b, c);
-    assert_reversed_associative_law(a, b, c);
+    assert_semigroup_op!(a, b, c);
 }
 
 #[test]
