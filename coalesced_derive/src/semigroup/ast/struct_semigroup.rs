@@ -55,6 +55,7 @@ impl<'a> StructSemigroup<'a> {
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
         let fields_op = field_ops.iter().map(|op| op.impl_field_semigroup_op());
         parse_quote! {
+            #[automatically_derived]
             impl #impl_generics #path_semigroup for #ident #ty_generics #where_clause {
                 fn #ident_semigroup_op(base: Self, other: Self) -> Self {
                     Self {
@@ -169,6 +170,7 @@ impl<'a> StructAnnotate<'a> {
         let (_, ty_generics, _) = generics.split_for_impl();
         let (impl_generics, annotation_type, where_clause) = annotation.split_for_impl(generics);
         parse_quote! {
+            #[automatically_derived]
             impl #impl_generics #path_annotated_semigroup<#annotation_type> for #ident #ty_generics #where_clause {
                 fn #ident_annotated_op(base: #path_annotated<Self, #annotation_type>, other: #path_annotated<Self, #annotation_type>) -> #path_annotated<Self, #annotation_type> {
                     let (base_value, base_annotation) = base.into_parts();
@@ -212,6 +214,7 @@ impl<'a> StructAnnotate<'a> {
             .map(|m| parse_quote! { #m: annotation.clone() })
             .collect();
         parse_quote! {
+            #[automatically_derived]
             impl #impl_generics #path_annotate<#annotation_type> for #ident #ty_generics #where_clause {
                 type Annotation = #a;
                 fn annotated(self, annotation: Self::Annotation) -> #path_annotated<Self, #annotation_type> {

@@ -8,24 +8,30 @@ pub trait Coalesce: Sized + Semigroup {
         Semigroup::semigroup_op(self, other)
     }
 }
+#[automatically_derived]
 impl<T> Coalesce for Coalesced<T> {}
+#[automatically_derived]
 impl<T> Coalesce for Reversed<Coalesced<T>> {}
+#[automatically_derived]
 impl<T> From<Option<T>> for Coalesced<T> {
     fn from(value: Option<T>) -> Self {
         Coalesced(value)
     }
 }
+#[automatically_derived]
 impl<T> std::ops::Deref for Coalesced<T> {
     type Target = Option<T>;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
+#[automatically_derived]
 impl<T> std::ops::DerefMut for Coalesced<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
+#[automatically_derived]
 impl<T> Construction<Option<T>> for Coalesced<T> {
     fn into_inner(self) -> Option<T> {
         self.0

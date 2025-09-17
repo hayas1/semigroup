@@ -8,9 +8,12 @@ pub trait Coalesce: Sized + Semigroup {
         ::coalesced::Semigroup::semigroup_op(self, other)
     }
 }
+#[automatically_derived]
 impl<T: IntoIterator + FromIterator<T::Item>> Coalesce for Concatenated<T> {}
+#[automatically_derived]
 impl<T: IntoIterator + FromIterator<T::Item>> Coalesce
 for ::coalesced::Reversed<Concatenated<T>> {}
+#[automatically_derived]
 impl<
     T: IntoIterator + FromIterator<T::Item>,
     X: IntoIterator + FromIterator<X::Item>,
@@ -18,6 +21,7 @@ impl<
 where
     X::Item: Clone,
 {}
+#[automatically_derived]
 impl<
     T: IntoIterator + FromIterator<T::Item>,
     X: IntoIterator + FromIterator<X::Item>,
@@ -25,12 +29,14 @@ impl<
 where
     X::Item: Clone,
 {}
+#[automatically_derived]
 impl<T: IntoIterator + FromIterator<T::Item>> ::coalesced::Semigroup
 for Concatenated<T> {
     fn semigroup_op(base: Self, other: Self) -> Self {
         Self::default_semigroup_op(base, other, vec![(); 0], vec![(); 0])
     }
 }
+#[automatically_derived]
 impl<
     T: IntoIterator + FromIterator<T::Item>,
     X: IntoIterator + FromIterator<X::Item>,
@@ -43,28 +49,33 @@ where
         ::coalesced::Annotated::new(self, annotation)
     }
 }
+#[automatically_derived]
 impl<T: IntoIterator + FromIterator<T::Item>> From<T> for Concatenated<T> {
     fn from(value: T) -> Self {
         Concatenated(value)
     }
 }
+#[automatically_derived]
 impl<T: IntoIterator + FromIterator<T::Item>> std::ops::Deref for Concatenated<T> {
     type Target = T;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
+#[automatically_derived]
 impl<T: IntoIterator + FromIterator<T::Item>> std::ops::DerefMut for Concatenated<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
+#[automatically_derived]
 impl<T: IntoIterator + FromIterator<T::Item>> ::coalesced::op::Construction<T>
 for Concatenated<T> {
     fn into_inner(self) -> T {
         self.0
     }
 }
+#[automatically_derived]
 impl<
     T: IntoIterator + FromIterator<T::Item>,
     X: IntoIterator + FromIterator<X::Item>,

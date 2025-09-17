@@ -87,6 +87,7 @@ impl<'a> OpTrait<'a> {
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
         parse_quote! {
+            #[automatically_derived]
             impl #impl_generics #trait_ident for #ident #ty_generics #where_clause {}
         }
     }
@@ -102,6 +103,7 @@ impl<'a> OpTrait<'a> {
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
         parse_quote! {
+            #[automatically_derived]
             impl #impl_generics #trait_ident for #path_reversed<#ident #ty_generics> #where_clause {}
         }
     }
@@ -123,6 +125,7 @@ impl<'a> OpTrait<'a> {
                 annotation.split_for_impl(generics);
 
             parse_quote! {
+                #[automatically_derived]
                 impl #impl_generics #trait_ident for #path_annotated<#ident #ty_generics, #annotated_type> #where_clause {}
             }
         })
@@ -148,6 +151,7 @@ impl<'a> OpTrait<'a> {
             let (_, ty_generics, _) = generics.split_for_impl();
             let (impl_generics, annotated_type, where_clause) = annotation.split_for_impl(generics);
             parse_quote! {
+                #[automatically_derived]
                 impl #impl_generics #trait_ident for #path_reversed<#path_annotated<#ident #ty_generics, #annotated_type>> #where_clause {}
             }
         })
@@ -171,6 +175,7 @@ impl<'a> OpTrait<'a> {
             let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
             let unit = attr.unit_annotate();
             parse_quote! {
+                #[automatically_derived]
                 impl #impl_generics #path_semigroup for #ident #ty_generics #where_clause {
                     fn #ident_semigroup_op(base: Self, other: Self) -> Self {
                         Self::default_semigroup_op(base, other, #unit, #unit)
@@ -200,6 +205,7 @@ impl<'a> OpTrait<'a> {
             let (_, ty_generics, _) = generics.split_for_impl();
             let (impl_generics, annotated_type, where_clause) = annotation.split_for_impl(generics);
             parse_quote! {
+                #[automatically_derived]
                 impl #impl_generics #path_annotate<#annotated_type> for #ident #ty_generics #where_clause {
                     type Annotation = #annotated_type;
                     fn annotated(self, annotation: Self::Annotation) -> #path_annotated<Self, #annotated_type> {

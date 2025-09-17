@@ -3,6 +3,7 @@ source: coalesced_derive/src/semigroup.rs
 assertion_line: 77
 expression: formatted
 ---
+#[automatically_derived]
 impl ::coalesced::Semigroup for NamedStruct {
     fn semigroup_op(base: Self, other: Self) -> Self {
         Self {
@@ -24,6 +25,7 @@ pub struct NamedStructAnnotation<X> {
     bar: X,
     baz: X,
 }
+#[automatically_derived]
 impl<X: Clone> ::coalesced::AnnotatedSemigroup<NamedStructAnnotation<X>>
 for NamedStruct {
     fn annotated_op(
@@ -73,6 +75,7 @@ for NamedStruct {
         )
     }
 }
+#[automatically_derived]
 impl<X: Clone> ::coalesced::Annotate<NamedStructAnnotation<X>> for NamedStruct {
     type Annotation = X;
     fn annotated(

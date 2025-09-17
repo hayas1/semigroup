@@ -52,6 +52,7 @@ impl<'a> ConstructionTrait<'a> {
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
         parse_quote! {
+            #[automatically_derived]
             impl #impl_generics From<#ty> for #ident #ty_generics #where_clause {
                 fn from(value: #ty) -> Self {
                     #ident(value)
@@ -75,6 +76,7 @@ impl<'a> ConstructionTrait<'a> {
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
         parse_quote! {
+            #[automatically_derived]
             impl #impl_generics #path_construction_trait<#ty> for #ident #ty_generics #where_clause {
                 fn into_inner(self) -> #ty {
                     self.0
@@ -102,6 +104,7 @@ impl<'a> ConstructionTrait<'a> {
             let (_, ty_generics, _) = generics.split_for_impl();
             let (impl_generics, annotated_type, where_clause) = annotation.split_for_impl(generics);
             parse_quote! {
+                #[automatically_derived]
                 impl #impl_generics #path_construction_annotated<#ty, #annotated_type> for #ident #ty_generics #where_clause {}
             }
         })
@@ -117,6 +120,7 @@ impl<'a> ConstructionTrait<'a> {
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
         parse_quote! {
+            #[automatically_derived]
             impl #impl_generics std::ops::Deref for #ident #ty_generics #where_clause {
                 type Target = #ty;
                 fn deref(&self) -> &Self::Target {
@@ -135,6 +139,7 @@ impl<'a> ConstructionTrait<'a> {
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
         parse_quote! {
+            #[automatically_derived]
             impl #impl_generics std::ops::DerefMut for #ident #ty_generics #where_clause {
                 fn deref_mut(&mut self) -> &mut Self::Target {
                     &mut self.0
