@@ -12,16 +12,10 @@ pub trait AnnotatedSemigroup<A>: Sized {
         other_annotation: A,
     ) -> Self {
         Self::annotated_op(
-            Annotated {
-                value: base,
-                annotation: base_annotation,
-            },
-            Annotated {
-                value: other,
-                annotation: other_annotation,
-            },
+            Annotated::new(base, base_annotation),
+            Annotated::new(other, other_annotation),
         )
-        .value
+        .into_value()
     }
 }
 impl<T: AnnotatedSemigroup<A>, A> Semigroup for Annotated<T, A> {

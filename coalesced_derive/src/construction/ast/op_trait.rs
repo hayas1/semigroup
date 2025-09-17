@@ -203,10 +203,10 @@ impl<'a> OpTrait<'a> {
                 impl #impl_generics #path_annotate<#annotated_type> for #ident #ty_generics #where_clause {
                     type Annotation = #annotated_type;
                     fn annotated(self, annotation: Self::Annotation) -> #path_annotated<Self, #annotated_type> {
-                        #path_annotated {
-                            value: self,
-                            annotation
-                        }
+                        #path_annotated::new(
+                            self,
+                            annotation,
+                        )
                     }
                 }
             }

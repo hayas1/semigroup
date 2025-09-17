@@ -7,7 +7,7 @@ pub struct Coalesced<T>(pub Option<T>);
 
 impl<T, A> AnnotatedSemigroup<A> for Coalesced<T> {
     fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
-        match (&base.value.0, &other.value.0) {
+        match (&base.value().0, &other.value().0) {
             (Some(_), _) | (None, None) => base,
             (None, Some(_)) => other,
         }

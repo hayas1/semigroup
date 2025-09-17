@@ -126,6 +126,12 @@ impl<'a> FieldAnnotatedOp<'a> {
             Member::Unnamed(index) => format_ident!("_{}", index.index),
         }
     }
+    pub fn ident_parts(ident: &Ident) -> (Ident, Ident) {
+        (
+            format_ident!("{}_value", ident),
+            format_ident!("{}_annotation", ident),
+        )
+    }
     pub fn impl_field_annotated_op(&self) -> Stmt {
         let Self {
             constant,
@@ -139,23 +145,23 @@ impl<'a> FieldAnnotatedOp<'a> {
             path_annotated,
             ..
         } = constant;
-        let ident_variable = self.ident_variable();
+        let (ident_value, ident_annotation) = Self::ident_parts(&self.ident_variable());
         let with = field_attr.with(container_attr);
 
         with.map(|path| {
             parse_quote! {
-                let #ident_variable = #path_annotated_semigroup::#ident_annotated_op(
-                    #path_annotated{ value: base.value.#member, annotation: base.annotation.#member }.map(#path::<_>::from),
-                    #path_annotated{ value: other.value.#member, annotation: other.annotation.#member }.map(#path::<_>::from),
-                );
+                let (#ident_value, #ident_annotation) = #path_annotated_semigroup::#ident_annotated_op(
+                    #path_annotated::new(base_value.#member, base_annotation.#member).map(#path::<_>::from),
+                    #path_annotated::new(other_value.#member, other_annotation.#member).map(#path::<_>::from),
+                ).into_parts();
             }
         })
         .unwrap_or_else(|| {
             parse_quote! {
-                let #ident_variable = #path_annotated_semigroup::#ident_annotated_op(
-                    #path_annotated{ value: base.value.#member, annotation: base.annotation.#member },
-                    #path_annotated{ value: other.value.#member, annotation: other.annotation.#member },
-                );
+                let (#ident_value, #ident_annotation) = #path_annotated_semigroup::#ident_annotated_op(
+                    #path_annotated::new(base_value.#member, base_annotation.#member),
+                    #path_annotated::new(other_value.#member, other_annotation.#member),
+                ).into_parts();
             }
         })
     }
@@ -169,24 +175,24 @@ impl<'a> FieldAnnotatedOp<'a> {
             member,
             ..
         } = self;
-        let ident_variable = self.ident_variable();
+        let (ident_value, _ident_annotation) = Self::ident_parts(&self.ident_variable());
         let with = self.field_attr.with(self.container_attr);
         with.map(|path| {
             parse_quote! {
-                #member: <#path<_> as #path_construction_trait<_>>::into_inner(#ident_variable.value)
+                #member: <#path<_> as #path_construction_trait<_>>::into_inner(#ident_value)
             }
         })
         .unwrap_or_else(|| {
             parse_quote! {
-                #member: #ident_variable.value
+                #member: #ident_value
             }
         })
     }
     pub fn impl_field_annotation(&self) -> FieldValue {
         let Self { member, .. } = self;
-        let ident_variable = self.ident_variable();
+        let (_ident_value, ident_annotation) = Self::ident_parts(&self.ident_variable());
         parse_quote! {
-            #member: #ident_variable.annotation
+            #member: #ident_annotation
         }
     }
 }

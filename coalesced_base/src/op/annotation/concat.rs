@@ -22,13 +22,16 @@ impl<T: IntoIterator + FromIterator<T::Item>, A: IntoIterator + FromIterator<A::
     AnnotatedSemigroup<A> for Concatenated<T>
 {
     fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
-        let value = Concatenated(base.value.0.into_iter().chain(other.value.0).collect());
-        let annotation = base
-            .annotation
-            .into_iter()
-            .chain(other.annotation)
-            .collect();
-        Annotated { value, annotation }
+        let (base_value, base_annotation) = base.into_parts();
+        let (other_value, other_annotation) = other.into_parts();
+
+        Annotated::new(
+            Concatenated(base_value.0.into_iter().chain(other_value.0).collect()),
+            base_annotation
+                .into_iter()
+                .chain(other_annotation)
+                .collect(),
+        )
     }
 }
 impl<T: IntoIterator + FromIterator<T::Item>, A: IntoIterator + FromIterator<A::Item>>
@@ -40,9 +43,10 @@ where
     fn annotated(self, annotation: Self::Annotation) -> Annotated<Self, A> {
         let iter = self.0.into_iter();
         let (len, _) = iter.size_hint(); // TODO use exact size
-        let value = Self(iter.collect());
-        let annotation = std::iter::repeat_n(annotation, len).collect();
-        Annotated { value, annotation }
+        Annotated::new(
+            Self(iter.collect()),
+            std::iter::repeat_n(annotation, len).collect(),
+        )
     }
 }
 mod sealed {

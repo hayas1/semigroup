@@ -13,7 +13,7 @@ use crate::{
 pub struct Coalesced<T>(pub Option<T>);
 impl<T, A> AnnotatedSemigroup<A> for Coalesced<T> {
     fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
-        match (&base.value.0, &other.value.0) {
+        match (&base.value().0, &other.value().0) {
             (Some(_), _) | (None, None) => base,
             (None, Some(_)) => other,
         }
@@ -31,10 +31,7 @@ mod sealed {
     impl<T, A> Annotate<A> for Option<T> {
         type Annotation = A;
         fn annotated(self, annotation: Self::Annotation) -> Annotated<Self, A> {
-            Annotated {
-                value: self,
-                annotation,
-            }
+            Annotated::new(self, annotation)
         }
     }
     impl<T, A> Coalesce for Annotated<Option<T>, A> {}

@@ -5,6 +5,6 @@ fn main() {
     let b = Some(2).annotated("b".to_string());
 
     let c = a.coalesce(b);
-    assert_eq!(c.value, Some(2));
-    assert_eq!(c.annotation, "b".to_string());
+    assert_eq!(c.into_value(), Some(2));
+    assert_eq!(c.into_annotation(), "b".to_string());
 }

@@ -171,15 +171,17 @@ impl<'a> StructAnnotate<'a> {
         parse_quote! {
             impl #impl_generics #path_annotated_semigroup<#annotation_type> for #ident #ty_generics #where_clause {
                 fn #ident_annotated_op(base: #path_annotated<Self, #annotation_type>, other: #path_annotated<Self, #annotation_type>) -> #path_annotated<Self, #annotation_type> {
+                    let (base_value, base_annotation) = base.into_parts();
+                    let (other_value, other_annotation) = other.into_parts();
                     #( #local )*
-                    #path_annotated {
-                        value: #ident {
+                    #path_annotated::new(
+                        #ident {
                             #( #value ),*
                         },
-                        annotation: #annotation_ident {
+                        #annotation_ident {
                             #( #field_annotation ),*
                         },
-                    }
+                    )
                 }
             }
         }
@@ -213,12 +215,12 @@ impl<'a> StructAnnotate<'a> {
             impl #impl_generics #path_annotate<#annotation_type> for #ident #ty_generics #where_clause {
                 type Annotation = #a;
                 fn annotated(self, annotation: Self::Annotation) -> #path_annotated<Self, #annotation_type> {
-                    #path_annotated {
-                        value: self,
-                        annotation: #annotation_ident {
+                    #path_annotated::new(
+                        self,
+                        #annotation_ident {
                             #( #fields ),*
                         },
-                    }
+                    )
                 }
             }
         }
