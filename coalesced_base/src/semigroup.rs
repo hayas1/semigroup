@@ -28,7 +28,7 @@ impl<T: AnnotatedSemigroup<A>, A> Semigroup for Annotated<T, A> {
 pub mod tests {
     use std::fmt::Debug;
 
-    use crate::reverse::Reversed;
+    use crate::{lazy::LazySemigroup, reverse::Reversed};
 
     use super::*;
 
@@ -60,5 +60,13 @@ pub mod tests {
 
         let (ra, rb, rc) = (Reversed(a), Reversed(b), Reversed(c));
         assert_associative_law(ra, rb, rc);
+    }
+
+    pub fn assert_lazy_evaluation<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
+        let mut lazy = LazySemigroup::with(a.clone());
+        lazy.push(b.clone());
+        lazy.push(c.clone());
+
+        assert_eq!(lazy.fold(), T::semigroup_op(T::semigroup_op(a, b), c))
     }
 }

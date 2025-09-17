@@ -19,7 +19,9 @@ impl<T, A> AnnotatedSemigroup<A> for Replaced<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::semigroup::tests::{assert_associative_law, assert_reversed_associative_law};
+    use crate::semigroup::tests::{
+        assert_associative_law, assert_lazy_evaluation, assert_reversed_associative_law,
+    };
 
     use super::*;
 
@@ -28,6 +30,7 @@ mod tests {
         let (a, b, c) = (Replaced(1), Replaced(2), Replaced(3));
         assert_associative_law(a, b, c);
         assert_reversed_associative_law(a, b, c);
+        assert_lazy_evaluation(a, b, c);
     }
 
     #[test]

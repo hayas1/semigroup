@@ -44,7 +44,9 @@ mod sealed {
 
 #[cfg(test)]
 mod tests {
-    use crate::semigroup::tests::{assert_associative_law, assert_reversed_associative_law};
+    use crate::semigroup::tests::{
+        assert_associative_law, assert_lazy_evaluation, assert_reversed_associative_law,
+    };
 
     use super::*;
 
@@ -53,15 +55,19 @@ mod tests {
         let (a, b, c) = (Coalesced(Some(1)), Coalesced(Some(2)), Coalesced(Some(3)));
         assert_associative_law(a, b, c);
         assert_reversed_associative_law(a, b, c);
+        assert_lazy_evaluation(a, b, c);
         let (a, b, c) = (Coalesced(None), Coalesced(Some(2)), Coalesced(Some(3)));
         assert_associative_law(a, b, c);
         assert_reversed_associative_law(a, b, c);
+        assert_lazy_evaluation(a, b, c);
         let (a, b, c) = (Coalesced(None), Coalesced(Some(2)), Coalesced(None));
         assert_associative_law(a, b, c);
         assert_reversed_associative_law(a, b, c);
+        assert_lazy_evaluation(a, b, c);
         let (a, b, c) = (Coalesced::<u32>(None), Coalesced(None), Coalesced(None));
         assert_associative_law(a, b, c);
         assert_reversed_associative_law(a, b, c);
+        assert_lazy_evaluation(a, b, c);
     }
 
     #[test]
