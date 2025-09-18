@@ -93,4 +93,19 @@ pub mod tests {
 
         assert_eq!(lazy.fold(), T::semigroup_op(T::semigroup_op(a, b), c))
     }
+
+    #[test]
+    fn test_first_last() {
+        let mut lazy = LazySemigroup::with(1);
+        assert_eq!(lazy.first(), &1);
+        assert_eq!(lazy.last(), &1);
+
+        lazy.push(2);
+        assert_eq!(lazy.first(), &1);
+        assert_eq!(lazy.last(), &2);
+
+        lazy.push(3);
+        assert_eq!(lazy.first(), &1);
+        assert_eq!(lazy.last(), &3);
+    }
 }
