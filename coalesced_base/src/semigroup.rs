@@ -41,6 +41,7 @@ pub mod tests {
             $crate::semigroup::tests::assert_semigroup_op_impl($a, $b, $c)
         };
     }
+    pub use assert_semigroup_op;
 
     pub fn assert_semigroup_op_impl<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
         assert_associative_law(a.clone(), b.clone(), c.clone());

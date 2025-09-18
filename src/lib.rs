@@ -35,9 +35,4 @@ pub use coalesced_base::{
 pub use coalesced_derive::{Construction, Semigroup};
 
 #[cfg(feature = "test")]
-#[macro_export]
-macro_rules! assert_semigroup_op {
-    ($a:expr, $b: expr, $c: expr) => {
-        ::coalesced_base::semigroup::tests::assert_semigroup_op_impl($a, $b, $c)
-    };
-}
+pub use coalesced_base::semigroup::tests::assert_semigroup_op;

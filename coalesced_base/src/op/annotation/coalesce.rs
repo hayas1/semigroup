@@ -44,7 +44,7 @@ mod sealed {
 
 #[cfg(test)]
 mod tests {
-    use crate::assert_semigroup_op;
+    use crate::semigroup::tests::assert_semigroup_op;
 
     use super::*;
 

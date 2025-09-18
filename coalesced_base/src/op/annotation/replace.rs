@@ -19,7 +19,7 @@ impl<T, A> AnnotatedSemigroup<A> for Replaced<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::assert_semigroup_op;
+    use crate::semigroup::tests::assert_semigroup_op;
 
     use super::*;
 
