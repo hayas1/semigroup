@@ -29,7 +29,8 @@ pub mod tests {
     use std::fmt::Debug;
 
     use crate::{
-        lazy::tests::assert_lazy_evaluation, reverse::tests::assert_reversed_associative_law,
+        lazy::tests::assert_lazy_evaluation,
+        reverse::tests::{assert_reverse, assert_reversed_associative_law},
     };
 
     use super::*;
@@ -43,6 +44,7 @@ pub mod tests {
 
     pub fn assert_semigroup_op_impl<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
         assert_associative_law(a.clone(), b.clone(), c.clone());
+        assert_reverse(a.clone(), b.clone(), c.clone());
         assert_reversed_associative_law(a.clone(), b.clone(), c.clone());
         assert_lazy_evaluation(a.clone(), b.clone(), c.clone());
     }
