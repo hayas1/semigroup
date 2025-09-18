@@ -50,13 +50,9 @@ pub mod tests {
         assert_lazy_evaluation(a.clone(), b.clone(), c.clone());
     }
 
-    pub fn associative_law<T: Semigroup + Clone>(a: T, b: T, c: T) -> (T, T) {
+    pub fn assert_associative_law<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
         let ab_c = T::semigroup_op(T::semigroup_op(a.clone(), b.clone()), c.clone());
         let a_bc = T::semigroup_op(a.clone(), T::semigroup_op(b.clone(), c.clone()));
-        (ab_c, a_bc)
-    }
-    pub fn assert_associative_law<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
-        let (ab_c, a_bc) = associative_law(a, b, c);
         assert_eq!(ab_c, a_bc);
     }
 }
