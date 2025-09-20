@@ -34,38 +34,41 @@ for NamedStruct {
     ) -> ::coalesced::Annotated<Self, NamedStructAnnotation<X>> {
         let (base_value, base_annotation) = base.into_parts();
         let (other_value, other_annotation) = other.into_parts();
-        let (foo_value, foo_annotation) = ::coalesced::AnnotatedSemigroup::annotated_op(
-                ::coalesced::Annotated::new(base_value.foo, base_annotation.foo)
-                    .map(coalesced::op::annotation::replace::Replaced::<_>::from),
-                ::coalesced::Annotated::new(other_value.foo, other_annotation.foo)
-                    .map(coalesced::op::annotation::replace::Replaced::<_>::from),
+        let (foo_value, foo_annotation) = <coalesced::op::annotation::replace::Replaced<
+            _,
+        > as ::coalesced::op::ConstructionAnnotated<
+            _,
+            _,
+        >>::lift_annotated_op(
+                ::coalesced::Annotated::new(base_value.foo, base_annotation.foo),
+                ::coalesced::Annotated::new(other_value.foo, other_annotation.foo),
             )
             .into_parts();
-        let (bar_value, bar_annotation) = ::coalesced::AnnotatedSemigroup::annotated_op(
-                ::coalesced::Annotated::new(base_value.bar, base_annotation.bar)
-                    .map(coalesced::op::annotation::replace::Replaced::<_>::from),
-                ::coalesced::Annotated::new(other_value.bar, other_annotation.bar)
-                    .map(coalesced::op::annotation::replace::Replaced::<_>::from),
+        let (bar_value, bar_annotation) = <coalesced::op::annotation::replace::Replaced<
+            _,
+        > as ::coalesced::op::ConstructionAnnotated<
+            _,
+            _,
+        >>::lift_annotated_op(
+                ::coalesced::Annotated::new(base_value.bar, base_annotation.bar),
+                ::coalesced::Annotated::new(other_value.bar, other_annotation.bar),
             )
             .into_parts();
-        let (baz_value, baz_annotation) = ::coalesced::AnnotatedSemigroup::annotated_op(
-                ::coalesced::Annotated::new(base_value.baz, base_annotation.baz)
-                    .map(coalesced::op::annotation::replace::Replaced::<_>::from),
-                ::coalesced::Annotated::new(other_value.baz, other_annotation.baz)
-                    .map(coalesced::op::annotation::replace::Replaced::<_>::from),
+        let (baz_value, baz_annotation) = <coalesced::op::annotation::replace::Replaced<
+            _,
+        > as ::coalesced::op::ConstructionAnnotated<
+            _,
+            _,
+        >>::lift_annotated_op(
+                ::coalesced::Annotated::new(base_value.baz, base_annotation.baz),
+                ::coalesced::Annotated::new(other_value.baz, other_annotation.baz),
             )
             .into_parts();
         ::coalesced::Annotated::new(
             NamedStruct {
-                foo: <coalesced::op::annotation::replace::Replaced<
-                    _,
-                > as ::coalesced::op::Construction<_>>::into_inner(foo_value),
-                bar: <coalesced::op::annotation::replace::Replaced<
-                    _,
-                > as ::coalesced::op::Construction<_>>::into_inner(bar_value),
-                baz: <coalesced::op::annotation::replace::Replaced<
-                    _,
-                > as ::coalesced::op::Construction<_>>::into_inner(baz_value),
+                foo: foo_value,
+                bar: bar_value,
+                baz: baz_value,
             },
             NamedStructAnnotation {
                 foo: foo_annotation,
