@@ -144,6 +144,7 @@ impl<'a> FieldAnnotatedOp<'a> {
             path_annotated_semigroup,
             ident_annotated_op,
             path_annotated,
+            path_construction_annotated,
             ..
         } = constant;
         let (ident_value, ident_annotation) = self.ident_parts();
@@ -151,9 +152,9 @@ impl<'a> FieldAnnotatedOp<'a> {
 
         with.map(|path| {
             parse_quote! {
-                let (#ident_value, #ident_annotation) = #path_annotated_semigroup::#ident_annotated_op(
-                    #path_annotated::new(base_value.#member, base_annotation.#member).map(#path::<_>::from),
-                    #path_annotated::new(other_value.#member, other_annotation.#member).map(#path::<_>::from),
+                let (#ident_value, #ident_annotation) = <#path::<_> as #path_construction_annotated<_, _>>::lift_annotated_op(
+                    #path_annotated::new(base_value.#member, base_annotation.#member),
+                    #path_annotated::new(other_value.#member, other_annotation.#member),
                 ).into_parts();
             }
         })
@@ -167,27 +168,11 @@ impl<'a> FieldAnnotatedOp<'a> {
         })
     }
     pub fn impl_field_value(&self) -> FieldValue {
-        let Self {
-            constant:
-                Constant {
-                    path_construction_trait,
-                    ..
-                },
-            member,
-            ..
-        } = self;
+        let Self { member, .. } = self;
         let (ident_value, _ident_annotation) = self.ident_parts();
-        let with = self.field_attr.with(self.container_attr);
-        with.map(|path| {
-            parse_quote! {
-                #member: <#path<_> as #path_construction_trait<_>>::into_inner(#ident_value)
-            }
-        })
-        .unwrap_or_else(|| {
-            parse_quote! {
-                #member: #ident_value
-            }
-        })
+        parse_quote! {
+            #member: #ident_value
+        }
     }
     pub fn impl_field_annotation(&self) -> FieldValue {
         let Self { member, .. } = self;
