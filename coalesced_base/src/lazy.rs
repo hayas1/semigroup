@@ -35,6 +35,15 @@ impl<T> LazySemigroup<T> {
             tail: Vec::new(),
         }
     }
+    pub fn is_empty(&self) -> bool {
+        false
+    }
+    pub fn is_single(&self) -> bool {
+        self.tail.is_empty()
+    }
+    pub fn len(&self) -> usize {
+        1 + self.tail.len()
+    }
     pub fn push(&mut self, value: T) {
         self.tail.push(value)
     }
@@ -43,6 +52,10 @@ impl<T> LazySemigroup<T> {
     }
     pub fn last(&self) -> &T {
         self.tail.last().unwrap_or(&self.head)
+    }
+    pub fn map<U, F: FnMut(T) -> U>(self, mut f: F) -> LazySemigroup<U> {
+        let (head, tail) = (f(self.head), self.tail.into_iter().map(f).collect());
+        LazySemigroup { head, tail }
     }
 }
 impl<T> IntoIterator for LazySemigroup<T> {
