@@ -35,6 +35,13 @@ impl<T> LazySemigroup<T> {
             tail: Vec::new(),
         }
     }
+    pub fn from_iterator<I: IntoIterator<Item = T>>(iter: I) -> Option<Self> {
+        let mut iterator = iter.into_iter();
+        iterator.next().map(|head| Self {
+            head,
+            tail: iterator.collect(),
+        })
+    }
     pub fn is_empty(&self) -> bool {
         false
     }
