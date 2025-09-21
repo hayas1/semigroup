@@ -9,7 +9,7 @@ use crate::{
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[construction(annotated, op = Coalesce)]
+#[construction(annotated, op_trait = CoalesceExt)]
 pub struct Coalesced<T>(pub Option<T>);
 impl<T, A> AnnotatedSemigroup<A> for Coalesced<T> {
     fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
@@ -22,7 +22,7 @@ impl<T, A> AnnotatedSemigroup<A> for Coalesced<T> {
 mod sealed {
     use super::*;
 
-    impl<T> Coalesce for Option<T> {}
+    impl<T> CoalesceExt for Option<T> {}
     impl<T> Semigroup for Option<T> {
         fn semigroup_op(base: Self, other: Self) -> Self {
             Coalesced::lift_op(base, other)
@@ -34,7 +34,7 @@ mod sealed {
             Annotated::new(self, annotation)
         }
     }
-    impl<T, A> Coalesce for Annotated<Option<T>, A> {}
+    impl<T, A> CoalesceExt for Annotated<Option<T>, A> {}
     impl<T, A> AnnotatedSemigroup<A> for Option<T> {
         fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
             Coalesced::lift_annotated_op(base, other)

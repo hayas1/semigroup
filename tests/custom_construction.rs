@@ -3,7 +3,7 @@ use coalesced::{
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction)]
-#[construction(annotated, op = Coalesce)]
+#[construction(annotated, op_trait = CoalesceExt)]
 pub struct Coalesced<T>(pub Option<T>);
 
 impl<T, A> AnnotatedSemigroup<A> for Coalesced<T> {

@@ -16,7 +16,7 @@ pub struct ContainerAttr {
     annotated: bool,
     unit: Option<Expr>,
 
-    op: Ident,
+    op_trait: Option<Ident>,
 
     annotation_type_param: Option<TypeParam>,
     annotation_where: Option<String>,
@@ -59,11 +59,13 @@ impl ContainerAttr {
         self.annotated
     }
 
-    pub fn op_trait(&self) -> &Ident {
-        &self.op
+    pub fn op_trait(&self) -> Option<&Ident> {
+        self.op_trait.as_ref()
     }
-    pub fn op_method(&self) -> Ident {
-        format_ident!("{}", self.op.to_string().to_snake_case())
+    pub fn op_method(&self, ident: &Ident) -> Option<Ident> {
+        self.op_trait
+            .as_ref()
+            .map(|_| format_ident!("{}", ident.to_string().to_snake_case()))
     }
 
     pub fn unit_annotate(&self) -> Expr {
@@ -96,7 +98,7 @@ mod tests {
     fn default_container_attr() -> ContainerAttr {
         ContainerAttr::new(&parse_quote! {
             #[derive(Construction)]
-            #[construction(op = "op")]
+            #[construction(op_trait = "OpTrait")]
             pub struct Construct<T>(T);
         })
         .unwrap()
@@ -106,12 +108,12 @@ mod tests {
     #[case::ok(
         syn::parse_quote! {
             #[derive(Construction)]
-            #[construction(annotated, op = Coalesce)]
+            #[construction(annotated, op_trait = CoalesceExt)]
             pub struct Coalesced<T>(pub Option<T>);
         },
         Ok(ContainerAttr {
             annotated: true,
-            op: format_ident!("Coalesce"),
+            op_trait: Some(format_ident!("CoalesceExt")),
             ..default_container_attr()
         }),
     )]
@@ -125,7 +127,7 @@ mod tests {
     #[case::invalid_annotated_attr(
         syn::parse_quote! {
             #[derive(Construction)]
-            #[construction(op = Coalesce, unit = ())]
+            #[construction(op_trait = CoalesceExt, unit = ())]
             pub struct Construct<T>(T);
         },
         Err("attribute `unit` are supported only with `annotated`"),

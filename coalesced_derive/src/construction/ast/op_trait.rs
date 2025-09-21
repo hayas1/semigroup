@@ -40,11 +40,11 @@ impl<'a> OpTrait<'a> {
         derive: &'a DeriveInput,
         attr: &'a ContainerAttr,
         _field: &'a Field,
-    ) -> syn::Result<Self> {
-        let (trait_ident, method_ident) = (attr.op_trait(), attr.op_method());
+    ) -> Option<Self> {
+        let (trait_ident, method_ident) = (attr.op_trait()?, attr.op_method(&derive.ident)?);
         let annotation = attr.annotation(constant);
 
-        Ok(Self {
+        Some(Self {
             constant,
             derive,
             trait_ident,

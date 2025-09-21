@@ -11,7 +11,7 @@ use crate::{
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[construction(
     annotated,
-    op = Concat,
+    op_trait = ConcatExt,
     annotation_type_param = "A: IntoIterator + FromIterator<A::Item>",
     annotation_where = "A::Item: Clone",
     unit = "vec![(); 0]",

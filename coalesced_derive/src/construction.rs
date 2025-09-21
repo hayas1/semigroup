@@ -31,7 +31,7 @@ mod tests {
         impl_construction::<Absolute>,
         syn::parse_quote! {
             #[derive(Construction)]
-            #[construction(annotated, op = Coalesce)]
+            #[construction(annotated, op_trait = CoalesceExt)]
             pub struct Coalesced<T>(pub Option<T>);
         },
     )]
@@ -40,7 +40,7 @@ mod tests {
         impl_construction::<Use>,
         syn::parse_quote! {
             #[derive(ConstructionUse)]
-            #[construction(op = Coalesce)]
+            #[construction(op_trait = CoalesceExt)]
             pub struct Coalesced<T>(pub Option<T>);
         },
     )]
@@ -50,7 +50,7 @@ mod tests {
         syn::parse_quote! {
             #[derive(Construction)]
             #[construction(
-                op = Coalesce,
+                op_trait = CoalesceExt,
                 annotated,
                 annotation_type_param = "X: IntoIterator + FromIterator<X::Item>",
                 annotation_where = "X::Item: Clone",

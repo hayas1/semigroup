@@ -4,7 +4,7 @@ use crate::{op::Construction, reverse::Reversed, semigroup::Semigroup};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[construction(op = Add)]
+#[construction(op_trait = AddExt)]
 pub struct Added<T: std::ops::Add<Output = T>>(pub T);
 impl<T: std::ops::Add<Output = T>> Semigroup for Added<T> {
     fn semigroup_op(base: Self, other: Self) -> Self {

@@ -9,7 +9,7 @@ use crate::{
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[construction(annotated, op = Replace)]
+#[construction(annotated, op_trait = ReplaceExt)]
 pub struct Replaced<T>(pub T);
 impl<T, A> AnnotatedSemigroup<A> for Replaced<T> {
     fn annotated_op(_base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
