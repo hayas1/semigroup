@@ -3,15 +3,15 @@ source: coalesced_derive/src/construction.rs
 assertion_line: 70
 expression: formatted
 ---
-pub trait Coalesce: Sized + Semigroup {
-    fn coalesce(self, other: Self) -> Self {
+pub trait CoalesceExt: Sized + Semigroup {
+    fn coalesced(self, other: Self) -> Self {
         Semigroup::semigroup_op(self, other)
     }
 }
 #[automatically_derived]
-impl<T> Coalesce for Coalesced<T> {}
+impl<T> CoalesceExt for Coalesced<T> {}
 #[automatically_derived]
-impl<T> Coalesce for Reversed<Coalesced<T>> {}
+impl<T> CoalesceExt for Reversed<Coalesced<T>> {}
 #[automatically_derived]
 impl<T> From<Option<T>> for Coalesced<T> {
     fn from(value: Option<T>) -> Self {

@@ -3,19 +3,20 @@ source: coalesced_derive/src/construction.rs
 assertion_line: 70
 expression: formatted
 ---
-pub trait Coalesce: Sized + Semigroup {
-    fn coalesce(self, other: Self) -> Self {
+pub trait CoalesceExt: Sized + Semigroup {
+    fn coalesced(self, other: Self) -> Self {
         ::coalesced::Semigroup::semigroup_op(self, other)
     }
 }
 #[automatically_derived]
-impl<T> Coalesce for Coalesced<T> {}
+impl<T> CoalesceExt for Coalesced<T> {}
 #[automatically_derived]
-impl<T> Coalesce for ::coalesced::Reversed<Coalesced<T>> {}
+impl<T> CoalesceExt for ::coalesced::Reversed<Coalesced<T>> {}
 #[automatically_derived]
-impl<T, A> Coalesce for ::coalesced::Annotated<Coalesced<T>, A> {}
+impl<T, A> CoalesceExt for ::coalesced::Annotated<Coalesced<T>, A> {}
 #[automatically_derived]
-impl<T, A> Coalesce for ::coalesced::Reversed<::coalesced::Annotated<Coalesced<T>, A>> {}
+impl<T, A> CoalesceExt
+for ::coalesced::Reversed<::coalesced::Annotated<Coalesced<T>, A>> {}
 #[automatically_derived]
 impl<T> ::coalesced::Semigroup for Coalesced<T> {
     fn semigroup_op(base: Self, other: Self) -> Self {

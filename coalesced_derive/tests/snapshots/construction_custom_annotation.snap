@@ -3,21 +3,21 @@ source: coalesced_derive/src/construction.rs
 assertion_line: 70
 expression: formatted
 ---
-pub trait Coalesce: Sized + Semigroup {
-    fn coalesce(self, other: Self) -> Self {
+pub trait CoalesceExt: Sized + Semigroup {
+    fn concatenated(self, other: Self) -> Self {
         ::coalesced::Semigroup::semigroup_op(self, other)
     }
 }
 #[automatically_derived]
-impl<T: IntoIterator + FromIterator<T::Item>> Coalesce for Concatenated<T> {}
+impl<T: IntoIterator + FromIterator<T::Item>> CoalesceExt for Concatenated<T> {}
 #[automatically_derived]
-impl<T: IntoIterator + FromIterator<T::Item>> Coalesce
+impl<T: IntoIterator + FromIterator<T::Item>> CoalesceExt
 for ::coalesced::Reversed<Concatenated<T>> {}
 #[automatically_derived]
 impl<
     T: IntoIterator + FromIterator<T::Item>,
     X: IntoIterator + FromIterator<X::Item>,
-> Coalesce for ::coalesced::Annotated<Concatenated<T>, X>
+> CoalesceExt for ::coalesced::Annotated<Concatenated<T>, X>
 where
     X::Item: Clone,
 {}
@@ -25,7 +25,7 @@ where
 impl<
     T: IntoIterator + FromIterator<T::Item>,
     X: IntoIterator + FromIterator<X::Item>,
-> Coalesce for ::coalesced::Reversed<::coalesced::Annotated<Concatenated<T>, X>>
+> CoalesceExt for ::coalesced::Reversed<::coalesced::Annotated<Concatenated<T>, X>>
 where
     X::Item: Clone,
 {}
