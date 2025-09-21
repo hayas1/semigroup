@@ -56,12 +56,7 @@ impl<'a> OpTrait<'a> {
 
     pub fn def_trait(&self) -> ItemTrait {
         let Self {
-            constant:
-                Constant {
-                    path_semigroup,
-                    ident_semigroup_op,
-                    ..
-                },
+            constant: Constant { path_semigroup, .. },
             derive: DeriveInput { vis, .. },
             trait_ident,
             method_ident,
@@ -71,7 +66,7 @@ impl<'a> OpTrait<'a> {
         parse_quote! {
             #vis trait #trait_ident: Sized + Semigroup {
                 fn #method_ident(self, other: Self) -> Self {
-                    #path_semigroup::#ident_semigroup_op(self, other)
+                    #path_semigroup::semigroup_op(self, other)
                 }
             }
         }
@@ -158,12 +153,7 @@ impl<'a> OpTrait<'a> {
     }
     pub fn impl_semigroup_with_unit_annotate(&self) -> Option<ItemImpl> {
         let Self {
-            constant:
-                Constant {
-                    path_semigroup,
-                    ident_semigroup_op,
-                    ..
-                },
+            constant: Constant { path_semigroup, .. },
             derive: DeriveInput {
                 ident, generics, ..
             },
@@ -177,7 +167,7 @@ impl<'a> OpTrait<'a> {
             parse_quote! {
                 #[automatically_derived]
                 impl #impl_generics #path_semigroup for #ident #ty_generics #where_clause {
-                    fn #ident_semigroup_op(base: Self, other: Self) -> Self {
+                    fn semigroup_op(base: Self, other: Self) -> Self {
                         Self::default_semigroup_op(base, other, #unit, #unit)
                     }
                 }

@@ -54,7 +54,6 @@ impl<'a> FieldSemigroupOp<'a> {
             constant:
                 Constant {
                     path_semigroup,
-                    ident_semigroup_op,
                     path_construction_trait,
                     ..
                 },
@@ -71,7 +70,7 @@ impl<'a> FieldSemigroupOp<'a> {
             })
             .unwrap_or_else(|| {
                 parse_quote! {
-                    #member: #path_semigroup::#ident_semigroup_op(base.#member, other.#member)
+                    #member: #path_semigroup::semigroup_op(base.#member, other.#member)
                 }
             })
     }
@@ -142,7 +141,6 @@ impl<'a> FieldAnnotatedOp<'a> {
         } = self;
         let Constant {
             path_annotated_semigroup,
-            ident_annotated_op,
             path_annotated,
             path_construction_annotated,
             ..
@@ -160,7 +158,7 @@ impl<'a> FieldAnnotatedOp<'a> {
         })
         .unwrap_or_else(|| {
             parse_quote! {
-                let (#ident_value, #ident_annotation) = #path_annotated_semigroup::#ident_annotated_op(
+                let (#ident_value, #ident_annotation) = #path_annotated_semigroup::annotated_op(
                     #path_annotated::new(base_value.#member, base_annotation.#member),
                     #path_annotated::new(other_value.#member, other_annotation.#member),
                 ).into_parts();

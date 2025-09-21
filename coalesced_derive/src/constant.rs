@@ -1,4 +1,4 @@
-use syn::{parse_quote, Ident, Path, TypeParam};
+use syn::{parse_quote, Path, TypeParam};
 
 pub const DERIVE_CONSTRUCTION: &str = "Construction";
 pub const DERIVE_SEMIGROUP: &str = "Semigroup";
@@ -6,9 +6,7 @@ pub const DERIVE_SEMIGROUP: &str = "Semigroup";
 #[derive(Debug, Clone)]
 pub struct Constant {
     pub path_semigroup: Path,
-    pub ident_semigroup_op: Ident,
     pub path_annotated_semigroup: Path,
-    pub ident_annotated_op: Ident,
     pub path_annotated: Path,
     pub path_annotate: Path,
     pub path_reverse: Path,
@@ -24,9 +22,7 @@ impl ConstantExt for Absolute {
     fn constant() -> Constant {
         Constant {
             path_semigroup: parse_quote! {::coalesced::Semigroup},
-            ident_semigroup_op: parse_quote! {semigroup_op},
             path_annotated_semigroup: parse_quote! {::coalesced::AnnotatedSemigroup},
-            ident_annotated_op: parse_quote! {annotated_op},
             path_annotated: parse_quote! {::coalesced::Annotated},
             path_annotate: parse_quote! {::coalesced::Annotate},
             path_reverse: parse_quote! {::coalesced::Reverse},
@@ -43,9 +39,7 @@ impl ConstantExt for Use {
     fn constant() -> Constant {
         Constant {
             path_semigroup: parse_quote! {Semigroup},
-            ident_semigroup_op: parse_quote! {semigroup_op},
             path_annotated_semigroup: parse_quote! {AnnotatedSemigroup},
-            ident_annotated_op: parse_quote! {annotated_op},
             path_annotated: parse_quote! {Annotated},
             path_annotate: parse_quote! {Annotate},
             path_reverse: parse_quote! {Reverse},
