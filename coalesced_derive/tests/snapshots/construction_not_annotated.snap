@@ -4,35 +4,35 @@ assertion_line: 70
 expression: formatted
 ---
 pub trait CoalesceExt: Sized + Semigroup {
-    fn coalesced(self, other: Self) -> Self {
+    fn coalesce(self, other: Self) -> Self {
         Semigroup::semigroup_op(self, other)
     }
 }
 #[automatically_derived]
-impl<T> CoalesceExt for Coalesced<T> {}
+impl<T> CoalesceExt for Coalesce<T> {}
 #[automatically_derived]
-impl<T> CoalesceExt for Reverse<Coalesced<T>> {}
+impl<T> CoalesceExt for Reverse<Coalesce<T>> {}
 #[automatically_derived]
-impl<T> From<Option<T>> for Coalesced<T> {
+impl<T> From<Option<T>> for Coalesce<T> {
     fn from(value: Option<T>) -> Self {
-        Coalesced(value)
+        Coalesce(value)
     }
 }
 #[automatically_derived]
-impl<T> std::ops::Deref for Coalesced<T> {
+impl<T> std::ops::Deref for Coalesce<T> {
     type Target = Option<T>;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 #[automatically_derived]
-impl<T> std::ops::DerefMut for Coalesced<T> {
+impl<T> std::ops::DerefMut for Coalesce<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
 #[automatically_derived]
-impl<T> Construction<Option<T>> for Coalesced<T> {
+impl<T> Construction<Option<T>> for Coalesce<T> {
     fn into_inner(self) -> Option<T> {
         self.0
     }

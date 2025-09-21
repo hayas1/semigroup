@@ -32,7 +32,7 @@ mod tests {
         syn::parse_quote! {
             #[derive(Construction)]
             #[construction(annotated, op_trait = CoalesceExt)]
-            pub struct Coalesced<T>(pub Option<T>);
+            pub struct Coalesce<T>(pub Option<T>);
         },
     )]
     #[case::construction_not_annotated(
@@ -41,7 +41,7 @@ mod tests {
         syn::parse_quote! {
             #[derive(ConstructionUse)]
             #[construction(op_trait = CoalesceExt)]
-            pub struct Coalesced<T>(pub Option<T>);
+            pub struct Coalesce<T>(pub Option<T>);
         },
     )]
     #[case::construction_custom_annotation(
@@ -50,13 +50,13 @@ mod tests {
         syn::parse_quote! {
             #[derive(Construction)]
             #[construction(
-                op_trait = CoalesceExt,
+                op_trait = ConcatExt,
                 annotated,
                 annotation_type_param = "X: IntoIterator + FromIterator<X::Item>",
                 annotation_where = "X::Item: Clone",
                 unit = "vec![(); 0]"
             )]
-            pub struct Concatenated<T: IntoIterator + FromIterator<T::Item>>(pub T);
+            pub struct Concat<T: IntoIterator + FromIterator<T::Item>>(pub T);
         },
     )]
     fn test_derive_construction_snapshot(
