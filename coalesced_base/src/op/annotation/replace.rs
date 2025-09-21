@@ -3,7 +3,7 @@ use coalesced_derive::ConstructionUse;
 use crate::{
     annotate::{Annotate, Annotated},
     op::{Construction, ConstructionAnnotated},
-    reverse::Reversed,
+    reverse::Reverse,
     semigroup::{AnnotatedSemigroup, Semigroup},
 };
 
@@ -34,7 +34,7 @@ mod tests {
         let (a, b) = (Replace(1), Replace(2));
         assert_eq!(a.replace(b).into_inner(), 2);
 
-        let (ra, rb) = (Reversed(a), Reversed(b));
+        let (ra, rb) = (Reverse(a), Reverse(b));
         assert_eq!(ra.replace(rb).0.into_inner(), 1);
     }
 }

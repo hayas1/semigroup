@@ -19,11 +19,11 @@ impl ToTokens for OpTrait<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.def_trait().to_tokens(tokens);
         self.impl_trait().to_tokens(tokens);
-        self.impl_trait_reversed().to_tokens(tokens);
+        self.impl_trait_reverse().to_tokens(tokens);
         self.impl_trait_annotated()
             .into_iter()
             .for_each(|i| i.to_tokens(tokens));
-        self.impl_trait_reversed_annotated()
+        self.impl_trait_reverse_annotated()
             .into_iter()
             .for_each(|i| i.to_tokens(tokens));
         self.impl_semigroup_with_unit_annotate()
@@ -91,9 +91,9 @@ impl<'a> OpTrait<'a> {
             impl #impl_generics #trait_ident for #ident #ty_generics #where_clause {}
         }
     }
-    pub fn impl_trait_reversed(&self) -> ItemImpl {
+    pub fn impl_trait_reverse(&self) -> ItemImpl {
         let Self {
-            constant: Constant { path_reversed, .. },
+            constant: Constant { path_reverse, .. },
             derive: DeriveInput {
                 ident, generics, ..
             },
@@ -104,7 +104,7 @@ impl<'a> OpTrait<'a> {
 
         parse_quote! {
             #[automatically_derived]
-            impl #impl_generics #trait_ident for #path_reversed<#ident #ty_generics> #where_clause {}
+            impl #impl_generics #trait_ident for #path_reverse<#ident #ty_generics> #where_clause {}
         }
     }
     pub fn impl_trait_annotated(&self) -> Option<ItemImpl> {
@@ -130,7 +130,7 @@ impl<'a> OpTrait<'a> {
             }
         })
     }
-    pub fn impl_trait_reversed_annotated(&self) -> Option<ItemImpl> {
+    pub fn impl_trait_reverse_annotated(&self) -> Option<ItemImpl> {
         let Self {
             derive: DeriveInput {
                 ident, generics, ..
@@ -138,7 +138,7 @@ impl<'a> OpTrait<'a> {
             constant:
                 Constant {
                     path_annotated,
-                    path_reversed,
+                    path_reverse,
                     ..
                 },
             trait_ident,
@@ -152,7 +152,7 @@ impl<'a> OpTrait<'a> {
             let (impl_generics, annotated_type, where_clause) = annotation.split_for_impl(generics);
             parse_quote! {
                 #[automatically_derived]
-                impl #impl_generics #trait_ident for #path_reversed<#path_annotated<#ident #ty_generics, #annotated_type>> #where_clause {}
+                impl #impl_generics #trait_ident for #path_reverse<#path_annotated<#ident #ty_generics, #annotated_type>> #where_clause {}
             }
         })
     }

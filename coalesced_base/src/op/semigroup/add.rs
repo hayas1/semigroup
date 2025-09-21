@@ -1,6 +1,6 @@
 use coalesced_derive::ConstructionUse;
 
-use crate::{op::Construction, reverse::Reversed, semigroup::Semigroup};
+use crate::{op::Construction, reverse::Reverse, semigroup::Semigroup};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -29,7 +29,7 @@ mod tests {
         let (a, b) = (Add(1), Add(2));
         assert_eq!(a.add(b).into_inner(), 3);
 
-        let (ra, rb) = (Reversed(a), Reversed(b));
+        let (ra, rb) = (Reverse(a), Reverse(b));
         assert_eq!(ra.add(rb).0.into_inner(), 3);
     }
 }

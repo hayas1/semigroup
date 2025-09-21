@@ -3,7 +3,7 @@ use coalesced_derive::ConstructionUse;
 use crate::{
     annotate::{Annotate, Annotated},
     op::{Construction, ConstructionAnnotated},
-    reverse::Reversed,
+    reverse::Reverse,
     semigroup::{AnnotatedSemigroup, Semigroup},
 };
 
@@ -64,12 +64,12 @@ mod tests {
     fn test_coalesce() {
         let (a, b) = (Coalesce(None), Coalesce(Some("value")));
         assert_eq!(a.coalesce(b).into_inner(), Some("value"));
-        let (ra, rb) = (Reversed(a), Reversed(b));
+        let (ra, rb) = (Reverse(a), Reverse(b));
         assert_eq!(ra.coalesce(rb).0.into_inner(), Some("value"));
 
         let (a, b) = (Coalesce(Some(1)), Coalesce(Some(2)));
         assert_eq!(a.coalesce(b).into_inner(), Some(1));
-        let (ra, rb) = (Reversed(a), Reversed(b));
+        let (ra, rb) = (Reverse(a), Reverse(b));
         assert_eq!(ra.coalesce(rb).0.into_inner(), Some(2));
     }
 }

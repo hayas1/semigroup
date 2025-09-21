@@ -27,7 +27,7 @@ pub use coalesced_base::{
     annotate::{Annotate, Annotated},
     lazy::LazySemigroup,
     op,
-    reverse::Reversed,
+    reverse::Reverse,
     semigroup::{AnnotatedSemigroup, Semigroup},
 };
 

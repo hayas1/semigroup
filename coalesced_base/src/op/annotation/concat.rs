@@ -3,7 +3,7 @@ use coalesced_derive::ConstructionUse;
 use crate::{
     annotate::Annotated,
     op::{Construction, ConstructionAnnotated},
-    reverse::Reversed,
+    reverse::Reverse,
     semigroup::{AnnotatedSemigroup, Semigroup},
 };
 
@@ -79,7 +79,7 @@ mod tests {
         let (a, b) = (Concat(vec![1]), Concat(vec![2]));
         assert_eq!(a.clone().concat(b.clone()).into_inner(), vec![1, 2]);
 
-        let (ra, rb) = (Reversed(a.clone()), Reversed(b.clone()));
+        let (ra, rb) = (Reverse(a.clone()), Reverse(b.clone()));
         assert_eq!(ra.concat(rb).0.into_inner(), vec![2, 1]);
     }
 }
