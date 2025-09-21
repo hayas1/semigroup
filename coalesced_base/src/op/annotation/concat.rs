@@ -49,6 +49,7 @@ where
         )
     }
 }
+// #[cfg(feature = "iterator_concat")]
 mod sealed {
     // use super::*;
 

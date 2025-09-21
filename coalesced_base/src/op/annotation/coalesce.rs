@@ -19,6 +19,7 @@ impl<T, A> AnnotatedSemigroup<A> for Coalesce<T> {
         }
     }
 }
+#[cfg(feature = "option_coalesce")]
 mod sealed {
     use super::*;
 
