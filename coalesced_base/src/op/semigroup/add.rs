@@ -5,10 +5,10 @@ use crate::{op::Construction, reverse::Reversed, semigroup::Semigroup};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[construction(op_trait = AddExt)]
-pub struct Added<T: std::ops::Add<Output = T>>(pub T);
-impl<T: std::ops::Add<Output = T>> Semigroup for Added<T> {
+pub struct Add<T: std::ops::Add<Output = T>>(pub T);
+impl<T: std::ops::Add<Output = T>> Semigroup for Add<T> {
     fn semigroup_op(base: Self, other: Self) -> Self {
-        Added(base.0 + other.0)
+        Add(base.0 + other.0)
     }
 }
 
@@ -20,13 +20,13 @@ mod tests {
 
     #[test]
     fn test_add_as_semigroup_op() {
-        let (a, b, c) = (Added(1), Added(2), Added(3));
+        let (a, b, c) = (Add(1), Add(2), Add(3));
         assert_semigroup_op!(a, b, c);
     }
 
     #[test]
     fn test_add() {
-        let (a, b) = (Added(1), Added(2));
+        let (a, b) = (Add(1), Add(2));
         assert_eq!(a.add(b).into_inner(), 3);
 
         let (ra, rb) = (Reversed(a), Reversed(b));

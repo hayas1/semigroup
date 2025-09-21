@@ -2,7 +2,7 @@ use coalesced::Semigroup;
 
 #[derive(Debug, Clone, PartialEq, Semigroup)]
 pub struct NamedStruct {
-    #[semigroup(with = "coalesced::op::annotation::replace::Replaced")]
+    #[semigroup(with = "coalesced::op::annotation::replace::Replace")]
     pub name: String,
     pub value: Option<u32>,
 }
@@ -36,7 +36,7 @@ fn test_named_struct_semigroup_op() {
 
 #[derive(Debug, Clone, PartialEq, Semigroup)]
 pub struct UnnamedStruct(
-    #[semigroup(with = "coalesced::op::annotation::replace::Replaced")] String,
+    #[semigroup(with = "coalesced::op::annotation::replace::Replace")] String,
     Option<u32>,
 );
 

@@ -98,7 +98,6 @@ mod tests {
     fn default_container_attr() -> ContainerAttr {
         ContainerAttr::new(&parse_quote! {
             #[derive(Construction)]
-            #[construction(op_trait = "OpTrait")]
             pub struct Construct<T>(T);
         })
         .unwrap()
@@ -116,13 +115,6 @@ mod tests {
             op_trait: Some(format_ident!("CoalesceExt")),
             ..default_container_attr()
         }),
-    )]
-    #[case::missing_required_attr(
-        syn::parse_quote! {
-            #[derive(Construction)]
-            pub struct Construct<T>(T);
-        },
-        Err("Missing field `op`"),
     )]
     #[case::invalid_annotated_attr(
         syn::parse_quote! {

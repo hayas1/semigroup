@@ -17,16 +17,16 @@ use crate::{
     unit = "vec![(); 0]",
     without_annotate_impl
 )]
-pub struct Concatenated<T: IntoIterator + FromIterator<T::Item>>(pub T);
+pub struct Concat<T: IntoIterator + FromIterator<T::Item>>(pub T);
 impl<T: IntoIterator + FromIterator<T::Item>, A: IntoIterator + FromIterator<A::Item>>
-    AnnotatedSemigroup<A> for Concatenated<T>
+    AnnotatedSemigroup<A> for Concat<T>
 {
     fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
         let (base_value, base_annotation) = base.into_parts();
         let (other_value, other_annotation) = other.into_parts();
 
         Annotated::new(
-            Concatenated(base_value.0.into_iter().chain(other_value.0).collect()),
+            Concat(base_value.0.into_iter().chain(other_value.0).collect()),
             base_annotation
                 .into_iter()
                 .chain(other_annotation)
@@ -35,7 +35,7 @@ impl<T: IntoIterator + FromIterator<T::Item>, A: IntoIterator + FromIterator<A::
     }
 }
 impl<T: IntoIterator + FromIterator<T::Item>, A: IntoIterator + FromIterator<A::Item>>
-    crate::annotate::Annotate<A> for Concatenated<T>
+    crate::annotate::Annotate<A> for Concat<T>
 where
     A::Item: Clone,
 {
@@ -70,17 +70,13 @@ mod tests {
 
     #[test]
     fn test_concat_as_semigroup_op() {
-        let (a, b, c) = (
-            Concatenated(vec![1]),
-            Concatenated(vec![2]),
-            Concatenated(vec![3]),
-        );
+        let (a, b, c) = (Concat(vec![1]), Concat(vec![2]), Concat(vec![3]));
         assert_semigroup_op!(a, b, c);
     }
 
     #[test]
     fn test_concat() {
-        let (a, b) = (Concatenated(vec![1]), Concatenated(vec![2]));
+        let (a, b) = (Concat(vec![1]), Concat(vec![2]));
         assert_eq!(a.clone().concat(b.clone()).into_inner(), vec![1, 2]);
 
         let (ra, rb) = (Reversed(a.clone()), Reversed(b.clone()));
