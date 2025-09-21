@@ -36,6 +36,12 @@ impl<T> LazySemigroup<T> {
         }
     }
     pub fn from_iterator<I: IntoIterator<Item = T>>(iter: I) -> Option<Self> {
+        // compile error: type parameter `T` must be used as the type parameter for some local type
+        // impl<T> FromIterator<T> for Option<LazySemigroup<T>> {
+        //     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+        //         todo!()
+        //     }
+        // }
         let mut iterator = iter.into_iter();
         iterator.next().map(|head| Self {
             head,
