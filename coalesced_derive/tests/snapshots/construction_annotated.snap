@@ -11,12 +11,12 @@ pub trait CoalesceExt: Sized + Semigroup {
 #[automatically_derived]
 impl<T> CoalesceExt for Coalesced<T> {}
 #[automatically_derived]
-impl<T> CoalesceExt for ::coalesced::Reversed<Coalesced<T>> {}
+impl<T> CoalesceExt for ::coalesced::Reverse<Coalesced<T>> {}
 #[automatically_derived]
 impl<T, A> CoalesceExt for ::coalesced::Annotated<Coalesced<T>, A> {}
 #[automatically_derived]
 impl<T, A> CoalesceExt
-for ::coalesced::Reversed<::coalesced::Annotated<Coalesced<T>, A>> {}
+for ::coalesced::Reverse<::coalesced::Annotated<Coalesced<T>, A>> {}
 #[automatically_derived]
 impl<T> ::coalesced::Semigroup for Coalesced<T> {
     fn semigroup_op(base: Self, other: Self) -> Self {

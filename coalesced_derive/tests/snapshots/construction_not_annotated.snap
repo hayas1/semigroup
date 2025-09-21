@@ -11,7 +11,7 @@ pub trait CoalesceExt: Sized + Semigroup {
 #[automatically_derived]
 impl<T> CoalesceExt for Coalesced<T> {}
 #[automatically_derived]
-impl<T> CoalesceExt for Reversed<Coalesced<T>> {}
+impl<T> CoalesceExt for Reverse<Coalesced<T>> {}
 #[automatically_derived]
 impl<T> From<Option<T>> for Coalesced<T> {
     fn from(value: Option<T>) -> Self {
