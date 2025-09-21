@@ -121,17 +121,36 @@ pub mod tests {
     }
 
     #[test]
-    fn test_first_last() {
+    fn test_push() {
         let mut lazy = LazySemigroup::with(1);
+        assert!(!lazy.is_empty());
+        assert!(lazy.is_single());
+        assert_eq!(lazy.len(), 1);
         assert_eq!(lazy.first(), &1);
         assert_eq!(lazy.last(), &1);
 
         lazy.push(2);
+        assert!(!lazy.is_empty());
+        assert!(!lazy.is_single());
+        assert_eq!(lazy.len(), 2);
         assert_eq!(lazy.first(), &1);
         assert_eq!(lazy.last(), &2);
 
         lazy.push(3);
+        assert!(!lazy.is_empty());
+        assert!(!lazy.is_single());
+        assert_eq!(lazy.len(), 3);
         assert_eq!(lazy.first(), &1);
         assert_eq!(lazy.last(), &3);
+    }
+
+    #[test]
+    fn test_iter() {
+        let lazy = LazySemigroup::from_iterator(vec![1, 2, 3, 4, 5]).unwrap();
+        assert!(!lazy.is_empty());
+        assert!(!lazy.is_single());
+        assert_eq!(lazy.len(), 5);
+        assert_eq!(lazy.first(), &1);
+        assert_eq!(lazy.last(), &5);
     }
 }
