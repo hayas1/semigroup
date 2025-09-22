@@ -101,13 +101,74 @@ impl<T, A> Annotated<&T, &A> {
         self.map_parts(|v, a| (*v, *a))
     }
 }
-
+impl<T, A> Annotated<&mut T, &A> {
+    pub fn cloned(self) -> Annotated<T, A>
+    where
+        T: Clone,
+        A: Clone,
+    {
+        self.map_parts(|v, a| (v.clone(), a.clone()))
+    }
+    pub fn copied(self) -> Annotated<T, A>
+    where
+        T: Copy,
+        A: Copy,
+    {
+        self.map_parts(|v, a| (*v, *a))
+    }
+}
+impl<T, A> Annotated<&T, &mut A> {
+    pub fn cloned(self) -> Annotated<T, A>
+    where
+        T: Clone,
+        A: Clone,
+    {
+        self.map_parts(|v, a| (v.clone(), a.clone()))
+    }
+    pub fn copied(self) -> Annotated<T, A>
+    where
+        T: Copy,
+        A: Copy,
+    {
+        self.map_parts(|v, a| (*v, *a))
+    }
+}
+impl<T, A> Annotated<&mut T, &mut A> {
+    pub fn cloned(self) -> Annotated<T, A>
+    where
+        T: Clone,
+        A: Clone,
+    {
+        self.map_parts(|v, a| (v.clone(), a.clone()))
+    }
+    pub fn copied(self) -> Annotated<T, A>
+    where
+        T: Copy,
+        A: Copy,
+    {
+        self.map_parts(|v, a| (*v, *a))
+    }
+}
 impl<T, A> Annotated<&T, A> {
     pub fn value_cloned(self) -> Annotated<T, A>
     where
         T: Clone,
     {
         self.map(Clone::clone)
+    }
+    pub fn value_copied(self) -> Annotated<T, A>
+    where
+        T: Copy,
+    {
+        self.map(|v| *v)
+    }
+}
+impl<T, A> Annotated<&mut T, A> {
+    pub fn value_cloned(self) -> Annotated<T, A>
+    where
+        T: Clone,
+    {
+        self.map(|v| v.clone())
     }
     pub fn value_copied(self) -> Annotated<T, A>
     where
@@ -130,6 +191,20 @@ impl<T, A> Annotated<T, &A> {
         self.map_annotation(|a| *a)
     }
 }
+impl<T, A> Annotated<T, &mut A> {
+    pub fn annotation_cloned(self) -> Annotated<T, A>
+    where
+        A: Clone,
+    {
+        self.map_annotation(|a| a.clone())
+    }
+    pub fn annotation_copied(self) -> Annotated<T, A>
+    where
+        A: Copy,
+    {
+        self.map_annotation(|a| *a)
+    }
+}
 
 #[cfg(test)]
 pub mod tests {
@@ -143,5 +218,39 @@ pub mod tests {
             sone.as_deref().annotation_cloned(),
             Annotated::new("1", "first")
         );
+    }
+
+    #[test]
+    fn test_cloned() {
+        let mut one = 1;
+        let mut first = "first";
+        let mut annotated_one = Annotated::new(1, "first");
+
+        let one_value_ref = Annotated::new(&1, "first");
+        assert_eq!(one_value_ref.value_cloned(), annotated_one);
+        let one_value_ref_mut = Annotated::new(&mut one, "first");
+        assert_eq!(one_value_ref_mut.value_cloned(), annotated_one);
+
+        let one_annotation_ref = Annotated::new(1, &"first");
+        assert_eq!(one_annotation_ref.annotation_cloned(), annotated_one);
+        let one_annotation_ref_mut = Annotated::new(1, &mut first);
+        assert_eq!(one_annotation_ref_mut.annotation_cloned(), annotated_one);
+
+        let one_value_ref_annotation_ref = Annotated::new(&1, &"first");
+        assert_eq!(one_value_ref_annotation_ref, annotated_one.as_ref());
+        assert_eq!(one_value_ref_annotation_ref.cloned(), annotated_one);
+
+        let one_value_ref_mut_annotation_ref = Annotated::new(&mut one, &first);
+        assert_eq!(one_value_ref_mut_annotation_ref.cloned(), annotated_one);
+
+        let one_value_ref_annotation_ref_mut = Annotated::new(&1, &mut first);
+        assert_eq!(one_value_ref_annotation_ref_mut.cloned(), annotated_one);
+
+        let one_value_ref_mut_annotation_ref_mut = Annotated::new(&mut one, &mut first);
+        assert_eq!(
+            one_value_ref_mut_annotation_ref_mut,
+            annotated_one.as_ref_mut()
+        );
+        assert_eq!(one_value_ref_mut_annotation_ref_mut.cloned(), annotated_one);
     }
 }
