@@ -1,3 +1,5 @@
+use std::ops::{Deref, DerefMut};
+
 pub trait Annotate<A>: Sized {
     type Annotation;
     fn annotated(self, annotation: Self::Annotation) -> Annotated<Self, A>;
@@ -45,5 +47,106 @@ impl<T, A> Annotated<T, A> {
             value: f(self.value),
             annotation: self.annotation,
         }
+    }
+    pub fn as_ref(&self) -> Annotated<&T, &A> {
+        Annotated {
+            value: &self.value,
+            annotation: &self.annotation,
+        }
+    }
+    pub fn as_ref_mut(&mut self) -> Annotated<&mut T, &mut A> {
+        Annotated {
+            value: &mut self.value,
+            annotation: &mut self.annotation,
+        }
+    }
+    pub fn as_deref(&self) -> Annotated<&T::Target, &A>
+    where
+        T: Deref,
+    {
+        self.as_ref().map(|v| v.deref())
+    }
+    pub fn as_deref_mut(&mut self) -> Annotated<&mut T::Target, &mut A>
+    where
+        T: DerefMut,
+    {
+        self.as_ref_mut().map(|v| v.deref_mut())
+    }
+}
+impl<T, A> Annotated<&T, &A> {
+    pub fn cloned(self) -> Annotated<T, A>
+    where
+        T: Clone,
+        A: Clone,
+    {
+        Annotated {
+            value: self.value.clone(),
+            annotation: self.annotation.clone(),
+        }
+    }
+    pub fn copied(self) -> Annotated<T, A>
+    where
+        T: Copy,
+        A: Copy,
+    {
+        Annotated {
+            value: *self.value,
+            annotation: *self.annotation,
+        }
+    }
+}
+impl<T, A> Annotated<&T, A> {
+    pub fn value_cloned(self) -> Annotated<T, A>
+    where
+        T: Clone,
+    {
+        Annotated {
+            value: self.value.clone(),
+            annotation: self.annotation,
+        }
+    }
+    pub fn value_copied(self) -> Annotated<T, A>
+    where
+        T: Copy,
+    {
+        Annotated {
+            value: *self.value,
+            annotation: self.annotation,
+        }
+    }
+}
+impl<T, A> Annotated<T, &A> {
+    pub fn annotation_cloned(self) -> Annotated<T, A>
+    where
+        A: Clone,
+    {
+        Annotated {
+            value: self.value,
+            annotation: self.annotation.clone(),
+        }
+    }
+    pub fn annotation_copied(self) -> Annotated<T, A>
+    where
+        A: Copy,
+    {
+        Annotated {
+            value: self.value,
+            annotation: *self.annotation,
+        }
+    }
+}
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+
+    #[test]
+    fn test_map() {
+        let one = Annotated::new(1, "first");
+        let sone = one.map(|i| i.to_string());
+        assert_eq!(
+            sone.as_deref().annotation_cloned(),
+            Annotated::new("1", "first")
+        );
     }
 }
