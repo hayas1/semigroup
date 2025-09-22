@@ -42,12 +42,24 @@ impl<T, A> Annotated<T, A> {
     pub fn annotation_mut(&mut self) -> &mut A {
         &mut self.annotation
     }
+
     pub fn map<U>(self, f: impl FnOnce(T) -> U) -> Annotated<U, A> {
         Annotated {
             value: f(self.value),
             annotation: self.annotation,
         }
     }
+    pub fn map_annotation<B>(self, f: impl FnOnce(A) -> B) -> Annotated<T, B> {
+        Annotated {
+            value: self.value,
+            annotation: f(self.annotation),
+        }
+    }
+    pub fn map_parts<U, B>(self, f: impl FnOnce(T, A) -> (U, B)) -> Annotated<U, B> {
+        let (value, annotation) = f(self.value, self.annotation);
+        Annotated { value, annotation }
+    }
+
     pub fn as_ref(&self) -> Annotated<&T, &A> {
         Annotated {
             value: &self.value,
@@ -79,40 +91,29 @@ impl<T, A> Annotated<&T, &A> {
         T: Clone,
         A: Clone,
     {
-        Annotated {
-            value: self.value.clone(),
-            annotation: self.annotation.clone(),
-        }
+        self.map_parts(|v, a| (v.clone(), a.clone()))
     }
     pub fn copied(self) -> Annotated<T, A>
     where
         T: Copy,
         A: Copy,
     {
-        Annotated {
-            value: *self.value,
-            annotation: *self.annotation,
-        }
+        self.map_parts(|v, a| (*v, *a))
     }
 }
+
 impl<T, A> Annotated<&T, A> {
     pub fn value_cloned(self) -> Annotated<T, A>
     where
         T: Clone,
     {
-        Annotated {
-            value: self.value.clone(),
-            annotation: self.annotation,
-        }
+        self.map(Clone::clone)
     }
     pub fn value_copied(self) -> Annotated<T, A>
     where
         T: Copy,
     {
-        Annotated {
-            value: *self.value,
-            annotation: self.annotation,
-        }
+        self.map(|v| *v)
     }
 }
 impl<T, A> Annotated<T, &A> {
@@ -120,19 +121,13 @@ impl<T, A> Annotated<T, &A> {
     where
         A: Clone,
     {
-        Annotated {
-            value: self.value,
-            annotation: self.annotation.clone(),
-        }
+        self.map_annotation(Clone::clone)
     }
     pub fn annotation_copied(self) -> Annotated<T, A>
     where
         A: Copy,
     {
-        Annotated {
-            value: self.value,
-            annotation: *self.annotation,
-        }
+        self.map_annotation(|a| *a)
     }
 }
 
