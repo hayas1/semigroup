@@ -66,13 +66,13 @@ impl<T> Lazy<T> {
     pub fn last(&self) -> &T {
         self.tail.last().unwrap_or(&self.head)
     }
-    pub fn iter(&self) -> Iter<T> {
+    pub fn iter(&self) -> Iter<'_, T> {
         Iter {
             head: Some(&self.head),
             tail: self.tail.iter(),
         }
     }
-    pub fn iter_mut(&mut self) -> IterMut<T> {
+    pub fn iter_mut(&mut self) -> IterMut<'_, T> {
         IterMut {
             head: Some(&mut self.head),
             tail: self.tail.iter_mut(),
