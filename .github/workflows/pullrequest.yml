@@ -29,7 +29,7 @@ jobs:
     - run: cargo test --verbose --features=derive --features=serde --features=clap
     - run: cargo fmt --check
     - run: RUSTDOCFLAGS="-D warnings" cargo doc --no-deps
-    - run: cargo clippy --tests -- --deny warnings
+    - run: cargo clippy --version && cargo clippy --tests -- --deny warnings
     - run: cargo install cargo-rdme && cargo rdme --check
 
   version:
