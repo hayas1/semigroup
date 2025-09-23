@@ -66,6 +66,18 @@ impl<T> LazySemigroup<T> {
     pub fn last(&self) -> &T {
         self.tail.last().unwrap_or(&self.head)
     }
+    pub fn iter(&self) -> Iter<T> {
+        Iter {
+            head: Some(&self.head),
+            tail: self.tail.iter(),
+        }
+    }
+    pub fn iter_mut(&mut self) -> IterMut<T> {
+        IterMut {
+            head: Some(&mut self.head),
+            tail: self.tail.iter_mut(),
+        }
+    }
     pub fn map<U, F: FnMut(T) -> U>(self, mut f: F) -> LazySemigroup<U> {
         let (head, tail) = (f(self.head), self.tail.into_iter().map(f).collect());
         LazySemigroup { head, tail }
@@ -88,13 +100,47 @@ impl<T> Extend<T> for LazySemigroup<T> {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct IntoIter<T> {
     head: Option<T>,
     tail: <Vec<T> as IntoIterator>::IntoIter,
 }
 impl<T> Iterator for IntoIter<T> {
     type Item = T;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.head.is_some() {
+            self.head.take()
+        } else {
+            self.tail.next()
+        }
+    }
+}
+#[derive(Debug, Clone)]
+pub struct Iter<'a, T> {
+    head: Option<&'a T>,
+    tail: <&'a Vec<T> as IntoIterator>::IntoIter,
+}
+impl<'a, T> Iterator for Iter<'a, T> {
+    type Item = &'a T;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.head.is_some() {
+            self.head.take()
+        } else {
+            self.tail.next()
+        }
+    }
+}
+#[derive(Debug)]
+pub struct IterMut<'a, T> {
+    head: Option<&'a mut T>,
+    tail: <&'a mut Vec<T> as IntoIterator>::IntoIter,
+}
+impl<'a, T> Iterator for IterMut<'a, T> {
+    type Item = &'a mut T;
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
