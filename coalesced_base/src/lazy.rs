@@ -1,17 +1,17 @@
 use crate::semigroup::Semigroup;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-pub struct LazySemigroup<T> {
+pub struct Lazy<T> {
     head: T,
     tail: Vec<T>,
 }
-impl<T> Semigroup for LazySemigroup<T> {
+impl<T> Semigroup for Lazy<T> {
     fn semigroup_op(mut base: Self, other: Self) -> Self {
         base.extend(other);
         base
     }
 }
-impl<T: Semigroup> LazySemigroup<T> {
+impl<T: Semigroup> Lazy<T> {
     pub fn fold(self) -> T {
         let Self { head, tail } = self;
         tail.into_iter()
@@ -28,7 +28,7 @@ impl<T: Semigroup> LazySemigroup<T> {
     }
 }
 
-impl<T> LazySemigroup<T> {
+impl<T> Lazy<T> {
     pub fn with(value: T) -> Self {
         Self {
             head: value,
@@ -37,7 +37,7 @@ impl<T> LazySemigroup<T> {
     }
     pub fn from_iterator<I: IntoIterator<Item = T>>(iter: I) -> Option<Self> {
         // compile error: type parameter `T` must be used as the type parameter for some local type
-        // impl<T> FromIterator<T> for Option<LazySemigroup<T>> {
+        // impl<T> FromIterator<T> for Option<Lazy<T>> {
         //     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
         //         todo!()
         //     }
@@ -78,12 +78,12 @@ impl<T> LazySemigroup<T> {
             tail: self.tail.iter_mut(),
         }
     }
-    pub fn map<U, F: FnMut(T) -> U>(self, mut f: F) -> LazySemigroup<U> {
+    pub fn map<U, F: FnMut(T) -> U>(self, mut f: F) -> Lazy<U> {
         let (head, tail) = (f(self.head), self.tail.into_iter().map(f).collect());
-        LazySemigroup { head, tail }
+        Lazy { head, tail }
     }
 }
-impl<T> IntoIterator for LazySemigroup<T> {
+impl<T> IntoIterator for Lazy<T> {
     type Item = T;
     type IntoIter = IntoIter<T>;
 
@@ -94,7 +94,7 @@ impl<T> IntoIterator for LazySemigroup<T> {
         }
     }
 }
-impl<T> Extend<T> for LazySemigroup<T> {
+impl<T> Extend<T> for Lazy<T> {
     fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
         self.tail.extend(iter);
     }
@@ -159,7 +159,7 @@ pub mod tests {
     use super::*;
 
     pub fn assert_lazy_evaluation<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
-        let mut lazy = LazySemigroup::with(a.clone());
+        let mut lazy = Lazy::with(a.clone());
         lazy.push(b.clone());
         lazy.push(c.clone());
 
@@ -168,7 +168,7 @@ pub mod tests {
 
     #[test]
     fn test_push() {
-        let mut lazy = LazySemigroup::with(1);
+        let mut lazy = Lazy::with(1);
         assert!(!lazy.is_empty());
         assert!(lazy.is_single());
         assert_eq!(lazy.len(), 1);
@@ -192,7 +192,7 @@ pub mod tests {
 
     #[test]
     fn test_iter() {
-        let lazy = LazySemigroup::from_iterator(vec![1, 2, 3, 4, 5]).unwrap();
+        let lazy = Lazy::from_iterator(vec![1, 2, 3, 4, 5]).unwrap();
         assert!(!lazy.is_empty());
         assert!(!lazy.is_single());
         assert_eq!(lazy.len(), 5);

@@ -34,7 +34,7 @@
 //!
 //! ## Lazy Evaluation
 //! ```
-//! use coalesced::{Annotate, Semigroup, LazySemigroup};
+//! use coalesced::{Annotate, Semigroup, Lazy};
 //! #[derive(Debug, Clone, PartialEq, Semigroup)]
 //! #[semigroup(annotated, with = "coalesced::op::annotation::coalesce::Coalesce")]
 //! pub struct Config<'a> {
@@ -44,9 +44,9 @@
 //!     pub boolean: bool,
 //! }
 //!
-//! let lazy = LazySemigroup::with(Config { num: Some(1), str: None, boolean: true }.annotated("File"))
-//!     .semigroup(LazySemigroup::with(Config { num: None, str: Some("ten"), boolean: false }.annotated("Env")))
-//!     .semigroup(LazySemigroup::with(Config { num: Some(100), str: None, boolean: true }.annotated("Cli")));
+//! let lazy = Lazy::with(Config { num: Some(1), str: None, boolean: true }.annotated("File"))
+//!     .semigroup(Lazy::with(Config { num: None, str: Some("ten"), boolean: false }.annotated("Env")))
+//!     .semigroup(Lazy::with(Config { num: Some(100), str: None, boolean: true }.annotated("Cli")));
 //!
 //! assert_eq!(lazy.first(), &Config { num: Some(1), str: None, boolean: true }.annotated("File"));
 //! assert_eq!(lazy.last(), &Config { num: Some(100), str: None, boolean: true }.annotated("Cli"));
@@ -72,7 +72,7 @@
 
 pub use coalesced_base::{
     annotate::{Annotate, Annotated},
-    lazy::LazySemigroup,
+    lazy::Lazy,
     op,
     reverse::Reverse,
     semigroup::{AnnotatedSemigroup, Semigroup},
