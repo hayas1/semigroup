@@ -2,6 +2,12 @@ use crate::annotate::Annotated;
 
 pub trait Semigroup {
     fn semigroup_op(base: Self, other: Self) -> Self;
+    fn semigroup(self, other: Self) -> Self
+    where
+        Self: Sized,
+    {
+        Semigroup::semigroup_op(self, other)
+    }
 }
 pub trait AnnotatedSemigroup<A>: Sized {
     fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A>;
