@@ -26,6 +26,32 @@ impl<T: Semigroup> Lazy<T> {
             .cloned()
             .fold(head.clone(), |acc, item| T::semigroup_op(acc, item))
     }
+    pub fn rfold(self) -> T {
+        let Self { head, mut tail } = self;
+        if let Some(rightmost) = tail.pop() {
+            Some(head)
+                .into_iter()
+                .chain(tail)
+                .rfold(rightmost, |acc, item| T::semigroup_op(item, acc))
+        } else {
+            head
+        }
+    }
+    pub fn rfold_cloned(&self) -> T
+    where
+        T: Clone,
+    {
+        let Self { head, tail } = self;
+        if let Some((rightmost, left)) = tail.split_last() {
+            Some(head)
+                .into_iter()
+                .chain(left)
+                .cloned()
+                .rfold(rightmost.clone(), |acc, item| T::semigroup_op(item, acc))
+        } else {
+            head.clone()
+        }
+    }
 }
 
 impl<T> Lazy<T> {
@@ -163,7 +189,17 @@ pub mod tests {
         lazy.push(b.clone());
         lazy.push(c.clone());
 
-        assert_eq!(lazy.fold(), T::semigroup_op(T::semigroup_op(a, b), c))
+        assert_eq!(lazy.fold_cloned(), lazy.clone().fold());
+        assert_eq!(
+            lazy.fold_cloned(),
+            T::semigroup_op(T::semigroup_op(a.clone(), b.clone()), c.clone())
+        );
+
+        assert_eq!(lazy.rfold_cloned(), lazy.clone().rfold());
+        assert_eq!(
+            lazy.rfold(),
+            T::semigroup_op(a.clone(), T::semigroup_op(b.clone(), c.clone()),)
+        );
     }
 
     #[test]
