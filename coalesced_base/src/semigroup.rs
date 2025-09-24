@@ -11,23 +11,6 @@ pub trait Semigroup {
 }
 pub trait AnnotatedSemigroup<A>: Sized {
     fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A>;
-    fn default_semigroup_op(
-        base: Self,
-        other: Self,
-        base_annotation: A,
-        other_annotation: A,
-    ) -> Self {
-        Self::annotated_op(
-            Annotated::new(base, base_annotation),
-            Annotated::new(other, other_annotation),
-        )
-        .into_value()
-    }
-}
-impl<T: AnnotatedSemigroup<A>, A> Semigroup for Annotated<T, A> {
-    fn semigroup_op(base: Self, other: Self) -> Self {
-        AnnotatedSemigroup::annotated_op(base, other)
-    }
 }
 
 #[cfg(any(test, feature = "test"))]

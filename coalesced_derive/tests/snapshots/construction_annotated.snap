@@ -19,7 +19,7 @@ impl<T, A> CoalesceExt for ::coalesced::Reverse<::coalesced::Annotated<Coalesce<
 #[automatically_derived]
 impl<T> ::coalesced::Semigroup for Coalesce<T> {
     fn semigroup_op(base: Self, other: Self) -> Self {
-        Self::default_semigroup_op(base, other, (), ())
+        ::coalesced::Annotated::lift_unit_annotated_op((base, ()), (other, ()))
     }
 }
 #[automatically_derived]

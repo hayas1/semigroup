@@ -1,5 +1,7 @@
 use std::ops::{Deref, DerefMut};
 
+use crate::semigroup::{AnnotatedSemigroup, Semigroup};
+
 pub trait Annotate<A>: Sized {
     type Annotation;
     fn annotated(self, annotation: Self::Annotation) -> Annotated<Self, A>;
@@ -9,6 +11,17 @@ pub trait Annotate<A>: Sized {
 pub struct Annotated<T, A> {
     value: T,
     annotation: A,
+}
+impl<T: AnnotatedSemigroup<A>, A> Semigroup for Annotated<T, A> {
+    fn semigroup_op(base: Self, other: Self) -> Self {
+        AnnotatedSemigroup::annotated_op(base, other)
+    }
+}
+impl<T: AnnotatedSemigroup<A>, A> Annotated<T, A> {
+    pub fn lift_unit_annotated_op((base, unit1): (T, A), (other, unit2): (T, A)) -> T {
+        let (b, o) = (Self::new(base, unit1), Self::new(other, unit2));
+        AnnotatedSemigroup::annotated_op(b, o).into_value()
+    }
 }
 
 impl<T, A> Annotated<T, A> {

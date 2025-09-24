@@ -32,7 +32,10 @@ where
 #[automatically_derived]
 impl<T: IntoIterator + FromIterator<T::Item>> ::coalesced::Semigroup for Concat<T> {
     fn semigroup_op(base: Self, other: Self) -> Self {
-        Self::default_semigroup_op(base, other, vec![(); 0], vec![(); 0])
+        ::coalesced::Annotated::lift_unit_annotated_op(
+            (base, vec![(); 0]),
+            (other, vec![(); 0]),
+        )
     }
 }
 #[automatically_derived]

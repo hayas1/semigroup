@@ -153,7 +153,12 @@ impl<'a> OpTrait<'a> {
     }
     pub fn impl_semigroup_with_unit_annotate(&self) -> Option<ItemImpl> {
         let Self {
-            constant: Constant { path_semigroup, .. },
+            constant:
+                Constant {
+                    path_semigroup,
+                    path_annotated,
+                    ..
+                },
             derive: DeriveInput {
                 ident, generics, ..
             },
@@ -168,7 +173,7 @@ impl<'a> OpTrait<'a> {
                 #[automatically_derived]
                 impl #impl_generics #path_semigroup for #ident #ty_generics #where_clause {
                     fn semigroup_op(base: Self, other: Self) -> Self {
-                        Self::default_semigroup_op(base, other, #unit, #unit)
+                        #path_annotated::lift_unit_annotated_op((base, #unit), (other, #unit))
                     }
                 }
             }
