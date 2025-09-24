@@ -11,6 +11,7 @@ coalesced = { git = "https://github.com/hayas1/coalesced" }
 ## Examples
 
 ### Annotation
+#### simple string annotation
 ```rust
 use coalesced::{Annotate, Semigroup};
 #[derive(Debug, Clone, PartialEq, Semigroup)]
@@ -32,6 +33,36 @@ assert_eq!(config.value(), &Config { num: Some(1), str: Some("ten"), boolean: tr
 assert_eq!(config.annotation().num, "File");
 assert_eq!(config.annotation().str, "Env");
 assert_eq!(config.annotation().boolean, "Cli");
+```
+
+#### rich enum annotation
+```rust
+use coalesced::{Annotate, Semigroup};
+#[derive(Debug, Clone, PartialEq, Semigroup)]
+#[semigroup(annotated, with = "coalesced::op::annotation::coalesce::Coalesce")]
+pub struct Config<'a> {
+    pub num: Option<u32>,
+    pub str: Option<&'a str>,
+    #[semigroup(with = "coalesced::op::annotation::replace::Replace")]
+    pub boolean: bool,
+}
+#[derive(Debug, Clone, PartialEq)]
+pub enum Source {
+    File,
+    Env,
+    Cli,
+}
+
+let file = Config { num: Some(1), str: None, boolean: true }.annotated(Source::File);
+let env = Config { num: None, str: Some("ten"), boolean: false }.annotated(Source::Env);
+let cli = Config { num: Some(100), str: None, boolean: true }.annotated(Source::Cli);
+
+let config = file.semigroup(env).semigroup(cli);
+
+assert_eq!(config.value(), &Config { num: Some(1), str: Some("ten"), boolean: true });
+assert_eq!(config.annotation().num, Source::File);
+assert_eq!(config.annotation().str, Source::Env);
+assert_eq!(config.annotation().boolean, Source::Cli);
 ```
 
 ### Lazy Evaluation
