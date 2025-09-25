@@ -103,6 +103,7 @@
 
 pub use coalesced_base::{
     annotate::{Annotate, Annotated},
+    iter::{SemigroupDoubleEndedIterator, SemigroupIterator},
     lazy::Lazy,
     op,
     reverse::Reverse,
