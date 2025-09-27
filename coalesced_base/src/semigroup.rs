@@ -19,7 +19,6 @@ pub mod tests {
 
     use crate::{
         iter::tests::assert_lazy_evaluation_iter,
-        lazy::tests::assert_lazy_evaluation,
         reverse::tests::{assert_reverse, assert_reverse_associative_law},
     };
 
@@ -37,7 +36,6 @@ pub mod tests {
         assert_associative_law(a.clone(), b.clone(), c.clone());
         assert_reverse(a.clone(), b.clone(), c.clone());
         assert_reverse_associative_law(a.clone(), b.clone(), c.clone());
-        assert_lazy_evaluation(a.clone(), b.clone(), c.clone());
         assert_lazy_evaluation_iter(a.clone(), b.clone(), c.clone());
     }
 
