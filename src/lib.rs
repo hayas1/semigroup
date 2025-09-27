@@ -64,8 +64,9 @@
 //! ```
 //!
 //! ## Lazy Evaluation
+//! ### Reduce
 //! ```
-//! use coalesced::{Annotate, Semigroup, Lazy};
+//! use coalesced::{Annotate, Semigroup};
 //! #[derive(Debug, Clone, PartialEq, Semigroup)]
 //! #[semigroup(annotated, with = "coalesced::op::annotation::coalesce::Coalesce")]
 //! pub struct Config<'a> {
@@ -75,19 +76,45 @@
 //!     pub boolean: bool,
 //! }
 //!
-//! let lazy = Lazy::with(Config { num: Some(1), str: None, boolean: true }.annotated("File"))
-//!     .semigroup(Lazy::with(Config { num: None, str: Some("ten"), boolean: false }.annotated("Env")))
-//!     .semigroup(Lazy::with(Config { num: Some(100), str: None, boolean: true }.annotated("Cli")));
+//! let lazy = vec![
+//!     Config { num: Some(1), str: None, boolean: true }.annotated("File"),
+//!     Config { num: None, str: Some("ten"), boolean: false }.annotated("Env"),
+//!     Config { num: Some(100), str: None, boolean: true }.annotated("Cli"),
+//! ];
 //!
-//! assert_eq!(lazy.first(), &Config { num: Some(1), str: None, boolean: true }.annotated("File"));
-//! assert_eq!(lazy.last(), &Config { num: Some(100), str: None, boolean: true }.annotated("Cli"));
 //!
-//! let config = lazy.fold();
+//! let config = lazy.into_iter().reduce(|acc, item| acc.semigroup(item));
 //!
-//! assert_eq!(config.value(), &Config { num: Some(1), str: Some("ten"), boolean: true });
+//! assert_eq!(config.as_ref().unwrap().value(), &Config { num: Some(1), str: Some("ten"), boolean: true });
+//! assert_eq!(config.as_ref().unwrap().annotation().num, "File");
+//! assert_eq!(config.as_ref().unwrap().annotation().str, "Env");
+//! assert_eq!(config.as_ref().unwrap().annotation().boolean, "Cli");
+//! ```
+//! ### Fold with final default
+//! ```
+//! use coalesced::{Annotate, Semigroup, SemigroupIterator};
+//! #[derive(Debug, Clone, PartialEq, Semigroup)]
+//! #[semigroup(annotated, with = "coalesced::op::annotation::coalesce::Coalesce")]
+//! pub struct Config<'a> {
+//!     pub num: Option<u32>,
+//!     pub str: Option<&'a str>,
+//!     #[semigroup(with = "coalesced::op::annotation::replace::Replace")]
+//!     pub boolean: bool,
+//! }
+//!
+//! let lazy = vec![
+//!     Config { num: Some(1), str: None, boolean: true }.annotated("File"),
+//!     Config { num: None, str: None, boolean: false }.annotated("Env"),
+//!     Config { num: Some(100), str: None, boolean: true }.annotated("Cli"),
+//! ];
+//!
+//!
+//! let config = lazy.into_iter().fold_last(Config { num: Some(1000), str: Some("thousand"), boolean: true }.annotated("Default"));
+//!
+//! assert_eq!(config.value(), &Config { num: Some(1), str: Some("thousand"), boolean: true });
 //! assert_eq!(config.annotation().num, "File");
-//! assert_eq!(config.annotation().str, "Env");
-//! assert_eq!(config.annotation().boolean, "Cli");
+//! assert_eq!(config.annotation().str, "Default");
+//! assert_eq!(config.annotation().boolean, "Default");
 //! ```
 //!
 //! # Documents
@@ -104,7 +131,6 @@
 pub use coalesced_base::{
     annotate::{Annotate, Annotated},
     iter::{SemigroupDoubleEndedIterator, SemigroupIterator},
-    lazy::Lazy,
     op,
     reverse::Reverse,
     semigroup::{AnnotatedSemigroup, Semigroup},
