@@ -15,9 +15,9 @@ test = []
 
 [dependencies]
 coalesced_derive = { path = "../coalesced_derive", features = ["use_scope"] }
-clap = { version = "4.5.43", optional = true }
-serde = { version = "1.0.219", features = ["derive"], optional = true }
+clap = { version = "4.5.48", optional = true }
+serde = { version = "1.0.228", features = ["derive"], optional = true }
 
 [dev-dependencies]
-clap = { version = "4.5.43", features = ["derive"] }
-serde_json = "1.0.142"
+clap = { version = "4.5.48", features = ["derive"] }
+serde_json = "1.0.145"
