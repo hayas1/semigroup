@@ -9,7 +9,7 @@ pub trait Semigroup {
         Semigroup::semigroup_op(self, other)
     }
 }
-pub trait AnnotatedSemigroup<A>: Sized {
+pub trait AnnotatedSemigroup<A>: Sized + Semigroup {
     fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A>;
 }
 
