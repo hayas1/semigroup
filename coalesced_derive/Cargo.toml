@@ -14,14 +14,14 @@ proc-macro = true
 use_scope = []
 
 [dependencies]
-darling = "0.21.2"
+darling = "0.21.3"
 heck = "0.5.0"
-proc-macro2 = "1.0.95"
+proc-macro2 = "1.0.101"
 quote = "1.0.39"
 syn = { version = "2.0.104", features = ["full"] }
 
 [dev-dependencies]
 coalesced_derive = { path = ".", features = ["use_scope"] }
-insta = "1.43.1"
+insta = "1.43.2"
 prettyplease = "0.2.37"                                     # rustfmt is cli only
 rstest = "0.26.1"
