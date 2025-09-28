@@ -1,0 +1,18 @@
+---
+source: coalesced_derive/src/semigroup.rs
+assertion_line: 77
+expression: formatted
+---
+#[automatically_derived]
+impl<T: std::ops::Add> Semigroup for UnnamedStruct<T> {
+    fn semigroup_op(base: Self, other: Self) -> Self {
+        Self {
+            0: <coalesced::op::semigroup::add::Added<
+                _,
+            > as Construction<_>>::lift_op(base.0, other.0),
+            1: <coalesced::op::annotation::replace::Replaced<
+                _,
+            > as Construction<_>>::lift_op(base.1, other.1),
+        }
+    }
+}

@@ -1,0 +1,15 @@
+error[E0277]: the trait bound `Option<u32>: Semigroup` is not satisfied
+ --> tests/ui/compile_fail/unimplemented_semigroup.rs:3:35
+  |
+3 | #[derive(Debug, Clone, PartialEq, Semigroup)]
+  |                                   ^^^^^^^^^ the trait `Semigroup` is not implemented for `Option<u32>`
+  |
+  = help: the following other types implement trait `Semigroup`:
+            Annotated<T, A>
+            Coalesce<T>
+            NamedStruct<'a>
+            Replace<T>
+            coalesced::Reverse<T>
+            coalesced::op::annotation::concat::Concat<T>
+            coalesced::op::semigroup::add::Add<T>
+  = note: this error originates in the derive macro `Semigroup` (in Nightly builds, run with -Z macro-backtrace for more info)

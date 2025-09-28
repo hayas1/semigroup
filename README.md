@@ -9,158 +9,114 @@ coalesced = { git = "https://github.com/hayas1/coalesced" }
 ```
 
 ## Examples
-[`Coalesce::prior`] will return the last confirmed value. [`Coalesce::posterior`] will return the first confirmed value.
-| `Config`  | file | env     | cli      | →   | prior    | posterior |
-| --------- | ---- | ------- | -------- | --- | -------- | --------- |
-| `opt_num` | 10   | 100     |          | →   | 100      | 10        |
-| `opt_str` |      | hundred | thousand | →   | thousand | hundred   |
-| `boolean` | true | false   | true     | →   | true     | true      |
 
+### Annotation
+#### Simple string annotation
 ```rust
-use coalesced::Coalesce;
-
-#[derive(Coalesce)]
+use coalesced::{Annotate, Semigroup};
+#[derive(Debug, Clone, PartialEq, Semigroup)]
+#[semigroup(annotated, with = "coalesced::op::annotation::coalesce::Coalesce")]
 pub struct Config<'a> {
-    opt_num: Option<i32>,
-    opt_str: Option<&'a str>,
-    #[coalesced(with = coalesced::strategy::Overwrite)]
-    boolean: bool
+    pub num: Option<u32>,
+    pub str: Option<&'a str>,
+    #[semigroup(with = "coalesced::op::annotation::replace::Replace")]
+    pub boolean: bool,
 }
 
-let from_file = Config {
-    opt_num: Some(10),
-    opt_str: None,
-    boolean: true,
-};
-let from_env = Config {
-    opt_num: Some(100),
-    opt_str: Some("hundred"),
-    boolean: false,
-};
-let from_cli = Config {
-    opt_num: None,
-    opt_str: Some("thousand"),
-    boolean: true,
-};
-let config = from_file.prior(from_env).prior(from_cli);
-assert!(matches!(config, Config {
-    opt_num: Some(100),
-    opt_str: Some("thousand"),
-    boolean: true,
-}));
+let file = Config { num: Some(1), str: None, boolean: true }.annotated("File");
+let env = Config { num: None, str: Some("ten"), boolean: false }.annotated("Env");
+let cli = Config { num: Some(100), str: None, boolean: true }.annotated("Cli");
 
-let from_file = Config {
-    opt_num: Some(10),
-    opt_str: None,
-    boolean: true,
-};
-let from_env = Config {
-    opt_num: Some(100),
-    opt_str: Some("hundred"),
-    boolean: false,
-};
-let from_cli = Config {
-    opt_num: None,
-    opt_str: Some("thousand"),
-    boolean: true,
-};
-let config = from_file.posterior(from_env).posterior(from_cli);
-assert!(matches!(config, Config {
-    opt_num: Some(10),
-    opt_str: Some("hundred"),
-    boolean: true,
-}));
+let config = file.semigroup(env).semigroup(cli);
+
+assert_eq!(config.value(), &Config { num: Some(1), str: Some("ten"), boolean: true });
+assert_eq!(config.annotation().num, "File");
+assert_eq!(config.annotation().str, "Env");
+assert_eq!(config.annotation().boolean, "Cli");
 ```
 
-#### Lazy Evaluation
-Related to [`crate::Coalesced`]. Lazy evaluation is supported so we can follow the changes until the value is confirmed.
+#### Rich enum annotation
 ```rust
-use coalesced::{Coalesce, History, IntoHistory};
-
-#[derive(Coalesce)]
+use coalesced::{Annotate, Semigroup};
+#[derive(Debug, Clone, PartialEq, Semigroup)]
+#[semigroup(annotated, with = "coalesced::op::annotation::coalesce::Coalesce")]
 pub struct Config<'a> {
-    opt_num: Option<i32>,
-    opt_str: Option<&'a str>,
-    #[coalesced(with = coalesced::strategy::Overwrite)]
-    boolean: bool,
+    pub num: Option<u32>,
+    pub str: Option<&'a str>,
+    #[semigroup(with = "coalesced::op::annotation::replace::Replace")]
+    pub boolean: bool,
+}
+#[derive(Debug, Clone, PartialEq)]
+pub enum Source {
+    File,
+    Env,
+    Cli,
 }
 
-let from_file = Config {
-    opt_num: Some(10),
-    opt_str: None,
-    boolean: true,
-};
-let from_env = Config {
-    opt_num: Some(100),
-    opt_str: Some("hundred"),
-    boolean: false,
-};
-let from_cli = Config {
-    opt_num: None,
-    opt_str: Some("thousand"),
-    boolean: true,
-};
+let file = Config { num: Some(1), str: None, boolean: true }.annotated(Source::File);
+let env = Config { num: None, str: Some("ten"), boolean: false }.annotated(Source::Env);
+let cli = Config { num: Some(100), str: None, boolean: true }.annotated(Source::Cli);
 
-let config = from_file.into_history().prior(from_env).prior(from_cli);
-assert!(matches!(
-    config.base(),
-    Config {
-        opt_num: Some(10),
-        opt_str: None,
-        boolean: true,
-    }
-));
-assert!(matches!(config.into(), Config {
-    opt_num: Some(100),
-    opt_str: Some("thousand"),
-    boolean: true,
-}));
+let config = file.semigroup(env).semigroup(cli);
+
+assert_eq!(config.value(), &Config { num: Some(1), str: Some("ten"), boolean: true });
+assert_eq!(config.annotation().num, Source::File);
+assert_eq!(config.annotation().str, Source::Env);
+assert_eq!(config.annotation().boolean, Source::Cli);
 ```
 
-#### Extensions metadata
-Related to [`crate::WithExt`]. Extensions metadata is supported so we can follow the source of the confirmed value.
+### Lazy Evaluation
+#### Reduce
 ```rust
-use coalesced::{Coalesce, Extension};
-
-#[derive(Coalesce)]
+use coalesced::{Annotate, Semigroup};
+#[derive(Debug, Clone, PartialEq, Semigroup)]
+#[semigroup(annotated, with = "coalesced::op::annotation::coalesce::Coalesce")]
 pub struct Config<'a> {
-    opt_num: Option<i32>,
-    opt_str: Option<&'a str>,
-    #[coalesced(with = coalesced::strategy::Overwrite)]
-    boolean: bool,
+    pub num: Option<u32>,
+    pub str: Option<&'a str>,
+    #[semigroup(with = "coalesced::op::annotation::replace::Replace")]
+    pub boolean: bool,
 }
 
-let from_file = Config {
-    opt_num: Some(10),
-    opt_str: None,
-    boolean: true,
-};
-let from_env = Config {
-    opt_num: Some(100),
-    opt_str: Some("hundred"),
-    boolean: false,
-};
-let from_cli = Config {
-    opt_num: None,
-    opt_str: Some("thousand"),
-    boolean: true,
-};
+let lazy = vec![
+    Config { num: Some(1), str: None, boolean: true }.annotated("File"),
+    Config { num: None, str: Some("ten"), boolean: false }.annotated("Env"),
+    Config { num: Some(100), str: None, boolean: true }.annotated("Cli"),
+];
 
-let (file, env, cli) = (
-    from_file.with_extension(&"file"),
-    from_env.with_extension(&"env"),
-    from_cli.with_extension(&"cli"),
-);
 
-let config = file.prior(env).prior(cli);
-assert_eq!(config.opt_num.extension, &"env");
-assert_eq!(config.opt_str.extension, &"cli");
-assert_eq!(config.boolean.extension, &"cli");
-assert!(matches!(config.into(), Config {
-    opt_num: Some(100),
-    opt_str: Some("thousand"),
-    boolean: true
-}));
+let config = lazy.into_iter().reduce(|acc, item| acc.semigroup(item));
+
+assert_eq!(config.as_ref().unwrap().value(), &Config { num: Some(1), str: Some("ten"), boolean: true });
+assert_eq!(config.as_ref().unwrap().annotation().num, "File");
+assert_eq!(config.as_ref().unwrap().annotation().str, "Env");
+assert_eq!(config.as_ref().unwrap().annotation().boolean, "Cli");
+```
+#### Fold with final default
+```rust
+use coalesced::{Annotate, Semigroup, SemigroupIterator};
+#[derive(Debug, Clone, PartialEq, Semigroup)]
+#[semigroup(annotated, with = "coalesced::op::annotation::coalesce::Coalesce")]
+pub struct Config<'a> {
+    pub num: Option<u32>,
+    pub str: Option<&'a str>,
+    #[semigroup(with = "coalesced::op::annotation::replace::Replace")]
+    pub boolean: bool,
+}
+
+let lazy = vec![
+    Config { num: Some(1), str: None, boolean: true }.annotated("File"),
+    Config { num: None, str: None, boolean: false }.annotated("Env"),
+    Config { num: Some(100), str: None, boolean: true }.annotated("Cli"),
+];
+
+
+let config = lazy.into_iter().fold_final(Config { num: Some(1000), str: Some("thousand"), boolean: true }.annotated("Default"));
+
+assert_eq!(config.value(), &Config { num: Some(1), str: Some("thousand"), boolean: true });
+assert_eq!(config.annotation().num, "File");
+assert_eq!(config.annotation().str, "Default");
+assert_eq!(config.annotation().boolean, "Default");
 ```
 
 ## Documents
@@ -168,7 +124,7 @@ assert!(matches!(config.into(), Config {
 
 ## Testing
 ### Benchmarks
-TODO
+// TODO
 
 ### Coverage
 <https://hayas1.github.io/coalesced/coalesced/tarpaulin-report.html>

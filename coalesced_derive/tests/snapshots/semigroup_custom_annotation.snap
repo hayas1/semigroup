@@ -1,0 +1,97 @@
+---
+source: coalesced_derive/src/semigroup.rs
+assertion_line: 77
+expression: formatted
+---
+#[automatically_derived]
+impl ::coalesced::Semigroup for NamedStruct {
+    fn semigroup_op(base: Self, other: Self) -> Self {
+        Self {
+            foo: <coalesced::op::annotation::replace::Replaced<
+                _,
+            > as ::coalesced::op::Construction<_>>::lift_op(base.foo, other.foo),
+            bar: <coalesced::op::annotation::replace::Replaced<
+                _,
+            > as ::coalesced::op::Construction<_>>::lift_op(base.bar, other.bar),
+            baz: <coalesced::op::annotation::replace::Replaced<
+                _,
+            > as ::coalesced::op::Construction<_>>::lift_op(base.baz, other.baz),
+        }
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
+pub struct NamedStructAnnotation<X> {
+    foo: X,
+    bar: X,
+    baz: X,
+}
+#[automatically_derived]
+impl<X: Clone> ::coalesced::AnnotatedSemigroup<NamedStructAnnotation<X>>
+for NamedStruct {
+    fn annotated_op(
+        base: ::coalesced::Annotated<Self, NamedStructAnnotation<X>>,
+        other: ::coalesced::Annotated<Self, NamedStructAnnotation<X>>,
+    ) -> ::coalesced::Annotated<Self, NamedStructAnnotation<X>> {
+        let (base_value, base_annotation) = base.into_parts();
+        let (other_value, other_annotation) = other.into_parts();
+        let (foo_value, foo_annotation) = <coalesced::op::annotation::replace::Replaced<
+            _,
+        > as ::coalesced::op::ConstructionAnnotated<
+            _,
+            _,
+        >>::lift_annotated_op(
+                ::coalesced::Annotated::new(base_value.foo, base_annotation.foo),
+                ::coalesced::Annotated::new(other_value.foo, other_annotation.foo),
+            )
+            .into_parts();
+        let (bar_value, bar_annotation) = <coalesced::op::annotation::replace::Replaced<
+            _,
+        > as ::coalesced::op::ConstructionAnnotated<
+            _,
+            _,
+        >>::lift_annotated_op(
+                ::coalesced::Annotated::new(base_value.bar, base_annotation.bar),
+                ::coalesced::Annotated::new(other_value.bar, other_annotation.bar),
+            )
+            .into_parts();
+        let (baz_value, baz_annotation) = <coalesced::op::annotation::replace::Replaced<
+            _,
+        > as ::coalesced::op::ConstructionAnnotated<
+            _,
+            _,
+        >>::lift_annotated_op(
+                ::coalesced::Annotated::new(base_value.baz, base_annotation.baz),
+                ::coalesced::Annotated::new(other_value.baz, other_annotation.baz),
+            )
+            .into_parts();
+        ::coalesced::Annotated::new(
+            NamedStruct {
+                foo: foo_value,
+                bar: bar_value,
+                baz: baz_value,
+            },
+            NamedStructAnnotation {
+                foo: foo_annotation,
+                bar: bar_annotation,
+                baz: baz_annotation,
+            },
+        )
+    }
+}
+#[automatically_derived]
+impl<X: Clone> ::coalesced::Annotate<NamedStructAnnotation<X>> for NamedStruct {
+    type Annotation = X;
+    fn annotated(
+        self,
+        annotation: Self::Annotation,
+    ) -> ::coalesced::Annotated<Self, NamedStructAnnotation<X>> {
+        ::coalesced::Annotated::new(
+            self,
+            NamedStructAnnotation {
+                foo: annotation.clone(),
+                bar: annotation.clone(),
+                baz: annotation.clone(),
+            },
+        )
+    }
+}
