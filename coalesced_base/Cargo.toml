@@ -12,7 +12,6 @@ readme.workspace = true
 serde = ["dep:serde"]
 clap = ["dep:clap"]
 test = []
-option_coalesce = []
 
 [dependencies]
 coalesced_derive = { path = "../coalesced_derive", features = ["use_scope"] }

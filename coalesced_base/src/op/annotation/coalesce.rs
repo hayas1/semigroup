@@ -19,29 +19,6 @@ impl<T, A> AnnotatedSemigroup<A> for Coalesce<T> {
         }
     }
 }
-#[cfg(feature = "option_coalesce")]
-mod sealed {
-    use super::*;
-
-    impl<T> CoalesceExt for Option<T> {}
-    impl<T> Semigroup for Option<T> {
-        fn semigroup_op(base: Self, other: Self) -> Self {
-            Coalesce::lift_op(base, other)
-        }
-    }
-    impl<T, A> Annotate<A> for Option<T> {
-        type Annotation = A;
-        fn annotated(self, annotation: Self::Annotation) -> Annotated<Self, A> {
-            Annotated::new(self, annotation)
-        }
-    }
-    impl<T, A> CoalesceExt for Annotated<Option<T>, A> {}
-    impl<T, A> AnnotatedSemigroup<A> for Option<T> {
-        fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
-            Coalesce::lift_annotated_op(base, other)
-        }
-    }
-}
 
 #[cfg(test)]
 mod tests {

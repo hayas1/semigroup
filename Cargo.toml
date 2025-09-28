@@ -22,7 +22,6 @@ readme.workspace = true
 [features]
 derive = ["coalesced_derive"]
 test = ["coalesced_base/test"]
-option_coalesce = ["coalesced_base/option_coalesce"]
 serde = ["coalesced_base/serde"]
 clap = ["coalesced_base/clap"]
 
@@ -31,5 +30,5 @@ coalesced_base = { path = "coalesced_base", default-features = false }
 coalesced_derive = { path = "coalesced_derive", default-features = false, optional = true }
 
 [dev-dependencies]
-coalesced = { path = ".", features = ["derive", "test", "option_coalesce"] }
+coalesced = { path = ".", features = ["derive", "test"] }
 trybuild = { version = "1.0.110", features = ["diff"] }
