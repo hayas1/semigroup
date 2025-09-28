@@ -109,7 +109,7 @@
 //! ];
 //!
 //!
-//! let config = lazy.into_iter().fold_last(Config { num: Some(1000), str: Some("thousand"), boolean: true }.annotated("Default"));
+//! let config = lazy.into_iter().fold_final(Config { num: Some(1000), str: Some("thousand"), boolean: true }.annotated("Default"));
 //!
 //! assert_eq!(config.value(), &Config { num: Some(1), str: Some("thousand"), boolean: true });
 //! assert_eq!(config.annotation().num, "File");

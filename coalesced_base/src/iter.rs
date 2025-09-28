@@ -1,32 +1,32 @@
 use crate::semigroup::Semigroup;
 
 pub trait SemigroupIterator: Sized + Iterator {
-    fn fold_last(mut self, last: Self::Item) -> Self::Item
+    fn fold_final(mut self, fin: Self::Item) -> Self::Item
     where
         Self::Item: Semigroup,
     {
         if let Some(init) = self.next() {
-            self.chain(Some(last))
+            self.chain(Some(fin))
                 .fold(init, |acc, item| acc.semigroup(item))
         } else {
-            last
+            fin
         }
     }
 }
 impl<I: Iterator> SemigroupIterator for I {}
 
 pub trait SemigroupDoubleEndedIterator: Sized + DoubleEndedIterator {
-    fn rfold_last(mut self, last: Self::Item) -> Self::Item
+    fn rfold_final(mut self, fin: Self::Item) -> Self::Item
     where
         Self::Item: Semigroup,
     {
         if let Some(init) = self.next_back() {
-            Some(last)
+            Some(fin)
                 .into_iter()
                 .chain(self)
                 .rfold(init, |acc, item| acc.semigroup(item))
         } else {
-            last
+            fin
         }
     }
 }
@@ -34,7 +34,7 @@ impl<I: DoubleEndedIterator> SemigroupDoubleEndedIterator for I {}
 
 #[cfg(any(test, feature = "test"))]
 pub mod tests {
-    use std::{fmt::Debug, vec};
+    use std::fmt::Debug;
 
     use super::*;
 
@@ -83,7 +83,7 @@ pub mod tests {
             T::semigroup_op(a.clone(), T::semigroup_op(b.clone(), c.clone()))
         );
         assert_eq!(
-            ab.into_iter().fold_last(c.clone()),
+            ab.into_iter().fold_final(c.clone()),
             T::semigroup_op(T::semigroup_op(a.clone(), b.clone()), c.clone())
         );
 
@@ -95,7 +95,7 @@ pub mod tests {
             T::semigroup_op(T::semigroup_op(a.clone(), b.clone()), c.clone())
         );
         assert_eq!(
-            bc.into_iter().rfold_last(a.clone()),
+            bc.into_iter().rfold_final(a.clone()),
             T::semigroup_op(T::semigroup_op(c.clone(), b.clone()), a.clone())
         );
     }
