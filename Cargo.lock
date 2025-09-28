@@ -432,7 +432,7 @@ checksum = "6ea1a2d0a644769cc99faa24c3ad26b379b786fe7c36fd3c546254801650e6dd"
 
 [[package]]
 name = "semigroup"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "semigroup",
  "semigroup_base",
@@ -442,7 +442,7 @@ dependencies = [
 
 [[package]]
 name = "semigroup_base"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "clap",
  "semigroup_derive",
@@ -452,7 +452,7 @@ dependencies = [
 
 [[package]]
 name = "semigroup_derive"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "darling",
  "heck",
