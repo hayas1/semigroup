@@ -1,6 +1,8 @@
 <!-- cargo-rdme start -->
 
-semigroup supports reading configs from multiple sources
+Semigroup trait is useful
+- reading configs from multiple sources
+- statistically aggregation
 
 ## Usage
 ```toml
