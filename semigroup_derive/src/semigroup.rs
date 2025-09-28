@@ -33,10 +33,10 @@ mod tests {
             #[derive(Semigroup)]
             #[semigroup(annotated)]
             pub struct NamedStruct {
-                #[semigroup(with = "coalesced::op::annotation::replace::Replaced")]
+                #[semigroup(with = "semigroup::op::annotation::replace::Replaced")]
                 pub foo: String,
                 pub bar: Option<u32>,
-                pub baz: coalesced::op::annotation::replace::Replaced<bool>,
+                pub baz: semigroup::op::annotation::replace::Replaced<bool>,
             }
         },
     )]
@@ -45,9 +45,9 @@ mod tests {
         impl_semigroup::<Use>,
         syn::parse_quote! {
             #[derive(SemigroupUse)]
-            #[semigroup(with = "coalesced::op::annotation::replace::Replaced")]
+            #[semigroup(with = "semigroup::op::annotation::replace::Replaced")]
             pub struct UnnamedStruct<T: std::ops::Add> (
-                #[semigroup(with = "coalesced::op::semigroup::add::Added")]
+                #[semigroup(with = "semigroup::op::semigroup::add::Added")]
                 T,
                 u64
             );
@@ -58,7 +58,7 @@ mod tests {
         impl_semigroup::<Absolute>,
         syn::parse_quote! {
             #[derive(Semigroup)]
-            #[semigroup(annotated, annotation_param = X, with = "coalesced::op::annotation::replace::Replaced")]
+            #[semigroup(annotated, annotation_param = X, with = "semigroup::op::annotation::replace::Replaced")]
             pub struct NamedStruct{
                 pub foo: String,
                 pub bar: Option<u32>,

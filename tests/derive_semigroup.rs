@@ -1,9 +1,9 @@
-use coalesced::Semigroup;
+use semigroup::Semigroup;
 
 #[derive(Debug, Clone, PartialEq, Semigroup)]
-#[semigroup(with = "coalesced::op::annotation::coalesce::Coalesce")]
+#[semigroup(with = "semigroup::op::annotation::coalesce::Coalesce")]
 pub struct NamedStruct {
-    #[semigroup(with = "coalesced::op::annotation::replace::Replace")]
+    #[semigroup(with = "semigroup::op::annotation::replace::Replace")]
     pub name: String,
     pub value: Option<u32>,
 }
@@ -36,9 +36,9 @@ fn test_named_struct_semigroup_op() {
 }
 
 #[derive(Debug, Clone, PartialEq, Semigroup)]
-#[semigroup(with = "coalesced::op::annotation::coalesce::Coalesce")]
+#[semigroup(with = "semigroup::op::annotation::coalesce::Coalesce")]
 pub struct UnnamedStruct(
-    #[semigroup(with = "coalesced::op::annotation::replace::Replace")] String,
+    #[semigroup(with = "semigroup::op::annotation::replace::Replace")] String,
     Option<u32>,
 );
 

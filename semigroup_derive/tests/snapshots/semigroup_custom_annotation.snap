@@ -1,0 +1,97 @@
+---
+source: semigroup_derive/src/semigroup.rs
+assertion_line: 77
+expression: formatted
+---
+#[automatically_derived]
+impl ::semigroup::Semigroup for NamedStruct {
+    fn semigroup_op(base: Self, other: Self) -> Self {
+        Self {
+            foo: <semigroup::op::annotation::replace::Replaced<
+                _,
+            > as ::semigroup::op::Construction<_>>::lift_op(base.foo, other.foo),
+            bar: <semigroup::op::annotation::replace::Replaced<
+                _,
+            > as ::semigroup::op::Construction<_>>::lift_op(base.bar, other.bar),
+            baz: <semigroup::op::annotation::replace::Replaced<
+                _,
+            > as ::semigroup::op::Construction<_>>::lift_op(base.baz, other.baz),
+        }
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
+pub struct NamedStructAnnotation<X> {
+    foo: X,
+    bar: X,
+    baz: X,
+}
+#[automatically_derived]
+impl<X: Clone> ::semigroup::AnnotatedSemigroup<NamedStructAnnotation<X>>
+for NamedStruct {
+    fn annotated_op(
+        base: ::semigroup::Annotated<Self, NamedStructAnnotation<X>>,
+        other: ::semigroup::Annotated<Self, NamedStructAnnotation<X>>,
+    ) -> ::semigroup::Annotated<Self, NamedStructAnnotation<X>> {
+        let (base_value, base_annotation) = base.into_parts();
+        let (other_value, other_annotation) = other.into_parts();
+        let (foo_value, foo_annotation) = <semigroup::op::annotation::replace::Replaced<
+            _,
+        > as ::semigroup::op::ConstructionAnnotated<
+            _,
+            _,
+        >>::lift_annotated_op(
+                ::semigroup::Annotated::new(base_value.foo, base_annotation.foo),
+                ::semigroup::Annotated::new(other_value.foo, other_annotation.foo),
+            )
+            .into_parts();
+        let (bar_value, bar_annotation) = <semigroup::op::annotation::replace::Replaced<
+            _,
+        > as ::semigroup::op::ConstructionAnnotated<
+            _,
+            _,
+        >>::lift_annotated_op(
+                ::semigroup::Annotated::new(base_value.bar, base_annotation.bar),
+                ::semigroup::Annotated::new(other_value.bar, other_annotation.bar),
+            )
+            .into_parts();
+        let (baz_value, baz_annotation) = <semigroup::op::annotation::replace::Replaced<
+            _,
+        > as ::semigroup::op::ConstructionAnnotated<
+            _,
+            _,
+        >>::lift_annotated_op(
+                ::semigroup::Annotated::new(base_value.baz, base_annotation.baz),
+                ::semigroup::Annotated::new(other_value.baz, other_annotation.baz),
+            )
+            .into_parts();
+        ::semigroup::Annotated::new(
+            NamedStruct {
+                foo: foo_value,
+                bar: bar_value,
+                baz: baz_value,
+            },
+            NamedStructAnnotation {
+                foo: foo_annotation,
+                bar: bar_annotation,
+                baz: baz_annotation,
+            },
+        )
+    }
+}
+#[automatically_derived]
+impl<X: Clone> ::semigroup::Annotate<NamedStructAnnotation<X>> for NamedStruct {
+    type Annotation = X;
+    fn annotated(
+        self,
+        annotation: Self::Annotation,
+    ) -> ::semigroup::Annotated<Self, NamedStructAnnotation<X>> {
+        ::semigroup::Annotated::new(
+            self,
+            NamedStructAnnotation {
+                foo: annotation.clone(),
+                bar: annotation.clone(),
+                baz: annotation.clone(),
+            },
+        )
+    }
+}

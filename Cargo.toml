@@ -3,15 +3,15 @@ version = "0.1.0"
 description = "Coalesced supports reading configs from multiple sources"
 authors = ["hayas1 <h4ystack@gmail.com>"]
 edition = "2021"
-repository = "https://github.com/hayas1/coalesced"
+repository = "https://github.com/hayas1/semigroup"
 license-file = "LICENSE"
 readme = "README.md"
 
 [workspace]
-members = ["coalesced_derive", "coalesced_base"]
+members = ["semigroup_derive", "semigroup_base"]
 
 [package]
-name = "coalesced"
+name = "semigroup"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
@@ -20,15 +20,15 @@ license-file.workspace = true
 readme.workspace = true
 
 [features]
-derive = ["coalesced_derive"]
-test = ["coalesced_base/test"]
-serde = ["coalesced_base/serde"]
-clap = ["coalesced_base/clap"]
+derive = ["semigroup_derive"]
+test = ["semigroup_base/test"]
+serde = ["semigroup_base/serde"]
+clap = ["semigroup_base/clap"]
 
 [dependencies]
-coalesced_base = { path = "coalesced_base", default-features = false }
-coalesced_derive = { path = "coalesced_derive", default-features = false, optional = true }
+semigroup_base = { path = "semigroup_base", default-features = false }
+semigroup_derive = { path = "semigroup_derive", default-features = false, optional = true }
 
 [dev-dependencies]
-coalesced = { path = ".", features = ["derive", "test"] }
+semigroup = { path = ".", features = ["derive", "test"] }
 trybuild = { version = "1.0.111", features = ["diff"] }

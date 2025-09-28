@@ -1,11 +1,11 @@
 <!-- cargo-rdme start -->
 
-coalesced supports reading configs from multiple sources
+semigroup supports reading configs from multiple sources
 
 ## Usage
 ```toml
 [dependencies]
-coalesced = { git = "https://github.com/hayas1/coalesced" }
+semigroup = { git = "https://github.com/hayas1/semigroup" }
 ```
 
 ## Examples
@@ -13,13 +13,13 @@ coalesced = { git = "https://github.com/hayas1/coalesced" }
 ### Annotation
 #### Simple string annotation
 ```rust
-use coalesced::{Annotate, Semigroup};
+use semigroup::{Annotate, Semigroup};
 #[derive(Debug, Clone, PartialEq, Semigroup)]
-#[semigroup(annotated, with = "coalesced::op::annotation::coalesce::Coalesce")]
+#[semigroup(annotated, with = "semigroup::op::annotation::coalesce::Coalesce")]
 pub struct Config<'a> {
     pub num: Option<u32>,
     pub str: Option<&'a str>,
-    #[semigroup(with = "coalesced::op::annotation::replace::Replace")]
+    #[semigroup(with = "semigroup::op::annotation::replace::Replace")]
     pub boolean: bool,
 }
 
@@ -37,13 +37,13 @@ assert_eq!(config.annotation().boolean, "Cli");
 
 #### Rich enum annotation
 ```rust
-use coalesced::{Annotate, Semigroup};
+use semigroup::{Annotate, Semigroup};
 #[derive(Debug, Clone, PartialEq, Semigroup)]
-#[semigroup(annotated, with = "coalesced::op::annotation::coalesce::Coalesce")]
+#[semigroup(annotated, with = "semigroup::op::annotation::coalesce::Coalesce")]
 pub struct Config<'a> {
     pub num: Option<u32>,
     pub str: Option<&'a str>,
-    #[semigroup(with = "coalesced::op::annotation::replace::Replace")]
+    #[semigroup(with = "semigroup::op::annotation::replace::Replace")]
     pub boolean: bool,
 }
 #[derive(Debug, Clone, PartialEq)]
@@ -68,13 +68,13 @@ assert_eq!(config.annotation().boolean, Source::Cli);
 ### Lazy Evaluation
 #### Reduce
 ```rust
-use coalesced::{Annotate, Semigroup};
+use semigroup::{Annotate, Semigroup};
 #[derive(Debug, Clone, PartialEq, Semigroup)]
-#[semigroup(annotated, with = "coalesced::op::annotation::coalesce::Coalesce")]
+#[semigroup(annotated, with = "semigroup::op::annotation::coalesce::Coalesce")]
 pub struct Config<'a> {
     pub num: Option<u32>,
     pub str: Option<&'a str>,
-    #[semigroup(with = "coalesced::op::annotation::replace::Replace")]
+    #[semigroup(with = "semigroup::op::annotation::replace::Replace")]
     pub boolean: bool,
 }
 
@@ -94,13 +94,13 @@ assert_eq!(config.as_ref().unwrap().annotation().boolean, "Cli");
 ```
 #### Fold with final default
 ```rust
-use coalesced::{Annotate, Semigroup, SemigroupIterator};
+use semigroup::{Annotate, Semigroup, SemigroupIterator};
 #[derive(Debug, Clone, PartialEq, Semigroup)]
-#[semigroup(annotated, with = "coalesced::op::annotation::coalesce::Coalesce")]
+#[semigroup(annotated, with = "semigroup::op::annotation::coalesce::Coalesce")]
 pub struct Config<'a> {
     pub num: Option<u32>,
     pub str: Option<&'a str>,
-    #[semigroup(with = "coalesced::op::annotation::replace::Replace")]
+    #[semigroup(with = "semigroup::op::annotation::replace::Replace")]
     pub boolean: bool,
 }
 
@@ -120,13 +120,13 @@ assert_eq!(config.annotation().boolean, "Default");
 ```
 
 ## Documents
-<https://hayas1.github.io/coalesced/coalesced>
+<https://hayas1.github.io/semigroup/semigroup>
 
 ## Testing
 ### Benchmarks
 // TODO
 
 ### Coverage
-<https://hayas1.github.io/coalesced/coalesced/tarpaulin-report.html>
+<https://hayas1.github.io/semigroup/semigroup/tarpaulin-report.html>
 
 <!-- cargo-rdme end -->

@@ -1,4 +1,4 @@
-use coalesced::{
+use semigroup::{
     op::{annotation::coalesce::Coalesce, Construction},
     Annotate, Semigroup,
 };

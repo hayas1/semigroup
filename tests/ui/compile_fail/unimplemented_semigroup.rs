@@ -1,9 +1,9 @@
-use coalesced::Semigroup;
+use semigroup::Semigroup;
 
 #[derive(Debug, Clone, PartialEq, Semigroup)]
 pub struct NamedStruct<'a> {
     pub num: Option<u32>,
-    #[semigroup(with = "coalesced::op::annotation::coalesce::Coalesce")]
+    #[semigroup(with = "semigroup::op::annotation::coalesce::Coalesce")]
     pub str: Option<&'a str>,
 }
 

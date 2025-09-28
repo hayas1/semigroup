@@ -1,4 +1,4 @@
-use coalesced::{
+use semigroup::{
     assert_semigroup_op, op::Construction, Annotated, AnnotatedSemigroup, Construction, Semigroup,
 };
 
