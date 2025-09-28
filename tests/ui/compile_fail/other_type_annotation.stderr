@@ -1,44 +1,22 @@
 error[E0308]: mismatched types
- --> tests/ui/compile_fail/other_type_annotation.rs:7:25
-  |
-7 |     let c = a.semigroup(b);
-  |               --------- ^ expected `Annotated<Coalesce<{integer}>, &str>`, found `Annotated<Coalesce<{integer}>, String>`
-  |               |
-  |               arguments to this method are incorrect
-  |
-  = note: expected struct `Annotated<Coalesce<{integer}>, &str>`
-             found struct `Annotated<Coalesce<{integer}>, String>`
+  --> tests/ui/compile_fail/other_type_annotation.rs:10:25
+   |
+10 |     let c = a.semigroup(b);
+   |               --------- ^ expected `Annotated<Coalesce<{integer}>, &str>`, found `Annotated<Coalesce<{integer}>, String>`
+   |               |
+   |               arguments to this method are incorrect
+   |
+   = note: expected struct `Annotated<Coalesce<{integer}>, &str>`
+              found struct `Annotated<Coalesce<{integer}>, String>`
 help: the return type of this call is `Annotated<Coalesce<{integer}>, String>` due to the type of the argument passed
- --> tests/ui/compile_fail/other_type_annotation.rs:7:13
-  |
-7 |     let c = a.semigroup(b);
-  |             ^^^^^^^^^^^^-^
-  |                         |
-  |                         this argument influences the return type of `semigroup`
+  --> tests/ui/compile_fail/other_type_annotation.rs:10:13
+   |
+10 |     let c = a.semigroup(b);
+   |             ^^^^^^^^^^^^-^
+   |                         |
+   |                         this argument influences the return type of `semigroup`
 note: method defined here
- --> coalesced_base/src/semigroup.rs
-  |
-  |     fn semigroup(self, other: Self) -> Self
-  |        ^^^^^^^^^
-
-error[E0599]: no method named `into_inner` found for struct `Coalesce<{integer}>` in the current scope
- --> tests/ui/compile_fail/other_type_annotation.rs:8:31
-  |
-8 |     assert_eq!(c.into_value().into_inner(), Some(2));
-  |                               ^^^^^^^^^^
-  |
- ::: coalesced_base/src/op.rs
-  |
-  |     fn into_inner(self) -> T;
-  |        ---------- the method is available for `Coalesce<{integer}>` here
-  |
-  = help: items from traits can only be used if the trait is in scope
-help: trait `Construction` which provides `into_inner` is implemented but not in scope; perhaps you want to import it
-  |
-1  + use coalesced::op::Construction;
+  --> coalesced_base/src/semigroup.rs
    |
-help: there is a method `into_iter` with a similar name
-   |
-8  -     assert_eq!(c.into_value().into_inner(), Some(2));
-8  +     assert_eq!(c.into_value().into_iter(), Some(2));
-   |
+   |     fn semigroup(self, other: Self) -> Self
+   |        ^^^^^^^^^

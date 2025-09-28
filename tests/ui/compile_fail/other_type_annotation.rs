@@ -1,4 +1,7 @@
-use coalesced::{op::annotation::coalesce::Coalesce, Annotate, Semigroup};
+use coalesced::{
+    op::{annotation::coalesce::Coalesce, Construction},
+    Annotate, Semigroup,
+};
 
 fn main() {
     let a = Coalesce(Some(1)).annotated("a");
