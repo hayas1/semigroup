@@ -21,13 +21,13 @@ pub enum Absolute {}
 impl ConstantExt for Absolute {
     fn constant() -> Constant {
         Constant {
-            path_semigroup: parse_quote! {::coalesced::Semigroup},
-            path_annotated_semigroup: parse_quote! {::coalesced::AnnotatedSemigroup},
-            path_annotated: parse_quote! {::coalesced::Annotated},
-            path_annotate: parse_quote! {::coalesced::Annotate},
-            path_reverse: parse_quote! {::coalesced::Reverse},
-            path_construction_trait: parse_quote! {::coalesced::op::Construction},
-            path_construction_annotated: parse_quote! {::coalesced::op::ConstructionAnnotated},
+            path_semigroup: parse_quote! {::semigroup::Semigroup},
+            path_annotated_semigroup: parse_quote! {::semigroup::AnnotatedSemigroup},
+            path_annotated: parse_quote! {::semigroup::Annotated},
+            path_annotate: parse_quote! {::semigroup::Annotate},
+            path_reverse: parse_quote! {::semigroup::Reverse},
+            path_construction_trait: parse_quote! {::semigroup::op::Construction},
+            path_construction_annotated: parse_quote! {::semigroup::op::ConstructionAnnotated},
             default_type_param: parse_quote! { A },
         }
     }

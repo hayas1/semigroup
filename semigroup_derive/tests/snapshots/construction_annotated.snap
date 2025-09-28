@@ -1,32 +1,32 @@
 ---
-source: coalesced_derive/src/construction.rs
+source: semigroup_derive/src/construction.rs
 assertion_line: 70
 expression: formatted
 ---
 pub trait CoalesceExt: Sized + Semigroup {
     fn coalesce(self, other: Self) -> Self {
-        ::coalesced::Semigroup::semigroup_op(self, other)
+        ::semigroup::Semigroup::semigroup_op(self, other)
     }
 }
 #[automatically_derived]
 impl<T> CoalesceExt for Coalesce<T> {}
 #[automatically_derived]
-impl<T> CoalesceExt for ::coalesced::Reverse<Coalesce<T>> {}
+impl<T> CoalesceExt for ::semigroup::Reverse<Coalesce<T>> {}
 #[automatically_derived]
-impl<T, A> CoalesceExt for ::coalesced::Annotated<Coalesce<T>, A> {}
+impl<T, A> CoalesceExt for ::semigroup::Annotated<Coalesce<T>, A> {}
 #[automatically_derived]
-impl<T, A> CoalesceExt for ::coalesced::Reverse<::coalesced::Annotated<Coalesce<T>, A>> {}
+impl<T, A> CoalesceExt for ::semigroup::Reverse<::semigroup::Annotated<Coalesce<T>, A>> {}
 #[automatically_derived]
-impl<T> ::coalesced::Semigroup for Coalesce<T> {
+impl<T> ::semigroup::Semigroup for Coalesce<T> {
     fn semigroup_op(base: Self, other: Self) -> Self {
-        ::coalesced::Annotated::lift_unit_annotated_op((base, ()), (other, ()))
+        ::semigroup::Annotated::lift_unit_annotated_op((base, ()), (other, ()))
     }
 }
 #[automatically_derived]
-impl<T, A> ::coalesced::Annotate<A> for Coalesce<T> {
+impl<T, A> ::semigroup::Annotate<A> for Coalesce<T> {
     type Annotation = A;
-    fn annotated(self, annotation: Self::Annotation) -> ::coalesced::Annotated<Self, A> {
-        ::coalesced::Annotated::new(self, annotation)
+    fn annotated(self, annotation: Self::Annotation) -> ::semigroup::Annotated<Self, A> {
+        ::semigroup::Annotated::new(self, annotation)
     }
 }
 #[automatically_derived]
@@ -49,10 +49,10 @@ impl<T> std::ops::DerefMut for Coalesce<T> {
     }
 }
 #[automatically_derived]
-impl<T> ::coalesced::op::Construction<Option<T>> for Coalesce<T> {
+impl<T> ::semigroup::op::Construction<Option<T>> for Coalesce<T> {
     fn into_inner(self) -> Option<T> {
         self.0
     }
 }
 #[automatically_derived]
-impl<T, A> ::coalesced::op::ConstructionAnnotated<Option<T>, A> for Coalesce<T> {}
+impl<T, A> ::semigroup::op::ConstructionAnnotated<Option<T>, A> for Coalesce<T> {}

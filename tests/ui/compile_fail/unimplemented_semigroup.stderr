@@ -9,7 +9,7 @@ error[E0277]: the trait bound `Option<u32>: Semigroup` is not satisfied
             Coalesce<T>
             NamedStruct<'a>
             Replace<T>
-            coalesced::Reverse<T>
-            coalesced::op::annotation::concat::Concat<T>
-            coalesced::op::semigroup::add::Add<T>
+            semigroup::Reverse<T>
+            semigroup::op::annotation::concat::Concat<T>
+            semigroup::op::semigroup::add::Add<T>
   = note: this error originates in the derive macro `Semigroup` (in Nightly builds, run with -Z macro-backtrace for more info)

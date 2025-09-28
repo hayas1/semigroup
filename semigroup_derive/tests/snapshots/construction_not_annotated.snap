@@ -1,5 +1,5 @@
 ---
-source: coalesced_derive/src/construction.rs
+source: semigroup_derive/src/construction.rs
 assertion_line: 70
 expression: formatted
 ---

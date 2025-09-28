@@ -108,7 +108,7 @@ mod tests {
         syn::parse_quote! {
             #[derive(Construction)]
             #[construction(annotated, op_trait = CoalesceExt)]
-            pub struct Coalesced<T>(pub Option<T>);
+            pub struct Coalesce<T>(pub Option<T>);
         },
         Ok(ContainerAttr {
             annotated: true,

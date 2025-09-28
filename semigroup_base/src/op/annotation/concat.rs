@@ -1,4 +1,4 @@
-use coalesced_derive::ConstructionUse;
+use semigroup_derive::ConstructionUse;
 
 use crate::{
     annotate::Annotated,

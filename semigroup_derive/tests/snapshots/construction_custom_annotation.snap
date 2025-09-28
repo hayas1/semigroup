@@ -1,23 +1,23 @@
 ---
-source: coalesced_derive/src/construction.rs
+source: semigroup_derive/src/construction.rs
 assertion_line: 70
 expression: formatted
 ---
 pub trait ConcatExt: Sized + Semigroup {
     fn concat(self, other: Self) -> Self {
-        ::coalesced::Semigroup::semigroup_op(self, other)
+        ::semigroup::Semigroup::semigroup_op(self, other)
     }
 }
 #[automatically_derived]
 impl<T: IntoIterator + FromIterator<T::Item>> ConcatExt for Concat<T> {}
 #[automatically_derived]
 impl<T: IntoIterator + FromIterator<T::Item>> ConcatExt
-for ::coalesced::Reverse<Concat<T>> {}
+for ::semigroup::Reverse<Concat<T>> {}
 #[automatically_derived]
 impl<
     T: IntoIterator + FromIterator<T::Item>,
     X: IntoIterator + FromIterator<X::Item>,
-> ConcatExt for ::coalesced::Annotated<Concat<T>, X>
+> ConcatExt for ::semigroup::Annotated<Concat<T>, X>
 where
     X::Item: Clone,
 {}
@@ -25,14 +25,14 @@ where
 impl<
     T: IntoIterator + FromIterator<T::Item>,
     X: IntoIterator + FromIterator<X::Item>,
-> ConcatExt for ::coalesced::Reverse<::coalesced::Annotated<Concat<T>, X>>
+> ConcatExt for ::semigroup::Reverse<::semigroup::Annotated<Concat<T>, X>>
 where
     X::Item: Clone,
 {}
 #[automatically_derived]
-impl<T: IntoIterator + FromIterator<T::Item>> ::coalesced::Semigroup for Concat<T> {
+impl<T: IntoIterator + FromIterator<T::Item>> ::semigroup::Semigroup for Concat<T> {
     fn semigroup_op(base: Self, other: Self) -> Self {
-        ::coalesced::Annotated::lift_unit_annotated_op(
+        ::semigroup::Annotated::lift_unit_annotated_op(
             (base, vec![(); 0]),
             (other, vec![(); 0]),
         )
@@ -42,13 +42,13 @@ impl<T: IntoIterator + FromIterator<T::Item>> ::coalesced::Semigroup for Concat<
 impl<
     T: IntoIterator + FromIterator<T::Item>,
     X: IntoIterator + FromIterator<X::Item>,
-> ::coalesced::Annotate<X> for Concat<T>
+> ::semigroup::Annotate<X> for Concat<T>
 where
     X::Item: Clone,
 {
     type Annotation = X;
-    fn annotated(self, annotation: Self::Annotation) -> ::coalesced::Annotated<Self, X> {
-        ::coalesced::Annotated::new(self, annotation)
+    fn annotated(self, annotation: Self::Annotation) -> ::semigroup::Annotated<Self, X> {
+        ::semigroup::Annotated::new(self, annotation)
     }
 }
 #[automatically_derived]
@@ -71,7 +71,7 @@ impl<T: IntoIterator + FromIterator<T::Item>> std::ops::DerefMut for Concat<T> {
     }
 }
 #[automatically_derived]
-impl<T: IntoIterator + FromIterator<T::Item>> ::coalesced::op::Construction<T>
+impl<T: IntoIterator + FromIterator<T::Item>> ::semigroup::op::Construction<T>
 for Concat<T> {
     fn into_inner(self) -> T {
         self.0
@@ -81,7 +81,7 @@ for Concat<T> {
 impl<
     T: IntoIterator + FromIterator<T::Item>,
     X: IntoIterator + FromIterator<X::Item>,
-> ::coalesced::op::ConstructionAnnotated<T, X> for Concat<T>
+> ::semigroup::op::ConstructionAnnotated<T, X> for Concat<T>
 where
     X::Item: Clone,
 {}

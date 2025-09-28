@@ -1,9 +1,11 @@
-//! coalesced supports reading configs from multiple sources
+//! Semigroup trait is useful
+//! - reading configs from multiple sources
+//! - statistically aggregation
 //!
 //! # Usage
 //! ```toml
 //! [dependencies]
-//! coalesced = { git = "https://github.com/hayas1/coalesced" }
+//! semigroup = { git = "https://github.com/hayas1/semigroup" }
 //! ```
 //!
 //! # Examples
@@ -11,13 +13,13 @@
 //! ## Annotation
 //! ### Simple string annotation
 //! ```
-//! use coalesced::{Annotate, Semigroup};
+//! use semigroup::{Annotate, Semigroup};
 //! #[derive(Debug, Clone, PartialEq, Semigroup)]
-//! #[semigroup(annotated, with = "coalesced::op::annotation::coalesce::Coalesce")]
+//! #[semigroup(annotated, with = "semigroup::op::annotation::coalesce::Coalesce")]
 //! pub struct Config<'a> {
 //!     pub num: Option<u32>,
 //!     pub str: Option<&'a str>,
-//!     #[semigroup(with = "coalesced::op::annotation::replace::Replace")]
+//!     #[semigroup(with = "semigroup::op::annotation::replace::Replace")]
 //!     pub boolean: bool,
 //! }
 //!
@@ -35,13 +37,13 @@
 //!
 //! ### Rich enum annotation
 //! ```
-//! use coalesced::{Annotate, Semigroup};
+//! use semigroup::{Annotate, Semigroup};
 //! #[derive(Debug, Clone, PartialEq, Semigroup)]
-//! #[semigroup(annotated, with = "coalesced::op::annotation::coalesce::Coalesce")]
+//! #[semigroup(annotated, with = "semigroup::op::annotation::coalesce::Coalesce")]
 //! pub struct Config<'a> {
 //!     pub num: Option<u32>,
 //!     pub str: Option<&'a str>,
-//!     #[semigroup(with = "coalesced::op::annotation::replace::Replace")]
+//!     #[semigroup(with = "semigroup::op::annotation::replace::Replace")]
 //!     pub boolean: bool,
 //! }
 //! #[derive(Debug, Clone, PartialEq)]
@@ -66,13 +68,13 @@
 //! ## Lazy Evaluation
 //! ### Reduce
 //! ```
-//! use coalesced::{Annotate, Semigroup};
+//! use semigroup::{Annotate, Semigroup};
 //! #[derive(Debug, Clone, PartialEq, Semigroup)]
-//! #[semigroup(annotated, with = "coalesced::op::annotation::coalesce::Coalesce")]
+//! #[semigroup(annotated, with = "semigroup::op::annotation::coalesce::Coalesce")]
 //! pub struct Config<'a> {
 //!     pub num: Option<u32>,
 //!     pub str: Option<&'a str>,
-//!     #[semigroup(with = "coalesced::op::annotation::replace::Replace")]
+//!     #[semigroup(with = "semigroup::op::annotation::replace::Replace")]
 //!     pub boolean: bool,
 //! }
 //!
@@ -92,13 +94,13 @@
 //! ```
 //! ### Fold with final default
 //! ```
-//! use coalesced::{Annotate, Semigroup, SemigroupIterator};
+//! use semigroup::{Annotate, Semigroup, SemigroupIterator};
 //! #[derive(Debug, Clone, PartialEq, Semigroup)]
-//! #[semigroup(annotated, with = "coalesced::op::annotation::coalesce::Coalesce")]
+//! #[semigroup(annotated, with = "semigroup::op::annotation::coalesce::Coalesce")]
 //! pub struct Config<'a> {
 //!     pub num: Option<u32>,
 //!     pub str: Option<&'a str>,
-//!     #[semigroup(with = "coalesced::op::annotation::replace::Replace")]
+//!     #[semigroup(with = "semigroup::op::annotation::replace::Replace")]
 //!     pub boolean: bool,
 //! }
 //!
@@ -118,17 +120,17 @@
 //! ```
 //!
 //! # Documents
-//! <https://hayas1.github.io/coalesced/coalesced>
+//! <https://hayas1.github.io/semigroup/semigroup>
 //!
 //! # Testing
 //! ## Benchmarks
 //! // TODO
 //!
 //! ## Coverage
-//! <https://hayas1.github.io/coalesced/coalesced/tarpaulin-report.html>
+//! <https://hayas1.github.io/semigroup/semigroup/tarpaulin-report.html>
 //!
 
-pub use coalesced_base::{
+pub use semigroup_base::{
     annotate::{Annotate, Annotated},
     iter::{SemigroupDoubleEndedIterator, SemigroupIterator},
     op,
@@ -137,7 +139,7 @@ pub use coalesced_base::{
 };
 
 #[cfg(feature = "derive")]
-pub use coalesced_derive::{Construction, Semigroup};
+pub use semigroup_derive::{Construction, Semigroup};
 
 #[cfg(feature = "test")]
-pub use coalesced_base::semigroup::tests::assert_semigroup_op;
+pub use semigroup_base::semigroup::tests::assert_semigroup_op;
