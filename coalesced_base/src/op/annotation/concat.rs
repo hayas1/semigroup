@@ -49,19 +49,6 @@ where
         )
     }
 }
-// #[cfg(feature = "iterator_concat")]
-mod sealed {
-    // use super::*;
-
-    // impl<T: IntoIterator + FromIterator<T::Item>, A: IntoIterator + FromIterator<A::Item>>
-    //     AnnotatedSemigroup<A> for T
-    // {
-    //     fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
-    //         AnnotatedSemigroup::annotated_op(base.map(Construct), other.map(Construct))
-    //             .map(Construct::into_inner)
-    //     }
-    // }
-}
 
 #[cfg(test)]
 mod tests {
