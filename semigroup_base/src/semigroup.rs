@@ -19,6 +19,7 @@ pub mod tests {
 
     use crate::{
         iter::tests::assert_lazy_evaluation_iter,
+        monoid::tests::assert_option_monoid,
         reverse::tests::{assert_reverse, assert_reverse_associative_law},
     };
 
@@ -37,6 +38,7 @@ pub mod tests {
         assert_reverse(a.clone(), b.clone(), c.clone());
         assert_reverse_associative_law(a.clone(), b.clone(), c.clone());
         assert_lazy_evaluation_iter(a.clone(), b.clone(), c.clone());
+        assert_option_monoid(a.clone(), b.clone(), c.clone());
     }
 
     pub fn assert_associative_law<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {

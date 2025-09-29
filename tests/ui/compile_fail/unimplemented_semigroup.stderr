@@ -12,4 +12,5 @@ error[E0277]: the trait bound `Option<u32>: Semigroup` is not satisfied
             semigroup::Reverse<T>
             semigroup::op::annotation::concat::Concat<T>
             semigroup::op::semigroup::add::Add<T>
+            semigroup_base::monoid::OptionMonoid<T>
   = note: this error originates in the derive macro `Semigroup` (in Nightly builds, run with -Z macro-backtrace for more info)
