@@ -182,7 +182,9 @@ mod tests {
 
     #[test]
     fn test_sum() {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, ConstructionUse)]
+        #[derive(
+            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse,
+        )]
         struct Sum<T: Zero + Add<Output = T> + Clone>(pub T);
         impl<T: Zero + Add<Output = T> + Clone> Semigroup for Sum<T> {
             fn semigroup_op(base: Self, other: Self) -> Self {
@@ -215,7 +217,9 @@ mod tests {
 
     #[test]
     fn test_prod() {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, ConstructionUse)]
+        #[derive(
+            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse,
+        )]
         struct Prod<T: One + Mul<Output = T> + Clone>(pub T);
         impl<T: One + Mul<Output = T> + Clone> Semigroup for Prod<T> {
             fn semigroup_op(base: Self, other: Self) -> Self {
@@ -248,7 +252,9 @@ mod tests {
 
     #[test]
     fn test_max() {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, ConstructionUse)]
+        #[derive(
+            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse,
+        )]
         struct Max<T: Bounded + Ord + Clone>(pub T);
         impl<T: Bounded + Ord + Clone> Semigroup for Max<T> {
             fn semigroup_op(base: Self, other: Self) -> Self {
@@ -278,7 +284,9 @@ mod tests {
 
     #[test]
     fn test_min() {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, ConstructionUse)]
+        #[derive(
+            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse,
+        )]
         struct Min<T: Bounded + Ord + Clone>(pub T);
         impl<T: Bounded + Ord + Clone> Semigroup for Min<T> {
             fn semigroup_op(base: Self, other: Self) -> Self {
@@ -308,7 +316,9 @@ mod tests {
 
     #[test]
     fn test_gcd() {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, ConstructionUse)]
+        #[derive(
+            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse,
+        )]
         struct Gcd<T: Unsigned + Integer + Clone>(T);
         impl<T: Unsigned + Integer + Clone> Semigroup for Gcd<T> {
             fn semigroup_op(base: Self, other: Self) -> Self {
@@ -338,7 +348,9 @@ mod tests {
 
     #[test]
     fn test_lcm() {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, ConstructionUse)]
+        #[derive(
+            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse,
+        )]
         struct Lcm<T: Unsigned + Integer + Clone>(T);
         impl<T: Unsigned + Integer + Clone> Semigroup for Lcm<T> {
             fn semigroup_op(base: Self, other: Self) -> Self {
@@ -368,7 +380,9 @@ mod tests {
 
     #[test]
     fn test_xor() {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, ConstructionUse)]
+        #[derive(
+            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse,
+        )]
         struct Xor<T: Zero + BitXor<Output = T> + Clone>(T);
         impl<T: Zero + BitXor<Output = T> + Clone> Semigroup for Xor<T> {
             fn semigroup_op(base: Self, other: Self) -> Self {
@@ -398,7 +412,9 @@ mod tests {
 
     #[test]
     fn test_empty_tree() {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, ConstructionUse)]
+        #[derive(
+            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse,
+        )]
         struct Sum(u64);
         impl Semigroup for Sum {
             fn semigroup_op(base: Self, other: Self) -> Self {
@@ -417,7 +433,9 @@ mod tests {
 
     #[test]
     fn test_singleton_tree() {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, ConstructionUse)]
+        #[derive(
+            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse,
+        )]
         struct Prod(u64);
         impl Semigroup for Prod {
             fn semigroup_op(base: Self, other: Self) -> Self {
@@ -440,7 +458,9 @@ mod tests {
 
     #[test]
     fn test_large_tree() {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, ConstructionUse)]
+        #[derive(
+            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse,
+        )]
         struct Sum(u128);
         impl Semigroup for Sum {
             fn semigroup_op(base: Self, other: Self) -> Self {
@@ -475,7 +495,9 @@ mod tests {
 
     #[test]
     fn test_bisect() {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, ConstructionUse)]
+        #[derive(
+            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse,
+        )]
         struct Max<T: Bounded + Ord + Clone>(pub T);
         impl<T: Bounded + Ord + Clone> Semigroup for Max<T> {
             fn semigroup_op(base: Self, other: Self) -> Self {
