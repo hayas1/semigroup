@@ -485,7 +485,7 @@ mod tests {
         for i in 0..2000000 {
             sum_tree.update_with(i, |Sum(x)| Sum(x + 1)); // expensive loop
         }
-        let cum_sum_1 = |s, t| (s + t + 2) * (t - s + 1) / 2;
+        let cum_sum_1 = |s, t| (t - s + 1) * (s + t + 2) / 2;
         assert_eq!(sum_tree.fold(0..=10).0, cum_sum_1(0u128, 10u128));
         assert_eq!(sum_tree.fold(5..=15).0, cum_sum_1(5, 15));
         assert_eq!(sum_tree.fold(123..=1234567).0, cum_sum_1(123, 1234567));
