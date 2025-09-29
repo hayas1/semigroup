@@ -176,7 +176,12 @@ mod tests {
     use rand::seq::IndexedRandom;
     use semigroup_derive::ConstructionUse;
 
-    use crate::{assert_monoid, op::Construction, semigroup::Semigroup};
+    use crate::{
+        assert_monoid,
+        monoid::OptionMonoid,
+        op::{annotation::coalesce::Coalesce, Construction},
+        semigroup::Semigroup,
+    };
 
     use super::*;
 
@@ -412,48 +417,44 @@ mod tests {
 
     #[test]
     fn test_empty_tree() {
-        #[derive(
-            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse,
-        )]
-        struct Sum(u64);
-        impl Semigroup for Sum {
-            fn semigroup_op(base: Self, other: Self) -> Self {
-                Sum(base.0 + other.0)
-            }
-        }
-        impl Monoid for Sum {
-            fn unit() -> Self {
-                Sum(0)
-            }
-        }
-        let sum_tree = SegmentTree::<Sum>::from(vec![]);
-        assert_eq!(sum_tree.fold(..).0, 0);
-        assert_eq!(sum_tree.fold(0..0).0, 0);
+        let empty = SegmentTree::<OptionMonoid<Coalesce<u64>>>::from(vec![]);
+        assert!(empty.is_empty());
+        assert_eq!(empty.len(), 0);
+        assert_eq!(
+            empty.tree,
+            // TODO optimize
+            vec![
+                OptionMonoid::unit(),
+                OptionMonoid::unit(),
+                OptionMonoid::unit(),
+            ]
+        );
+
+        assert_eq!(empty.fold(..), OptionMonoid::unit());
+        assert_eq!(empty.fold(0..0), OptionMonoid::unit());
     }
 
     #[test]
     fn test_singleton_tree() {
-        #[derive(
-            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse,
-        )]
-        struct Prod(u64);
-        impl Semigroup for Prod {
-            fn semigroup_op(base: Self, other: Self) -> Self {
-                Prod(base.0 * other.0)
-            }
-        }
-        impl Monoid for Prod {
-            fn unit() -> Self {
-                Prod(1)
-            }
-        }
-        let mut prod_tree = SegmentTree::<Prod>::from(vec![3.into()]);
-        assert_eq!(prod_tree.fold(..).0, 3);
-        assert_eq!(prod_tree.fold(1..1).0, 1);
-        assert_eq!(prod_tree.fold(1..).0, 1);
-        prod_tree.update(0, 5.into());
-        assert_eq!(prod_tree.fold(..).0, 5);
-        assert_eq!(prod_tree.fold(1..).0, 1);
+        let mut single = SegmentTree::<_>::from(vec![OptionMonoid::from(Coalesce(Some(3)))]);
+        assert!(!single.is_empty());
+        assert_eq!(single.len(), 1);
+        assert_eq!(
+            single.tree,
+            // TODO optimize
+            vec![
+                OptionMonoid::from(Coalesce(Some(3))),
+                OptionMonoid::unit(),
+                OptionMonoid::unit(),
+            ]
+        );
+
+        assert_eq!(single.fold(..), OptionMonoid::from(Coalesce(Some(3))));
+        assert_eq!(single.fold(1..1), OptionMonoid::unit());
+        assert_eq!(single.fold(1..), OptionMonoid::unit());
+        single.update(0, OptionMonoid::from(Coalesce(Some(5))));
+        assert_eq!(single.fold(..), OptionMonoid::from(Coalesce(Some(5))));
+        assert_eq!(single.fold(1..), OptionMonoid::unit());
     }
 
     #[test]
