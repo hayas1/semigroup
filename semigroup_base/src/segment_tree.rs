@@ -176,7 +176,7 @@ mod tests {
     use rand::seq::IndexedRandom;
     use semigroup_derive::ConstructionUse;
 
-    use crate::{assert_semigroup_op, op::Construction, semigroup::Semigroup};
+    use crate::{assert_monoid, op::Construction, semigroup::Semigroup};
 
     use super::*;
 
@@ -198,7 +198,7 @@ mod tests {
         }
         let data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         match data.choose_multiple_array(&mut rand::rng()) {
-            Some([a, b, c]) => assert_semigroup_op!(Sum(a), Sum(b), Sum(c)),
+            Some([a, b, c]) => assert_monoid!(Sum(a), Sum(b), Sum(c)),
             _ => unreachable!(),
         }
         let mut sum_tree: SegmentTree<_> = data.into_iter().map(Sum).collect();
@@ -233,7 +233,7 @@ mod tests {
         }
         let data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         match data.choose_multiple_array(&mut rand::rng()) {
-            Some([a, b, c]) => assert_semigroup_op!(Prod(a), Prod(b), Prod(c)),
+            Some([a, b, c]) => assert_monoid!(Prod(a), Prod(b), Prod(c)),
             _ => unreachable!(),
         }
         let mut prod_tree: SegmentTree<_> = data.into_iter().map(Prod).collect();
@@ -268,7 +268,7 @@ mod tests {
         }
         let data = [2, -5, 122, -33, -12, 14, -55, 500, 3];
         match data.choose_multiple_array(&mut rand::rng()) {
-            Some([a, b, c]) => assert_semigroup_op!(Max(a), Max(b), Max(c)),
+            Some([a, b, c]) => assert_monoid!(Max(a), Max(b), Max(c)),
             _ => unreachable!(),
         }
         let mut max_tree: SegmentTree<_> = data.into_iter().map(Max).collect();
@@ -300,7 +300,7 @@ mod tests {
         }
         let data = [2, -5, 122, 33, 12, 14, -55, 500, 3];
         match data.choose_multiple_array(&mut rand::rng()) {
-            Some([a, b, c]) => assert_semigroup_op!(Min(a), Min(b), Min(c)),
+            Some([a, b, c]) => assert_monoid!(Min(a), Min(b), Min(c)),
             _ => unreachable!(),
         }
         let mut min_tree: SegmentTree<_> = data.into_iter().map(Min).collect();
@@ -332,7 +332,7 @@ mod tests {
         }
         let data = [10u32, 3, 4, 8, 6, 2];
         match data.choose_multiple_array(&mut rand::rng()) {
-            Some([a, b, c]) => assert_semigroup_op!(Gcd(a), Gcd(b), Gcd(c)),
+            Some([a, b, c]) => assert_monoid!(Gcd(a), Gcd(b), Gcd(c)),
             _ => unreachable!(),
         }
         let mut gcd_tree: SegmentTree<_> = data.into_iter().map(Gcd).collect();
@@ -364,7 +364,7 @@ mod tests {
         }
         let data = vec![10u32, 3, 4, 8, 6, 2];
         match data.choose_multiple_array(&mut rand::rng()) {
-            Some([a, b, c]) => assert_semigroup_op!(Lcm(a), Lcm(b), Lcm(c)),
+            Some([a, b, c]) => assert_monoid!(Lcm(a), Lcm(b), Lcm(c)),
             _ => unreachable!(),
         }
         let mut lcm_tree: SegmentTree<_> = data.into_iter().map(Lcm).collect();
@@ -396,7 +396,7 @@ mod tests {
         }
         let data = [0b111, 0b101, 0b100, 0b000, 0b010];
         match data.choose_multiple_array(&mut rand::rng()) {
-            Some([a, b, c]) => assert_semigroup_op!(Xor(a), Xor(b), Xor(c)),
+            Some([a, b, c]) => assert_monoid!(Xor(a), Xor(b), Xor(c)),
             _ => unreachable!(),
         }
         let mut xor_tree: SegmentTree<_> = data.into_iter().map(Xor).collect();
