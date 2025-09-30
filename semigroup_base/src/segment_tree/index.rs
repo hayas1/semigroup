@@ -3,6 +3,7 @@ use std::{ops::Index, slice::SliceIndex};
 use crate::segment_tree::SegmentTree;
 
 impl<T> SegmentTree<T> {
+    /// **O(1)**, get element(s) by index like [`Vec`].
     pub fn get<I: SegmentTreeIndex<T>>(&self, index: I) -> Option<&I::Output> {
         // index.get(self) // warn: a method with this name may be added to the standard library in the future
         SegmentTreeIndex::get(index, self)

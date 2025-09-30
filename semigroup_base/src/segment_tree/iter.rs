@@ -24,6 +24,7 @@ impl<'a, T> IntoIterator for &'a SegmentTree<T> {
     }
 }
 impl<T> SegmentTree<T> {
+    /// **O(1)**, get iterator of the segment tree leaf.
     pub fn iter<'a>(&'a self) -> Iter<'a, T> {
         Iter {
             inner: self[..].iter(),
