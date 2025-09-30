@@ -73,7 +73,7 @@ mod tests {
                 _ => unreachable!(),
             })
             .collect();
-        assert_eq!(v, ["one", "two", "three", "four", "five",]);
+        assert_eq!(v, ["one", "two", "three", "four", "five"]);
     }
 
     #[test]
@@ -90,7 +90,7 @@ mod tests {
                 _ => unreachable!(),
             })
             .collect();
-        assert_eq!(v, [&"one", &"two", &"three", &"four", &"five",]);
+        assert_eq!(v, [&"one", &"two", &"three", &"four", &"five"]);
     }
 
     #[test]
@@ -107,6 +107,6 @@ mod tests {
                 _ => unreachable!(),
             }
         }
-        assert_eq!(v, [&"one", &"two", &"three", &"four", &"five",]);
+        assert_eq!(v, [&"one", &"two", &"three", &"four", &"five"]);
     }
 }
