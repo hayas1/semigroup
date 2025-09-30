@@ -33,10 +33,10 @@ mod tests {
             #[derive(Semigroup)]
             #[semigroup(annotated)]
             pub struct NamedStruct {
-                #[semigroup(with = "semigroup::op::annotation::replace::Replaced")]
+                #[semigroup(with = "semigroup::op::annotation::overwrite::Overwrite")]
                 pub foo: String,
                 pub bar: Option<u32>,
-                pub baz: semigroup::op::annotation::replace::Replaced<bool>,
+                pub baz: semigroup::op::annotation::overwrite::Overwrite<bool>,
             }
         },
     )]
@@ -45,7 +45,7 @@ mod tests {
         impl_semigroup::<Use>,
         syn::parse_quote! {
             #[derive(SemigroupUse)]
-            #[semigroup(with = "semigroup::op::annotation::replace::Replaced")]
+            #[semigroup(with = "semigroup::op::annotation::overwrite::Overwrite")]
             pub struct UnnamedStruct<T: std::ops::Add> (
                 #[semigroup(with = "semigroup::op::semigroup::add::Added")]
                 T,
@@ -58,7 +58,7 @@ mod tests {
         impl_semigroup::<Absolute>,
         syn::parse_quote! {
             #[derive(Semigroup)]
-            #[semigroup(annotated, annotation_param = X, with = "semigroup::op::annotation::replace::Replaced")]
+            #[semigroup(annotated, annotation_param = X, with = "semigroup::op::annotation::overwrite::Overwrite")]
             pub struct NamedStruct{
                 pub foo: String,
                 pub bar: Option<u32>,

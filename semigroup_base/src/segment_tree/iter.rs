@@ -65,7 +65,7 @@ impl<'a, T> DoubleEndedIterator for Iter<'a, T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{monoid::OptionMonoid, op::annotation::replace::Replace};
+    use crate::{monoid::OptionMonoid, op::annotation::overwrite::Overwrite};
 
     use super::*;
 
@@ -73,13 +73,13 @@ mod tests {
     fn test_into_iter() {
         let segment_tree: SegmentTree<_> = ["one", "two", "three", "four", "five"]
             .into_iter()
-            .map(Replace)
+            .map(Overwrite)
             .map(OptionMonoid::from)
             .collect();
         let v: Vec<_> = segment_tree
             .into_iter()
             .map(|x| match x {
-                OptionMonoid(Some(Replace(s))) => s,
+                OptionMonoid(Some(Overwrite(s))) => s,
                 _ => unreachable!(),
             })
             .collect();
@@ -90,13 +90,13 @@ mod tests {
     fn test_iter() {
         let segment_tree: SegmentTree<_> = ["one", "two", "three", "four", "five"]
             .into_iter()
-            .map(Replace)
+            .map(Overwrite)
             .map(OptionMonoid::from)
             .collect();
         let v: Vec<_> = segment_tree
             .iter()
             .map(|x| match x {
-                OptionMonoid(Some(Replace(s))) => s,
+                OptionMonoid(Some(Overwrite(s))) => s,
                 _ => unreachable!(),
             })
             .collect();
@@ -107,13 +107,13 @@ mod tests {
     fn test_for() {
         let segment_tree: SegmentTree<_> = ["one", "two", "three", "four", "five"]
             .into_iter()
-            .map(Replace)
+            .map(Overwrite)
             .map(OptionMonoid::from)
             .collect();
         let mut v = Vec::new();
         for OptionMonoid(x) in &segment_tree {
             match x {
-                Some(Replace(s)) => v.push(s),
+                Some(Overwrite(s)) => v.push(s),
                 _ => unreachable!(),
             }
         }

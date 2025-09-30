@@ -10,7 +10,7 @@ impl<T: std::ops::Add> Semigroup for UnnamedStruct<T> {
             0: <semigroup::op::semigroup::add::Added<
                 _,
             > as Construction<_>>::lift_op(base.0, other.0),
-            1: <semigroup::op::annotation::replace::Replaced<
+            1: <semigroup::op::annotation::overwrite::Overwrite<
                 _,
             > as Construction<_>>::lift_op(base.1, other.1),
         }

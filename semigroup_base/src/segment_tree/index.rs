@@ -42,7 +42,7 @@ impl<T, I: SliceIndex<[T]>> SegmentTreeIndex<T> for I {
 mod tests {
     use rstest::rstest;
 
-    use crate::{monoid::OptionMonoid, op::annotation::replace::Replace};
+    use crate::{monoid::OptionMonoid, op::annotation::overwrite::Overwrite};
 
     use super::*;
 
@@ -50,52 +50,52 @@ mod tests {
     fn test_index() {
         let mut segment_tree: SegmentTree<_> = ["one", "two", "three", "four", "five"]
             .into_iter()
-            .map(Replace)
+            .map(Overwrite)
             .map(OptionMonoid::from)
             .collect();
-        assert_eq!(segment_tree[1], OptionMonoid::from(Replace("two")));
+        assert_eq!(segment_tree[1], OptionMonoid::from(Overwrite("two")));
         assert_eq!(segment_tree[2..2], []);
         assert_eq!(
             segment_tree[1..3],
             [
-                OptionMonoid::from(Replace("two")),
-                OptionMonoid::from(Replace("three")),
+                OptionMonoid::from(Overwrite("two")),
+                OptionMonoid::from(Overwrite("three")),
             ]
         );
         assert_eq!(
             segment_tree[1..=3],
             [
-                OptionMonoid::from(Replace("two")),
-                OptionMonoid::from(Replace("three")),
-                OptionMonoid::from(Replace("four")),
+                OptionMonoid::from(Overwrite("two")),
+                OptionMonoid::from(Overwrite("three")),
+                OptionMonoid::from(Overwrite("four")),
             ]
         );
         assert_eq!(
             segment_tree[..2],
             [
-                OptionMonoid::from(Replace("one")),
-                OptionMonoid::from(Replace("two")),
+                OptionMonoid::from(Overwrite("one")),
+                OptionMonoid::from(Overwrite("two")),
             ]
         );
         assert_eq!(
             segment_tree[..=2],
             [
-                OptionMonoid::from(Replace("one")),
-                OptionMonoid::from(Replace("two")),
-                OptionMonoid::from(Replace("three")),
+                OptionMonoid::from(Overwrite("one")),
+                OptionMonoid::from(Overwrite("two")),
+                OptionMonoid::from(Overwrite("three")),
             ]
         );
-        assert_eq!(segment_tree[4..], [OptionMonoid::from(Replace("five"))]);
+        assert_eq!(segment_tree[4..], [OptionMonoid::from(Overwrite("five"))]);
         assert_eq!(segment_tree[5..], []);
-        segment_tree.update(2, OptionMonoid::from(Replace("3")));
+        segment_tree.update(2, OptionMonoid::from(Overwrite("3")));
         assert_eq!(
             segment_tree[..],
             [
-                OptionMonoid::from(Replace("one")),
-                OptionMonoid::from(Replace("two")),
-                OptionMonoid::from(Replace("3")),
-                OptionMonoid::from(Replace("four")),
-                OptionMonoid::from(Replace("five")),
+                OptionMonoid::from(Overwrite("one")),
+                OptionMonoid::from(Overwrite("two")),
+                OptionMonoid::from(Overwrite("3")),
+                OptionMonoid::from(Overwrite("four")),
+                OptionMonoid::from(Overwrite("five")),
             ]
         );
     }
@@ -105,12 +105,12 @@ mod tests {
     #[case::too_long_range(3..100)]
     #[case::out_of_range(6..)]
     #[should_panic]
-    fn test_index_panic<I: SegmentTreeIndex<OptionMonoid<Replace<&'static str>>>>(
+    fn test_index_panic<I: SegmentTreeIndex<OptionMonoid<Overwrite<&'static str>>>>(
         #[case] index: I,
     ) {
         let segment_tree: SegmentTree<_> = ["one", "two", "three", "four", "five"]
             .into_iter()
-            .map(Replace)
+            .map(Overwrite)
             .map(OptionMonoid::from)
             .collect();
         let _ = segment_tree[index];
@@ -120,12 +120,12 @@ mod tests {
     fn test_get() {
         let mut segment_tree: SegmentTree<_> = ["one", "two", "three", "four", "five"]
             .into_iter()
-            .map(Replace)
+            .map(Overwrite)
             .map(OptionMonoid::from)
             .collect();
         assert_eq!(
             segment_tree.get(1),
-            Some(&OptionMonoid::from(Replace("two")))
+            Some(&OptionMonoid::from(Overwrite("two")))
         );
         assert_eq!(segment_tree.get(2..2), Some(&[][..]));
         assert_eq!(segment_tree.get(100), None);
@@ -133,8 +133,8 @@ mod tests {
             segment_tree.get(1..3),
             Some(
                 &[
-                    OptionMonoid::from(Replace("two")),
-                    OptionMonoid::from(Replace("three")),
+                    OptionMonoid::from(Overwrite("two")),
+                    OptionMonoid::from(Overwrite("three")),
                 ][..]
             )
         );
@@ -142,9 +142,9 @@ mod tests {
             segment_tree.get(1..=3),
             Some(
                 &[
-                    OptionMonoid::from(Replace("two")),
-                    OptionMonoid::from(Replace("three")),
-                    OptionMonoid::from(Replace("four")),
+                    OptionMonoid::from(Overwrite("two")),
+                    OptionMonoid::from(Overwrite("three")),
+                    OptionMonoid::from(Overwrite("four")),
                 ][..]
             )
         );
@@ -153,8 +153,8 @@ mod tests {
             segment_tree.get(..2),
             Some(
                 &[
-                    OptionMonoid::from(Replace("one")),
-                    OptionMonoid::from(Replace("two")),
+                    OptionMonoid::from(Overwrite("one")),
+                    OptionMonoid::from(Overwrite("two")),
                 ][..]
             )
         );
@@ -162,28 +162,28 @@ mod tests {
             segment_tree.get(..=2),
             Some(
                 &[
-                    OptionMonoid::from(Replace("one")),
-                    OptionMonoid::from(Replace("two")),
-                    OptionMonoid::from(Replace("three")),
+                    OptionMonoid::from(Overwrite("one")),
+                    OptionMonoid::from(Overwrite("two")),
+                    OptionMonoid::from(Overwrite("three")),
                 ][..]
             )
         );
         assert_eq!(
             segment_tree.get(4..),
-            Some(&[OptionMonoid::from(Replace("five"))][..])
+            Some(&[OptionMonoid::from(Overwrite("five"))][..])
         );
         assert_eq!(segment_tree.get(5..), Some(&[][..]));
         assert_eq!(segment_tree.get(6..), None);
-        segment_tree.update(2, OptionMonoid::from(Replace("3")));
+        segment_tree.update(2, OptionMonoid::from(Overwrite("3")));
         assert_eq!(
             segment_tree.get(..),
             Some(
                 &[
-                    OptionMonoid::from(Replace("one")),
-                    OptionMonoid::from(Replace("two")),
-                    OptionMonoid::from(Replace("3")),
-                    OptionMonoid::from(Replace("four")),
-                    OptionMonoid::from(Replace("five")),
+                    OptionMonoid::from(Overwrite("one")),
+                    OptionMonoid::from(Overwrite("two")),
+                    OptionMonoid::from(Overwrite("3")),
+                    OptionMonoid::from(Overwrite("four")),
+                    OptionMonoid::from(Overwrite("five")),
                 ][..]
             )
         );

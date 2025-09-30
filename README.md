@@ -22,7 +22,7 @@ use semigroup::{Annotate, Semigroup};
 pub struct Config<'a> {
     pub num: Option<u32>,
     pub str: Option<&'a str>,
-    #[semigroup(with = "semigroup::op::annotation::replace::Replace")]
+    #[semigroup(with = "semigroup::op::annotation::overwrite::Overwrite")]
     pub boolean: bool,
 }
 
@@ -46,7 +46,7 @@ use semigroup::{Annotate, Semigroup};
 pub struct Config<'a> {
     pub num: Option<u32>,
     pub str: Option<&'a str>,
-    #[semigroup(with = "semigroup::op::annotation::replace::Replace")]
+    #[semigroup(with = "semigroup::op::annotation::overwrite::Overwrite")]
     pub boolean: bool,
 }
 #[derive(Debug, Clone, PartialEq)]
@@ -77,7 +77,7 @@ use semigroup::{Annotate, Semigroup};
 pub struct Config<'a> {
     pub num: Option<u32>,
     pub str: Option<&'a str>,
-    #[semigroup(with = "semigroup::op::annotation::replace::Replace")]
+    #[semigroup(with = "semigroup::op::annotation::overwrite::Overwrite")]
     pub boolean: bool,
 }
 
@@ -103,7 +103,7 @@ use semigroup::{Annotate, Semigroup, SemigroupIterator};
 pub struct Config<'a> {
     pub num: Option<u32>,
     pub str: Option<&'a str>,
-    #[semigroup(with = "semigroup::op::annotation::replace::Replace")]
+    #[semigroup(with = "semigroup::op::annotation::overwrite::Overwrite")]
     pub boolean: bool,
 }
 

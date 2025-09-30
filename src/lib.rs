@@ -21,7 +21,7 @@
 //! pub struct Config<'a> {
 //!     pub num: Option<u32>,
 //!     pub str: Option<&'a str>,
-//!     #[semigroup(with = "semigroup::op::annotation::replace::Replace")]
+//!     #[semigroup(with = "semigroup::op::annotation::overwrite::Overwrite")]
 //!     pub boolean: bool,
 //! }
 //!
@@ -45,7 +45,7 @@
 //! pub struct Config<'a> {
 //!     pub num: Option<u32>,
 //!     pub str: Option<&'a str>,
-//!     #[semigroup(with = "semigroup::op::annotation::replace::Replace")]
+//!     #[semigroup(with = "semigroup::op::annotation::overwrite::Overwrite")]
 //!     pub boolean: bool,
 //! }
 //! #[derive(Debug, Clone, PartialEq)]
@@ -76,7 +76,7 @@
 //! pub struct Config<'a> {
 //!     pub num: Option<u32>,
 //!     pub str: Option<&'a str>,
-//!     #[semigroup(with = "semigroup::op::annotation::replace::Replace")]
+//!     #[semigroup(with = "semigroup::op::annotation::overwrite::Overwrite")]
 //!     pub boolean: bool,
 //! }
 //!
@@ -102,7 +102,7 @@
 //! pub struct Config<'a> {
 //!     pub num: Option<u32>,
 //!     pub str: Option<&'a str>,
-//!     #[semigroup(with = "semigroup::op::annotation::replace::Replace")]
+//!     #[semigroup(with = "semigroup::op::annotation::overwrite::Overwrite")]
 //!     pub boolean: bool,
 //! }
 //!
