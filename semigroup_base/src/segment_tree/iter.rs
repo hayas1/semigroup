@@ -119,4 +119,32 @@ mod tests {
         }
         assert_eq!(v, [&"one", &"two", &"three", &"four", &"five"]);
     }
+
+    #[test]
+    fn test_double_ended_iter() {
+        let segment_tree: SegmentTree<_> = ["one", "two", "three", "four", "five"]
+            .into_iter()
+            .map(Overwrite)
+            .map(OptionMonoid::from)
+            .collect();
+        let v: Vec<_> = segment_tree
+            .iter()
+            .rev()
+            .map(|x| match x {
+                OptionMonoid(Some(Overwrite(s))) => s,
+                _ => unreachable!(),
+            })
+            .collect();
+        assert_eq!(v, [&"five", &"four", &"three", &"two", &"one"]);
+
+        let v: Vec<_> = segment_tree
+            .into_iter()
+            .rev()
+            .map(|x| match x {
+                OptionMonoid(Some(Overwrite(s))) => s,
+                _ => unreachable!(),
+            })
+            .collect();
+        assert_eq!(v, ["five", "four", "three", "two", "one"]);
+    }
 }
