@@ -3,6 +3,7 @@ use std::ops::{Bound, Range, RangeBounds};
 use crate::monoid::Monoid;
 
 pub mod index;
+pub mod iter;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct SegmentTree<T> {
