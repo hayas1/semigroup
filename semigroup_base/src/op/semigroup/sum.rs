@@ -1,3 +1,5 @@
+use std::ops::Add;
+
 use semigroup_derive::ConstructionUse;
 
 use crate::{op::Construction, reverse::Reverse, semigroup::Semigroup};
@@ -5,16 +7,22 @@ use crate::{op::Construction, reverse::Reverse, semigroup::Semigroup};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[construction(op_trait = SumExt)]
-pub struct Sum<T: std::ops::Add<Output = T>>(pub T);
-impl<T: std::ops::Add<Output = T>> Semigroup for Sum<T> {
+pub struct Sum<T: Add<Output = T>>(pub T);
+impl<T: Add<Output = T>> Semigroup for Sum<T> {
     fn semigroup_op(base: Self, other: Self) -> Self {
-        Sum(base.0 + other.0)
+        Self(base.0 + other.0)
+    }
+}
+#[cfg(feature = "monoid")]
+impl<T: Add<Output = T> + num::Zero> crate::monoid::Monoid for Sum<T> {
+    fn unit() -> Self {
+        Self(T::zero())
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::semigroup::tests::assert_semigroup_op;
+    use crate::{assert_monoid, semigroup::tests::assert_semigroup_op};
 
     use super::*;
 
@@ -22,6 +30,12 @@ mod tests {
     fn test_sum_as_semigroup_op() {
         let (a, b, c) = (Sum(1), Sum(2), Sum(3));
         assert_semigroup_op!(a, b, c);
+    }
+
+    #[test]
+    fn test_sum_as_monoid() {
+        let (a, b, c) = (Sum(1), Sum(2), Sum(3));
+        assert_monoid!(a, b, c);
     }
 
     #[test]
