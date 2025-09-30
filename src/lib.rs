@@ -1,3 +1,4 @@
+#![cfg_attr(doc_cfg, feature(doc_cfg))]
 //! Semigroup trait is useful
 //! - reading configs from multiple sources
 //! - statistically aggregation
@@ -169,10 +170,13 @@ pub use semigroup_base::{
 };
 
 #[cfg(feature = "derive")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "derive")))]
 pub use semigroup_derive::{Construction, Semigroup};
 
 #[cfg(feature = "test")]
-pub use semigroup_base::semigroup::tests::assert_semigroup_op;
+#[cfg_attr(doc_cfg, doc(cfg(feature = "test")))]
+pub use semigroup_base::{monoid::tests::assert_monoid, semigroup::tests::assert_semigroup_op};
 
 #[cfg(feature = "monoid")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "monoid")))]
 pub use semigroup_base::{monoid, segment_tree};
