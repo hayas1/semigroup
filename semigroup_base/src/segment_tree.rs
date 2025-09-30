@@ -2,6 +2,8 @@ use std::ops::{Bound, Range, RangeBounds};
 
 use crate::monoid::Monoid;
 
+pub mod index;
+
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct SegmentTree<T> {
     tree: Vec<T>, // 0-indexed perfect binary tree, left child: 2i+1, right child: 2i+2, parent: (i-1)/2
@@ -23,11 +25,26 @@ impl<T: Monoid + Clone> From<Vec<T>> for SegmentTree<T> {
         Self::with_length(v.len()).construct(v)
     }
 }
-impl<T: Monoid + Clone> SegmentTree<T> {
+impl<T> SegmentTree<T> {
     /// **O(1)**, get size of the segment tree by given length.
     fn size(len: usize) -> usize {
         2 * len.next_power_of_two() + 1
     }
+    /// **O(1)**, get beginning index of the segment tree leaf.
+    #[inline]
+    fn leaf_offset(&self) -> usize {
+        self.len().next_power_of_two() - 1
+    }
+    /// **O(1)**, return this segment tree's number of data.
+    pub fn len(&self) -> usize {
+        self.len
+    }
+    /// **O(1)**, check if this segment tree is empty.
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
+}
+impl<T: Monoid + Clone> SegmentTree<T> {
     /// **O(len)**, init segment tree with capacity.
     fn with_length(len: usize) -> Self {
         let tree = (0..Self::size(len)).map(|_| T::unit()).collect();
@@ -44,19 +61,6 @@ impl<T: Monoid + Clone> SegmentTree<T> {
                 T::semigroup_op(self.tree[i * 2 + 1].clone(), self.tree[i * 2 + 2].clone());
         }
         self
-    }
-    /// **O(1)**, get beginning index of the segment tree leaf.
-    #[inline]
-    fn leaf_offset(&self) -> usize {
-        self.len().next_power_of_two() - 1
-    }
-    /// **O(1)**, return this segment tree's number of data.
-    pub fn len(&self) -> usize {
-        self.len
-    }
-    /// **O(1)**, check if this segment tree is empty.
-    pub fn is_empty(&self) -> bool {
-        self.len == 0
     }
 
     /// **O(log(n))**, set leaf[k] = x, and update segment tree.
