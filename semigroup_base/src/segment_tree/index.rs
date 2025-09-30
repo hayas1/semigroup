@@ -1,7 +1,4 @@
-use std::{
-    ops::{Index, IndexMut},
-    slice::SliceIndex,
-};
+use std::{ops::Index, slice::SliceIndex};
 
 use crate::segment_tree::SegmentTree;
 
@@ -9,9 +6,6 @@ impl<T> SegmentTree<T> {
     pub fn get<I: SegmentTreeIndex<T>>(&self, index: I) -> Option<&I::Output> {
         // index.get(self) // warn: a method with this name may be added to the standard library in the future
         SegmentTreeIndex::get(index, self)
-    }
-    pub fn get_mut<I: SegmentTreeIndex<T>>(&mut self, index: I) -> Option<&mut I::Output> {
-        SegmentTreeIndex::get_mut(index, self)
     }
 }
 impl<T, I: SegmentTreeIndex<T>> Index<I> for SegmentTree<T> {
@@ -21,21 +15,13 @@ impl<T, I: SegmentTreeIndex<T>> Index<I> for SegmentTree<T> {
         SegmentTreeIndex::index(index, self)
     }
 }
-impl<T, I: SegmentTreeIndex<T>> IndexMut<I> for SegmentTree<T> {
-    fn index_mut(&mut self, index: I) -> &mut Self::Output {
-        SegmentTreeIndex::index_mut(index, self)
-    }
-}
 
 pub trait SegmentTreeIndex<T> {
     type Output: ?Sized;
 
     fn get(self, segment_tree: &SegmentTree<T>) -> Option<&Self::Output>;
-    fn get_mut(self, segment_tree: &mut SegmentTree<T>) -> Option<&mut Self::Output>;
     // TODO unsafe fn get_unchecked(self, segment_tree: *const SegmentTree<T>) -> *const Self::Output;
-    // TODO unsafe fn get_unchecked_mut(self, segment_tree: *mut SegmentTree<T>) -> *mut Self::Output;
     fn index(self, segment_tree: &SegmentTree<T>) -> &Self::Output;
-    fn index_mut(self, segment_tree: &mut SegmentTree<T>) -> &mut Self::Output;
 }
 
 impl<T, I: SliceIndex<[T]>> SegmentTreeIndex<T> for I {
@@ -45,17 +31,9 @@ impl<T, I: SliceIndex<[T]>> SegmentTreeIndex<T> for I {
         let (leaf_offset, len) = (segment_tree.leaf_offset(), segment_tree.len());
         segment_tree.tree[leaf_offset..leaf_offset + len].get(self) // TODO optimize ?
     }
-    fn get_mut(self, segment_tree: &mut SegmentTree<T>) -> Option<&mut Self::Output> {
-        let (leaf_offset, len) = (segment_tree.leaf_offset(), segment_tree.len());
-        segment_tree.tree[leaf_offset..leaf_offset + len].get_mut(self) // TODO optimize ?
-    }
     fn index(self, segment_tree: &SegmentTree<T>) -> &Self::Output {
         let (leaf_offset, len) = (segment_tree.leaf_offset(), segment_tree.len());
         &segment_tree.tree[leaf_offset..leaf_offset + len][self] // TODO optimize ?
-    }
-    fn index_mut(self, segment_tree: &mut SegmentTree<T>) -> &mut Self::Output {
-        let (leaf_offset, len) = (segment_tree.leaf_offset(), segment_tree.len());
-        &mut segment_tree.tree[leaf_offset..leaf_offset + len][self] // TODO optimize ?
     }
 }
 
