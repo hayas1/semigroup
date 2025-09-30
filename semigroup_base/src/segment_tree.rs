@@ -5,7 +5,7 @@ use crate::monoid::Monoid;
 pub mod index;
 pub mod iter;
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Hash)]
 pub struct SegmentTree<T> {
     tree: Vec<T>, // 0-indexed perfect binary tree, left child: 2i+1, right child: 2i+2, parent: (i-1)/2
     len: usize,
