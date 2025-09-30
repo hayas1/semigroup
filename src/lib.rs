@@ -1,11 +1,12 @@
 //! Semigroup trait is useful
 //! - reading configs from multiple sources
 //! - statistically aggregation
+//! - fast range queries using segment tree
 //!
 //! # Usage
 //! ```toml
 //! [dependencies]
-//! semigroup = { git = "https://github.com/hayas1/semigroup" }
+//! semigroup = { git = "https://github.com/hayas1/semigroup", features = ["derive", "monoid"] }
 //! ```
 //!
 //! # Examples
