@@ -146,6 +146,9 @@ let mut max_tree: SegmentTree<_> = data.into_iter().map(Max).collect();
 assert_eq!(max_tree.fold(3..5).0, -12);
 max_tree.update(3, 1000.into());
 assert_eq!(max_tree.fold(3..=4).0, 1000);
+
+// #[test]
+semigroup::assert_monoid!(&max_tree[..]);
 ```
 
 ## Documents
