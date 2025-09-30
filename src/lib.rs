@@ -120,6 +120,34 @@
 //! assert_eq!(config.annotation().boolean, "Default");
 //! ```
 //!
+//! ## Segment tree
+//! ```
+//! # #[cfg(feature="monoid")]
+//! # {
+//! use semigroup::{Semigroup, Construction, segment_tree::SegmentTree, monoid::Monoid};
+//! #[derive(
+//!     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction,
+//! )]
+//! struct Max(pub i32);
+//! impl Semigroup for Max {
+//!     fn semigroup_op(base: Self, other: Self) -> Self {
+//!         Max(std::cmp::max(base.0, other.0))
+//!     }
+//! }
+//! impl Monoid for Max {
+//!     fn unit() -> Self {
+//!         Max(i32::MIN)
+//!     }
+//! }
+//!
+//! let data = [2, -5, 122, -33, -12, 14, -55, 500, 3];
+//! let mut max_tree: SegmentTree<_> = data.into_iter().map(Max).collect();
+//! assert_eq!(max_tree.fold(3..5).0, -12);
+//! max_tree.update(3, 1000.into());
+//! assert_eq!(max_tree.fold(3..=4).0, 1000);
+//! # }
+//! ```
+//!
 //! # Documents
 //! <https://hayas1.github.io/semigroup/semigroup>
 //!
