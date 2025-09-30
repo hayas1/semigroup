@@ -187,7 +187,7 @@ mod tests {
     use crate::{
         assert_monoid,
         monoid::OptionMonoid,
-        op::{annotation::coalesce::Coalesce, Construction},
+        op::{annotation::coalesce::Coalesce, semigroup::sum::Sum, Construction},
         semigroup::Semigroup,
     };
 
@@ -467,20 +467,6 @@ mod tests {
 
     #[test]
     fn test_large_tree() {
-        #[derive(
-            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse,
-        )]
-        struct Sum(u128);
-        impl Semigroup for Sum {
-            fn semigroup_op(base: Self, other: Self) -> Self {
-                Sum(base.0 + other.0)
-            }
-        }
-        impl Monoid for Sum {
-            fn unit() -> Self {
-                Sum(0)
-            }
-        }
         let cum_sum = |s, t| (t - s + 1) * (s + t) / 2;
         let mut sum_tree: SegmentTree<_> = (0..2000000).map(Sum).collect();
         assert_eq!(sum_tree.fold(0..=10).0, cum_sum(0u128, 10u128));
