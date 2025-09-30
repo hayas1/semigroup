@@ -28,6 +28,7 @@ impl<T: Monoid + Clone> From<Vec<T>> for SegmentTree<T> {
 }
 impl<T> SegmentTree<T> {
     /// **O(1)**, get size of the segment tree by given length.
+    #[inline]
     fn size(len: usize) -> usize {
         2 * len.next_power_of_two() + 1
     }
@@ -37,10 +38,12 @@ impl<T> SegmentTree<T> {
         self.len().next_power_of_two() - 1
     }
     /// **O(1)**, return this segment tree's number of data.
+    #[inline]
     pub fn len(&self) -> usize {
         self.len
     }
     /// **O(1)**, check if this segment tree is empty.
+    #[inline]
     pub fn is_empty(&self) -> bool {
         self.len == 0
     }
