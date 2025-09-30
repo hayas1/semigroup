@@ -17,6 +17,8 @@ pub trait AnnotatedSemigroup<A>: Sized + Semigroup {
 pub mod tests {
     use std::fmt::Debug;
 
+    use rand::seq::IndexedRandom;
+
     use crate::{
         iter::tests::assert_lazy_evaluation_iter,
         reverse::tests::{assert_reverse, assert_reverse_associative_law},
@@ -26,12 +28,27 @@ pub mod tests {
 
     #[macro_export]
     macro_rules! assert_semigroup_op {
-        ($a:expr, $b: expr, $c: expr) => {
-            $crate::semigroup::tests::assert_semigroup_op_impl($a.clone(), $b.clone(), $c.clone());
-            $crate::monoid::tests::assert_option_monoid($a.clone(), $b.clone(), $c.clone());
+        ($a:expr, $b: expr, $($tail: expr),*) => {
+            {
+                let v = vec![$a, $b, $($tail),*];
+                $crate::semigroup::tests::assert_semigroup_op!(&v)
+            }
+        };
+        ($v:expr) => {
+            {
+                let (a, b, c) = $crate::semigroup::tests::pick3($v);
+                $crate::semigroup::tests::assert_semigroup_op_impl(a.clone(), b.clone(), c.clone());
+                $crate::monoid::tests::assert_option_monoid(a.clone(), b.clone(), c.clone());
+            }
         };
     }
     pub use assert_semigroup_op;
+
+    pub fn pick3<T: Clone>(data: &[T]) -> (T, T, T) {
+        data.choose_multiple_array(&mut rand::rng())
+            .map(|[a, b, c]| (a, b, c))
+            .expect("failed to pick 3 items")
+    }
 
     pub fn assert_semigroup_op_impl<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
         assert_associative_law(a.clone(), b.clone(), c.clone());

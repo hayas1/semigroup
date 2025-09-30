@@ -210,11 +210,9 @@ mod tests {
             }
         }
         let data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-        match data.choose_multiple_array(&mut rand::rng()) {
-            Some([a, b, c]) => assert_monoid!(Sum(a), Sum(b), Sum(c)),
-            _ => unreachable!(),
-        }
         let mut sum_tree: SegmentTree<_> = data.into_iter().map(Sum).collect();
+        assert_monoid!(&sum_tree[..]);
+
         assert_eq!(sum_tree.fold(3..5).0, 7);
         assert_eq!(sum_tree.fold(2..7).0, 20);
         assert_eq!(sum_tree.fold(..).0, 55);
@@ -245,11 +243,9 @@ mod tests {
             }
         }
         let data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-        match data.choose_multiple_array(&mut rand::rng()) {
-            Some([a, b, c]) => assert_monoid!(Prod(a), Prod(b), Prod(c)),
-            _ => unreachable!(),
-        }
         let mut prod_tree: SegmentTree<_> = data.into_iter().map(Prod).collect();
+        assert_monoid!(&prod_tree[..]);
+
         assert_eq!(prod_tree.fold(3..5).0, 12);
         assert_eq!(prod_tree.fold(2..7).0, 720);
         assert_eq!(prod_tree.fold(0..11).0, 0);
@@ -280,11 +276,9 @@ mod tests {
             }
         }
         let data = [2, -5, 122, -33, -12, 14, -55, 500, 3];
-        match data.choose_multiple_array(&mut rand::rng()) {
-            Some([a, b, c]) => assert_monoid!(Max(a), Max(b), Max(c)),
-            _ => unreachable!(),
-        }
         let mut max_tree: SegmentTree<_> = data.into_iter().map(Max).collect();
+        assert_monoid!(&max_tree[..]);
+
         assert_eq!(max_tree.fold(3..5).0, -12);
         assert_eq!(max_tree.fold(2..=6).0, 122);
         assert_eq!(max_tree.fold(..).0, 500);
@@ -312,11 +306,9 @@ mod tests {
             }
         }
         let data = [2, -5, 122, 33, 12, 14, -55, 500, 3];
-        match data.choose_multiple_array(&mut rand::rng()) {
-            Some([a, b, c]) => assert_monoid!(Min(a), Min(b), Min(c)),
-            _ => unreachable!(),
-        }
         let mut min_tree: SegmentTree<_> = data.into_iter().map(Min).collect();
+        assert_monoid!(&min_tree[..]);
+
         assert_eq!(min_tree.fold(3..5).0, 12);
         assert_eq!(min_tree.fold(2..7).0, -55);
         assert_eq!(min_tree.fold(0..).0, -55);
@@ -344,11 +336,9 @@ mod tests {
             }
         }
         let data = [10u32, 3, 4, 8, 6, 2];
-        match data.choose_multiple_array(&mut rand::rng()) {
-            Some([a, b, c]) => assert_monoid!(Gcd(a), Gcd(b), Gcd(c)),
-            _ => unreachable!(),
-        }
         let mut gcd_tree: SegmentTree<_> = data.into_iter().map(Gcd).collect();
+        assert_monoid!(&gcd_tree[..]);
+
         assert_eq!(gcd_tree.fold(2..4).0, 4);
         assert_eq!(gcd_tree.fold(2..6).0, 2);
         assert_eq!(gcd_tree.fold(0..6).0, 1);
@@ -376,11 +366,9 @@ mod tests {
             }
         }
         let data = vec![10u32, 3, 4, 8, 6, 2];
-        match data.choose_multiple_array(&mut rand::rng()) {
-            Some([a, b, c]) => assert_monoid!(Lcm(a), Lcm(b), Lcm(c)),
-            _ => unreachable!(),
-        }
         let mut lcm_tree: SegmentTree<_> = data.into_iter().map(Lcm).collect();
+        assert_monoid!(&lcm_tree[..]);
+
         assert_eq!(lcm_tree.fold(2..4).0, 8);
         assert_eq!(lcm_tree.fold(2..6).0, 24);
         assert_eq!(lcm_tree.fold(..).0, 120);

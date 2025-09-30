@@ -77,8 +77,17 @@ pub mod tests {
 
     #[macro_export]
     macro_rules! assert_monoid {
-        ($a:expr, $b: expr, $c: expr) => {
-            $crate::monoid::tests::assert_monoid_impl($a, $b, $c)
+        ($a:expr, $b: expr, $($tail: expr),*) => {
+            {
+                let v = vec![$a, $b, $($tail),*];
+                $crate::monoid::tests::assert_monoid!(&v)
+            }
+        };
+        ($v:expr) => {
+            {
+                let (a, b, c) = $crate::semigroup::tests::pick3($v);
+                $crate::monoid::tests::assert_monoid_impl(a.clone(), b.clone(), c.clone());
+            }
         };
     }
     pub use assert_monoid;
