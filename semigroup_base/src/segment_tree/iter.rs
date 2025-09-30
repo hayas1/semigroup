@@ -42,6 +42,11 @@ impl<T> Iterator for IntoIter<T> {
         self.inner.next()
     }
 }
+impl<T> DoubleEndedIterator for IntoIter<T> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.inner.next_back()
+    }
+}
 
 pub struct Iter<'a, T> {
     inner: <&'a [T] as IntoIterator>::IntoIter,
@@ -50,6 +55,11 @@ impl<'a, T> Iterator for Iter<'a, T> {
     type Item = &'a T;
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
+    }
+}
+impl<'a, T> DoubleEndedIterator for Iter<'a, T> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.inner.next_back()
     }
 }
 
