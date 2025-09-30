@@ -143,3 +143,6 @@ pub use semigroup_derive::{Construction, Semigroup};
 
 #[cfg(feature = "test")]
 pub use semigroup_base::semigroup::tests::assert_semigroup_op;
+
+#[cfg(feature = "monoid")]
+pub use semigroup_base::{monoid, segment_tree};

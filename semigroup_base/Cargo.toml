@@ -12,6 +12,7 @@ readme.workspace = true
 serde = ["dep:serde"]
 clap = ["dep:clap"]
 test = []
+monoid = []
 
 [dependencies]
 semigroup_derive = { path = "../semigroup_derive", features = ["use_scope"] }
