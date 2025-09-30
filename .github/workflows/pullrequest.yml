@@ -25,8 +25,8 @@ jobs:
           ${{ steps.cargo-home.outputs.path }}
         key: cargo-${{ hashFiles('**/Cargo.toml') }}
 
-    - run: cargo test --verbose
-    - run: cargo test --verbose --features=derive --features=monoid --features=serde --features=clap
+    - run: cargo test --verbose --all
+    - run: cargo test --verbose --all --features=derive --features=monoid --features=serde --features=clap
     - run: cargo fmt --check
     - run: RUSTDOCFLAGS="-D warnings" cargo doc --no-deps
     - run: cargo clippy --version && cargo clippy --tests -- --deny warnings
