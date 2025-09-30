@@ -121,6 +121,7 @@
 //! ```
 //!
 //! ## Segment tree
+//! Only available with the `monoid` feature
 //! ```
 //! # #[cfg(feature="monoid")]
 //! # {

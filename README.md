@@ -123,6 +123,7 @@ assert_eq!(config.annotation().boolean, "Default");
 ```
 
 ### Segment tree
+Only available with the `monoid` feature
 ```rust
 use semigroup::{Semigroup, Construction, segment_tree::SegmentTree, monoid::Monoid};
 #[derive(
