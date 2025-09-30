@@ -64,11 +64,11 @@ impl<T: Monoid + Clone> SegmentTree<T> {
         self
     }
 
-    /// **O(log(n))**, set leaf[k] = x, and update segment tree.
+    /// **O(log(n))**, set `leaf[k] = x`, and update segment tree.
     pub fn update(&mut self, i: usize, x: T) -> T {
         self.update_with(i, |_| x)
     }
-    /// **O(log(n))**, update leaf[k] by f(leaf[k]), and update segment tree.
+    /// **O(log(n))**, update `leaf[k]` by `f(leaf[k])`, and update segment tree.
     pub fn update_with<F>(&mut self, i: usize, f: F) -> T
     where
         F: FnOnce(&T) -> T,
@@ -87,7 +87,7 @@ impl<T: Monoid + Clone> SegmentTree<T> {
         result
     }
 
-    /// **O(1)**, range to leaf index half interval [start, end).
+    /// **O(1)**, range to leaf index half interval `[start, end)`.
     fn indices<R>(&self, range: R) -> Range<usize>
     where
         R: RangeBounds<usize>,
@@ -107,7 +107,7 @@ impl<T: Monoid + Clone> SegmentTree<T> {
         start..end
     }
 
-    /// **O(log(n))**, calculate f(range).
+    /// **O(log(n))**, calculate `f(range)`.
     pub fn fold<R>(&self, range: R) -> T
     where
         R: RangeBounds<usize>,
@@ -128,7 +128,7 @@ impl<T: Monoid + Clone> SegmentTree<T> {
         T::semigroup_op(left_result.clone(), right_result.clone())
     }
 
-    /// **O(log^2(n))**, search the leftmost leaf where cmp(x) is true in the range.
+    /// **O(log^2(n))**, search the leftmost leaf where `cmp(x)` is true in the range.
     pub fn bisect_left<R, F>(&self, range: R, cmp: F) -> Option<usize>
     where
         R: RangeBounds<usize>,
@@ -136,7 +136,7 @@ impl<T: Monoid + Clone> SegmentTree<T> {
     {
         self.bisect::<_, _, true>(range, cmp)
     }
-    /// **O(log^2(n))**, search the rightmost leaf where cmp(x) is true in the range.
+    /// **O(log^2(n))**, search the rightmost leaf where `cmp(x)` is true in the range.
     pub fn bisect_right<R, F>(&self, range: R, cmp: F) -> Option<usize>
     where
         R: RangeBounds<usize>,
@@ -144,7 +144,7 @@ impl<T: Monoid + Clone> SegmentTree<T> {
     {
         self.bisect::<_, _, false>(range, cmp)
     }
-    /// **O(log^2(n))**, search the leaf where cmp(x) is true in the range.
+    /// **O(log^2(n))**, search the leaf where `cmp(x)` is true in the range.
     fn bisect<R, F, const L: bool>(&self, range: R, cmp: F) -> Option<usize>
     where
         R: RangeBounds<usize>,
