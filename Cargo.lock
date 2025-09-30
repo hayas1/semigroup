@@ -582,6 +582,7 @@ dependencies = [
  "clap",
  "num",
  "rand",
+ "rstest",
  "semigroup_derive",
  "serde",
  "serde_json",

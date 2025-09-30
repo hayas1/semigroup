@@ -39,6 +39,8 @@ impl<T, I: SliceIndex<[T]>> SegmentTreeIndex<T> for I {
 
 #[cfg(test)]
 mod tests {
+    use rstest::rstest;
+
     use crate::{monoid::OptionMonoid, op::annotation::replace::Replace};
 
     use super::*;
@@ -94,6 +96,22 @@ mod tests {
                 OptionMonoid::from(Replace("five")),
             ]
         );
+    }
+
+    #[rstest]
+    #[case::too_large_usize(100)]
+    #[case::too_long_range(3..100)]
+    #[case::out_of_range(6..)]
+    #[should_panic]
+    fn test_index_panic<I: SegmentTreeIndex<OptionMonoid<Replace<&'static str>>>>(
+        #[case] index: I,
+    ) {
+        let segment_tree: SegmentTree<_> = ["one", "two", "three", "four", "five"]
+            .into_iter()
+            .map(Replace)
+            .map(OptionMonoid::from)
+            .collect();
+        let _ = segment_tree[index];
     }
 
     #[test]
