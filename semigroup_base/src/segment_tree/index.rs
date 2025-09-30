@@ -53,6 +53,7 @@ mod tests {
             .map(OptionMonoid::from)
             .collect();
         assert_eq!(segment_tree[1], OptionMonoid::from(Replace("two")));
+        assert_eq!(segment_tree[2..2], []);
         assert_eq!(
             segment_tree[1..3],
             [
@@ -125,6 +126,7 @@ mod tests {
             segment_tree.get(1),
             Some(&OptionMonoid::from(Replace("two")))
         );
+        assert_eq!(segment_tree.get(2..2), Some(&[][..]));
         assert_eq!(segment_tree.get(100), None);
         assert_eq!(
             segment_tree.get(1..3),
