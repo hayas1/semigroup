@@ -144,9 +144,9 @@
 //!
 //! let data = [2, -5, 122, -33, -12, 14, -55, 500, 3];
 //! let mut max_tree: SegmentTree<_> = data.into_iter().map(Max).collect();
-//! assert_eq!(max_tree.fold(3..5).0, -12);
-//! max_tree.update(3, 1000.into());
-//! assert_eq!(max_tree.fold(3..=4).0, 1000);
+//! assert_eq!(max_tree.fold(3..6).0, 14);
+//! max_tree.update_with(4, |Max(x)| Max(x + 1000));
+//! assert_eq!(max_tree.fold(3..6).0, 988);
 //!
 //! // #[test]
 //! semigroup::assert_monoid!(&max_tree[..]);
