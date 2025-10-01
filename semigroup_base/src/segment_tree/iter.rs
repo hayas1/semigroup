@@ -7,7 +7,7 @@ impl<T> IntoIterator for SegmentTree<T> {
     fn into_iter(mut self) -> Self::IntoIter {
         let (leaf_offset, len) = (self.leaf_offset(), self.len());
         let mut leaf = self.tree.split_off(leaf_offset);
-        let _units = leaf.split_off(len);
+        let _out_of_range = leaf.split_off(len);
         IntoIter {
             inner: leaf.into_iter(),
         }
