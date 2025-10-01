@@ -1,5 +1,5 @@
 error[E0308]: mismatched types
-  --> tests/ui/compile_fail/other_type_annotation.rs:10:25
+  --> tests/ui/monoid/other_type_annotation.rs:10:25
    |
 10 |     let c = a.semigroup(b);
    |               --------- ^ expected `Annotated<Coalesce<{integer}>, &str>`, found `Annotated<Coalesce<{integer}>, String>`
@@ -9,7 +9,7 @@ error[E0308]: mismatched types
    = note: expected struct `Annotated<Coalesce<{integer}>, &str>`
               found struct `Annotated<Coalesce<{integer}>, String>`
 help: the return type of this call is `Annotated<Coalesce<{integer}>, String>` due to the type of the argument passed
-  --> tests/ui/compile_fail/other_type_annotation.rs:10:13
+  --> tests/ui/monoid/other_type_annotation.rs:10:13
    |
 10 |     let c = a.semigroup(b);
    |             ^^^^^^^^^^^^-^
