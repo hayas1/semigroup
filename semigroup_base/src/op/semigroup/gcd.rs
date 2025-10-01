@@ -1,4 +1,4 @@
-use num::{integer::gcd, Integer, Unsigned};
+use num::{Integer, Unsigned};
 use semigroup_derive::ConstructionUse;
 
 use crate::{op::Construction, reverse::Reverse, semigroup::Semigroup};
@@ -9,7 +9,7 @@ use crate::{op::Construction, reverse::Reverse, semigroup::Semigroup};
 pub struct Gcd<T: Unsigned + Integer + Clone>(pub T);
 impl<T: Unsigned + Integer + Clone> Semigroup for Gcd<T> {
     fn semigroup_op(base: Self, other: Self) -> Self {
-        Self(gcd(base.0, other.0))
+        Self(num::integer::gcd(base.0, other.0))
     }
 }
 impl<T: Unsigned + Integer + Clone> crate::monoid::Monoid for Gcd<T> {

@@ -1,4 +1,4 @@
-use num::{integer::lcm, Integer, Unsigned};
+use num::{Integer, Unsigned};
 use semigroup_derive::ConstructionUse;
 
 use crate::{op::Construction, reverse::Reverse, semigroup::Semigroup};
@@ -9,7 +9,7 @@ use crate::{op::Construction, reverse::Reverse, semigroup::Semigroup};
 pub struct Lcm<T: Unsigned + Integer + Clone>(pub T);
 impl<T: Unsigned + Integer + Clone> Semigroup for Lcm<T> {
     fn semigroup_op(base: Self, other: Self) -> Self {
-        Self(lcm(base.0, other.0))
+        Self(num::integer::lcm(base.0, other.0))
     }
 }
 impl<T: Unsigned + Integer + Clone> crate::monoid::Monoid for Lcm<T> {
