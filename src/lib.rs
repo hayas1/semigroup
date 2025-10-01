@@ -12,8 +12,8 @@
 //!
 //! # Examples
 //!
-//! ## Annotation
-//! ### Simple string annotation
+//! ## Reading configs from multiple sources
+//! ### With simple string annotation
 //! ```
 //! use semigroup::{Annotate, Semigroup};
 //! #[derive(Debug, Clone, PartialEq, Semigroup)]
@@ -37,7 +37,7 @@
 //! assert_eq!(config.annotation().boolean, "Cli");
 //! ```
 //!
-//! ### Rich enum annotation
+//! ### With rich enum annotation
 //! ```
 //! use semigroup::{Annotate, Semigroup};
 //! #[derive(Debug, Clone, PartialEq, Semigroup)]

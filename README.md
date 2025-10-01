@@ -13,8 +13,8 @@ semigroup = { git = "https://github.com/hayas1/semigroup", features = ["derive",
 
 ## Examples
 
-### Annotation
-#### Simple string annotation
+### Reading configs from multiple sources
+#### With simple string annotation
 ```rust
 use semigroup::{Annotate, Semigroup};
 #[derive(Debug, Clone, PartialEq, Semigroup)]
@@ -38,7 +38,7 @@ assert_eq!(config.annotation().str, "Env");
 assert_eq!(config.annotation().boolean, "Cli");
 ```
 
-#### Rich enum annotation
+#### With rich enum annotation
 ```rust
 use semigroup::{Annotate, Semigroup};
 #[derive(Debug, Clone, PartialEq, Semigroup)]
