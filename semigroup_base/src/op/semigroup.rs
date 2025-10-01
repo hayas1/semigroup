@@ -2,5 +2,7 @@
 pub mod gcd;
 #[cfg(feature = "monoid")]
 pub mod lcm;
+pub mod max;
+pub mod min;
 pub mod prod;
 pub mod sum;

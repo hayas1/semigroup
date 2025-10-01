@@ -175,9 +175,9 @@ impl<T: Monoid + Clone> SegmentTree<T> {
 
 #[cfg(test)]
 mod tests {
-    use std::ops::{Add, BitXor, Mul};
+    use std::ops::BitXor;
 
-    use num::{Bounded, One, Zero};
+    use num::{Bounded, Zero};
     use rand::seq::IndexedRandom;
     use semigroup_derive::ConstructionUse;
 
@@ -186,7 +186,7 @@ mod tests {
         monoid::OptionMonoid,
         op::{
             annotation::coalesce::Coalesce,
-            semigroup::{gcd::Gcd, lcm::Lcm, sum::Sum},
+            semigroup::{gcd::Gcd, lcm::Lcm, max::Max, min::Min, prod::Prod, sum::Sum},
             Construction,
         },
         semigroup::Semigroup,
@@ -196,20 +196,6 @@ mod tests {
 
     #[test]
     fn test_sum() {
-        #[derive(
-            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse,
-        )]
-        struct Sum<T: Zero + Add<Output = T> + Clone>(pub T);
-        impl<T: Zero + Add<Output = T> + Clone> Semigroup for Sum<T> {
-            fn semigroup_op(base: Self, other: Self) -> Self {
-                Sum(base.0 + other.0)
-            }
-        }
-        impl<T: Zero + Add<Output = T> + Clone> Monoid for Sum<T> {
-            fn unit() -> Self {
-                Sum(T::zero())
-            }
-        }
         let data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         let mut sum_tree: SegmentTree<_> = data.into_iter().map(Sum).collect();
         assert_monoid!(&sum_tree[..]);
@@ -229,20 +215,6 @@ mod tests {
 
     #[test]
     fn test_prod() {
-        #[derive(
-            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse,
-        )]
-        struct Prod<T: One + Mul<Output = T> + Clone>(pub T);
-        impl<T: One + Mul<Output = T> + Clone> Semigroup for Prod<T> {
-            fn semigroup_op(base: Self, other: Self) -> Self {
-                Prod(base.0 * other.0)
-            }
-        }
-        impl<T: One + Mul<Output = T> + Clone> Monoid for Prod<T> {
-            fn unit() -> Self {
-                Prod(T::one())
-            }
-        }
         let data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         let mut prod_tree: SegmentTree<_> = data.into_iter().map(Prod).collect();
         assert_monoid!(&prod_tree[..]);
@@ -262,20 +234,6 @@ mod tests {
 
     #[test]
     fn test_max() {
-        #[derive(
-            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse,
-        )]
-        struct Max<T: Bounded + Ord + Clone>(pub T);
-        impl<T: Bounded + Ord + Clone> Semigroup for Max<T> {
-            fn semigroup_op(base: Self, other: Self) -> Self {
-                Max(std::cmp::max(base.0, other.0))
-            }
-        }
-        impl<T: Bounded + Ord + Clone> Monoid for Max<T> {
-            fn unit() -> Self {
-                Max(T::min_value())
-            }
-        }
         let data = [2, -5, 122, -33, -12, 14, -55, 500, 3];
         let mut max_tree: SegmentTree<_> = data.into_iter().map(Max).collect();
         assert_monoid!(&max_tree[..]);
@@ -292,20 +250,6 @@ mod tests {
 
     #[test]
     fn test_min() {
-        #[derive(
-            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse,
-        )]
-        struct Min<T: Bounded + Ord + Clone>(pub T);
-        impl<T: Bounded + Ord + Clone> Semigroup for Min<T> {
-            fn semigroup_op(base: Self, other: Self) -> Self {
-                Min(std::cmp::min(base.0, other.0))
-            }
-        }
-        impl<T: Bounded + Ord + Clone> Monoid for Min<T> {
-            fn unit() -> Self {
-                Min(T::max_value())
-            }
-        }
         let data = [2, -5, 122, 33, 12, 14, -55, 500, 3];
         let mut min_tree: SegmentTree<_> = data.into_iter().map(Min).collect();
         assert_monoid!(&min_tree[..]);
