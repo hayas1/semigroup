@@ -177,17 +177,18 @@ impl<T: Monoid + Clone> SegmentTree<T> {
 mod tests {
     use std::ops::{Add, BitXor, Mul};
 
-    use num::{
-        integer::{gcd, lcm},
-        Bounded, Integer, One, Unsigned, Zero,
-    };
+    use num::{Bounded, One, Zero};
     use rand::seq::IndexedRandom;
     use semigroup_derive::ConstructionUse;
 
     use crate::{
         assert_monoid,
         monoid::OptionMonoid,
-        op::{annotation::coalesce::Coalesce, semigroup::sum::Sum, Construction},
+        op::{
+            annotation::coalesce::Coalesce,
+            semigroup::{gcd::Gcd, lcm::Lcm, sum::Sum},
+            Construction,
+        },
         semigroup::Semigroup,
     };
 
@@ -321,20 +322,6 @@ mod tests {
 
     #[test]
     fn test_gcd() {
-        #[derive(
-            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse,
-        )]
-        struct Gcd<T: Unsigned + Integer + Clone>(T);
-        impl<T: Unsigned + Integer + Clone> Semigroup for Gcd<T> {
-            fn semigroup_op(base: Self, other: Self) -> Self {
-                Gcd(gcd(base.0, other.0))
-            }
-        }
-        impl<T: Unsigned + Integer + Clone> Monoid for Gcd<T> {
-            fn unit() -> Self {
-                Gcd(T::zero())
-            }
-        }
         let data = [10u32, 3, 4, 8, 6, 2];
         let mut gcd_tree: SegmentTree<_> = data.into_iter().map(Gcd).collect();
         assert_monoid!(&gcd_tree[..]);
@@ -351,20 +338,6 @@ mod tests {
 
     #[test]
     fn test_lcm() {
-        #[derive(
-            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse,
-        )]
-        struct Lcm<T: Unsigned + Integer + Clone>(T);
-        impl<T: Unsigned + Integer + Clone> Semigroup for Lcm<T> {
-            fn semigroup_op(base: Self, other: Self) -> Self {
-                Lcm(lcm(base.0, other.0))
-            }
-        }
-        impl<T: Unsigned + Integer + Clone> Monoid for Lcm<T> {
-            fn unit() -> Self {
-                Lcm(T::one())
-            }
-        }
         let data = vec![10u32, 3, 4, 8, 6, 2];
         let mut lcm_tree: SegmentTree<_> = data.into_iter().map(Lcm).collect();
         assert_monoid!(&lcm_tree[..]);
