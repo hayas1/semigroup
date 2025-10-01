@@ -47,6 +47,11 @@ impl<T> DoubleEndedIterator for IntoIter<T> {
         self.inner.next_back()
     }
 }
+impl<T> ExactSizeIterator for IntoIter<T> {
+    fn len(&self) -> usize {
+        self.inner.len()
+    }
+}
 
 pub struct Iter<'a, T> {
     inner: <&'a [T] as IntoIterator>::IntoIter,
@@ -60,6 +65,11 @@ impl<'a, T> Iterator for Iter<'a, T> {
 impl<'a, T> DoubleEndedIterator for Iter<'a, T> {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.inner.next_back()
+    }
+}
+impl<'a, T> ExactSizeIterator for Iter<'a, T> {
+    fn len(&self) -> usize {
+        self.inner.len()
     }
 }
 
@@ -146,5 +156,16 @@ mod tests {
             })
             .collect();
         assert_eq!(v, ["five", "four", "three", "two", "one"]);
+    }
+
+    #[test]
+    fn test_exact_size_iter() {
+        let segment_tree: SegmentTree<_> = ["one", "two", "three", "four", "five"]
+            .into_iter()
+            .map(Overwrite)
+            .map(OptionMonoid::from)
+            .collect();
+        assert_eq!(segment_tree.iter().len(), 5);
+        assert_eq!(segment_tree.into_iter().len(), 5);
     }
 }
