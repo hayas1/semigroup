@@ -137,7 +137,16 @@ impl<T: Monoid + Clone> SegmentTree<T> {
         R: RangeBounds<usize>,
         F: Fn(&T) -> bool,
     {
-        self.bisect::<_, _, true>(range, cmp)
+        let Range { mut start, mut end } = self.indices(range);
+        while end - start > 1 {
+            let mid = (start + end) / 2;
+            if cmp(&self.fold(start..mid)) {
+                end = mid;
+            } else {
+                start = mid;
+            }
+        }
+        cmp(&self.tree[self.leaf_offset() + start]).then_some(start)
     }
     /// **O(log^2(n))**, search the rightmost leaf where `cmp(x)` is true in the range.
     pub fn bisect_right<R, F>(&self, range: R, cmp: F) -> Option<usize>
@@ -145,37 +154,21 @@ impl<T: Monoid + Clone> SegmentTree<T> {
         R: RangeBounds<usize>,
         F: Fn(&T) -> bool,
     {
-        self.bisect::<_, _, false>(range, cmp)
-    }
-    /// **O(log^2(n))**, search the leaf where `cmp(x)` is true in the range.
-    fn bisect<R, F, const L: bool>(&self, range: R, cmp: F) -> Option<usize>
-    where
-        R: RangeBounds<usize>,
-        F: Fn(&T) -> bool,
-    {
         let Range { mut start, mut end } = self.indices(range);
         while end - start > 1 {
             let mid = (start + end) / 2;
-            let (left_cmp, right_cmp) = (cmp(&self.fold(start..mid)), cmp(&self.fold(mid..end)));
-            if L && left_cmp || !L && !right_cmp {
-                end = mid;
-            } else if L && !left_cmp || !L && right_cmp {
+            if cmp(&self.fold(mid..end)) {
                 start = mid;
             } else {
-                unreachable!();
+                end = mid;
             }
         }
-        if cmp(&self.tree[self.leaf_offset() + start]) {
-            Some(start)
-        } else {
-            None
-        }
+        cmp(&self.tree[self.leaf_offset() + start]).then_some(start)
     }
 }
 
 #[cfg(test)]
 mod tests {
-
     use crate::{
         assert_monoid,
         monoid::OptionMonoid,
