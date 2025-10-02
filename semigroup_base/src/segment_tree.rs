@@ -175,21 +175,15 @@ impl<T: Monoid + Clone> SegmentTree<T> {
 
 #[cfg(test)]
 mod tests {
-    use std::ops::BitXor;
-
-    use num::{Bounded, Zero};
     use rand::seq::IndexedRandom;
-    use semigroup_derive::ConstructionUse;
 
     use crate::{
         assert_monoid,
         monoid::OptionMonoid,
         op::{
             annotation::coalesce::Coalesce,
-            semigroup::{gcd::Gcd, lcm::Lcm, max::Max, min::Min, prod::Prod, sum::Sum},
-            Construction,
+            semigroup::{gcd::Gcd, lcm::Lcm, max::Max, min::Min, prod::Prod, sum::Sum, xor::Xor},
         },
-        semigroup::Semigroup,
     };
 
     use super::*;
@@ -298,20 +292,6 @@ mod tests {
 
     #[test]
     fn test_xor() {
-        #[derive(
-            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse,
-        )]
-        struct Xor<T: Zero + BitXor<Output = T> + Clone>(T);
-        impl<T: Zero + BitXor<Output = T> + Clone> Semigroup for Xor<T> {
-            fn semigroup_op(base: Self, other: Self) -> Self {
-                Xor(base.0 ^ other.0)
-            }
-        }
-        impl<T: Zero + BitXor<Output = T> + Clone> Monoid for Xor<T> {
-            fn unit() -> Self {
-                Xor(T::zero())
-            }
-        }
         let data = [0b111, 0b101, 0b100, 0b000, 0b010];
         match data.choose_multiple_array(&mut rand::rng()) {
             Some([a, b, c]) => assert_monoid!(Xor(a), Xor(b), Xor(c)),
@@ -395,20 +375,6 @@ mod tests {
 
     #[test]
     fn test_bisect() {
-        #[derive(
-            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionUse,
-        )]
-        struct Max<T: Bounded + Ord + Clone>(pub T);
-        impl<T: Bounded + Ord + Clone> Semigroup for Max<T> {
-            fn semigroup_op(base: Self, other: Self) -> Self {
-                Max(std::cmp::max(base.0, other.0))
-            }
-        }
-        impl<T: Bounded + Ord + Clone> Monoid for Max<T> {
-            fn unit() -> Self {
-                Max(T::min_value())
-            }
-        }
         let data1 = [2, -5, 122, -33, -12, 14, -55, 500, 3];
         let mut max_tree1: SegmentTree<_> = data1.into_iter().map(Max).collect();
         assert_eq!(max_tree1.bisect_left(2..5, |&Max(x)| x >= 10), Some(2));
