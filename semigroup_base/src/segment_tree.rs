@@ -175,7 +175,6 @@ impl<T: Monoid + Clone> SegmentTree<T> {
 
 #[cfg(test)]
 mod tests {
-    use rand::seq::IndexedRandom;
 
     use crate::{
         assert_monoid,
@@ -293,11 +292,8 @@ mod tests {
     #[test]
     fn test_xor() {
         let data = [0b111, 0b101, 0b100, 0b000, 0b010];
-        match data.choose_multiple_array(&mut rand::rng()) {
-            Some([a, b, c]) => assert_monoid!(Xor(a), Xor(b), Xor(c)),
-            _ => unreachable!(),
-        }
         let mut xor_tree: SegmentTree<_> = data.into_iter().map(Xor).collect();
+        assert_monoid!(&xor_tree[..]);
         assert_eq!(xor_tree.fold(2..4).0, 0b100);
         assert_eq!(xor_tree.fold(2..5).0, 0b110);
         assert_eq!(xor_tree.fold(0..5).0, 0b100);
