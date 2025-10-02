@@ -95,7 +95,7 @@ impl<T: Monoid + Clone> SegmentTree<T> {
     where
         R: RangeBounds<usize>,
     {
-        // TODO `range` is nightly only https://doc.rust-lang.org/std/slice/fn.range.html
+        // TODO `std::slice::range` is nightly only https://doc.rust-lang.org/std/slice/fn.range.html
         let start = match range.start_bound() {
             Bound::Unbounded => 0,
             Bound::Excluded(&l) => (l + 1).max(0),
@@ -110,7 +110,7 @@ impl<T: Monoid + Clone> SegmentTree<T> {
         start..end
     }
 
-    /// **O(log(n))**, calculate `f(range)`.
+    /// **O(log(n))**, fold the range.
     pub fn fold<R>(&self, range: R) -> T
     where
         R: RangeBounds<usize>,
