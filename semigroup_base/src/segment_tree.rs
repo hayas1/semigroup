@@ -68,26 +68,27 @@ impl<T: Monoid + Clone> SegmentTree<T> {
     }
 
     /// **O(log(n))**, set `leaf[k] = x`, and update segment tree.
-    pub fn update(&mut self, i: usize, x: T) -> T {
+    pub fn update(&mut self, i: usize, x: T) -> Option<T> {
         self.update_with(i, |_| x)
     }
     /// **O(log(n))**, update `leaf[k]` by `f(leaf[k])`, and update segment tree.
-    pub fn update_with<F>(&mut self, i: usize, f: F) -> T
+    pub fn update_with<F>(&mut self, i: usize, f: F) -> Option<T>
     where
         F: FnOnce(&T) -> T,
     {
-        assert!(i < self.len(), "index {} is out of 0..{}", i, self.len());
-        let mut node = self.leaf_offset() + i;
-        let mut result = f(&self.tree[node]);
-        std::mem::swap(&mut self.tree[node], &mut result);
-        while node > 0 {
-            node = (node - 1) / 2;
-            self.tree[node] = T::semigroup_op(
-                self.tree[node * 2 + 1].clone(),
-                self.tree[node * 2 + 2].clone(),
-            );
-        }
-        result
+        (i < self.len()).then(|| {
+            let mut node = self.leaf_offset() + i;
+            let mut result = f(&self.tree[node]);
+            std::mem::swap(&mut self.tree[node], &mut result);
+            while node > 0 {
+                node = (node - 1) / 2;
+                self.tree[node] = T::semigroup_op(
+                    self.tree[node * 2 + 1].clone(),
+                    self.tree[node * 2 + 2].clone(),
+                );
+            }
+            result
+        })
     }
 
     /// **O(1)**, range to leaf index half interval `[start, end)`.
@@ -106,7 +107,6 @@ impl<T: Monoid + Clone> SegmentTree<T> {
             Bound::Excluded(&r) => r.min(self.len()),
             Bound::Included(&r) => (r + 1).min(self.len()),
         };
-        assert!(start <= end);
         start..end
     }
 
@@ -360,6 +360,16 @@ mod tests {
         assert_eq!(sum_tree.fold(123456..=345678).0, cum_sum_1(123456, 345678));
         assert_eq!(sum_tree.fold(888888..=999999).0, cum_sum_1(888888, 999999));
         assert_eq!(sum_tree.fold(..).0, cum_sum_1(0, 1999999));
+    }
+
+    #[test]
+    #[allow(clippy::reversed_empty_ranges)]
+    fn test_descending_range() {
+        let data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        let sum_tree: SegmentTree<_> = data.into_iter().map(Sum).collect();
+        assert_eq!(sum_tree.fold(10..0).0, 0);
+        assert_eq!(sum_tree.fold(10..9).0, 0);
+        assert_eq!(sum_tree.fold(9..8).0, 0);
     }
 
     #[test]
