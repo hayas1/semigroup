@@ -120,15 +120,15 @@ impl<T: Monoid + Clone> SegmentTree<T> {
         let (mut left_result, mut right_result) = (T::unit(), T::unit());
         while left < right {
             if left % 2 == 0 {
-                left_result = T::semigroup_op(left_result.clone(), self.tree[left].clone());
+                left_result = T::semigroup_op(left_result, self.tree[left].clone());
                 left += 1; //  move to next subtree.
             }
             if right % 2 == 0 {
-                right_result = T::semigroup_op(self.tree[right - 1].clone(), right_result.clone());
+                right_result = T::semigroup_op(self.tree[right - 1].clone(), right_result);
             }
             (left, right) = ((left - 1) / 2, (right - 1) / 2);
         }
-        T::semigroup_op(left_result.clone(), right_result.clone())
+        T::semigroup_op(left_result, right_result)
     }
 
     /// **O(log^2(n))**, search the leftmost leaf where `cmp(x)` is true in the range.
