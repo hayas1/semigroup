@@ -7,17 +7,16 @@ pub mod iter;
 
 #[derive(Debug, Clone, PartialEq, Eq, Default, Hash)]
 pub struct SegmentTree<T> {
-    tree: Vec<T>, // 0-indexed perfect binary tree, left child: 2i+1, right child: 2i+2, parent: (i-1)/2
+    tree: Vec<T>, // 1-indexed perfect binary tree, left child: 2i, right child: 2i+1, parent: i/2
     len: usize,
 }
 impl<T: Monoid + Clone> FromIterator<T> for SegmentTree<T> {
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
         let iterator = iter.into_iter();
-        if let (_lower, Some(upper)) = iterator.size_hint() {
-            Self::with_length(upper).construct(iterator)
-        } else {
-            let v: Vec<T> = iterator.collect();
-            Self::from(v)
+        let (lower, upper) = iterator.size_hint();
+        match upper.filter(|&u| u == lower) {
+            Some(len) => Self::with_length(len).construct(iterator),
+            None => Self::from(iterator.collect::<Vec<_>>()),
         }
     }
 }
@@ -30,12 +29,12 @@ impl<T> SegmentTree<T> {
     /// **O(1)**, get size of the segment tree by given length.
     #[inline]
     fn size(len: usize) -> usize {
-        2 * len.next_power_of_two() + 1
+        2 * len.next_power_of_two()
     }
     /// **O(1)**, get beginning index of the segment tree leaf.
     #[inline]
     fn leaf_offset(&self) -> usize {
-        self.len().next_power_of_two() - 1
+        self.len().next_power_of_two()
     }
     /// **O(1)**, return this segment tree's number of data.
     #[inline]
@@ -45,7 +44,7 @@ impl<T> SegmentTree<T> {
     /// **O(1)**, check if this segment tree is empty.
     #[inline]
     pub fn is_empty(&self) -> bool {
-        self.len == 0
+        self.len() == 0
     }
 }
 impl<T: Monoid + Clone> SegmentTree<T> {
@@ -61,8 +60,7 @@ impl<T: Monoid + Clone> SegmentTree<T> {
             self.tree[leaf_offset + i] = d;
         }
         for i in (1..leaf_offset).rev() {
-            self.tree[i] =
-                T::semigroup_op(self.tree[i * 2 + 1].clone(), self.tree[i * 2 + 2].clone());
+            self.tree[i] = T::semigroup_op(self.tree[i * 2].clone(), self.tree[i * 2 + 1].clone());
         }
         self
     }
@@ -81,11 +79,9 @@ impl<T: Monoid + Clone> SegmentTree<T> {
             let mut result = f(&self.tree[node]);
             std::mem::swap(&mut self.tree[node], &mut result);
             while node > 0 {
-                node = (node - 1) / 2;
-                self.tree[node] = T::semigroup_op(
-                    self.tree[node * 2 + 1].clone(),
-                    self.tree[node * 2 + 2].clone(),
-                );
+                node /= 2;
+                self.tree[node] =
+                    T::semigroup_op(self.tree[node * 2].clone(), self.tree[node * 2 + 1].clone());
             }
             result
         })
@@ -117,18 +113,20 @@ impl<T: Monoid + Clone> SegmentTree<T> {
     {
         let Range { start, end } = self.indices(range);
         let (mut left, mut right) = (self.leaf_offset() + start, self.leaf_offset() + end);
-        let (mut left_result, mut right_result) = (T::unit(), T::unit());
+        let mut res = T::unit();
         while left < right {
-            if left % 2 == 0 {
-                left_result = T::semigroup_op(left_result, self.tree[left].clone());
-                left += 1; //  move to next subtree.
+            if left % 2 == 1 {
+                res = T::semigroup(res, self.tree[left].clone());
+                left += 1;
             }
-            if right % 2 == 0 {
-                right_result = T::semigroup_op(self.tree[right - 1].clone(), right_result);
+            if right % 2 == 1 {
+                right -= 1;
+                res = T::semigroup(self.tree[right].clone(), res);
             }
-            (left, right) = ((left - 1) / 2, (right - 1) / 2);
+            left /= 2;
+            right /= 2;
         }
-        T::semigroup_op(left_result, right_result)
+        res
     }
 
     /// **O(log^2(n))**, search the leftmost leaf where `cmp(x)` is true in the range.
@@ -302,16 +300,7 @@ mod tests {
         let empty = SegmentTree::<OptionMonoid<Coalesce<u64>>>::from(vec![]);
         assert!(empty.is_empty());
         assert_eq!(empty.len(), 0);
-        assert_eq!(
-            empty.tree,
-            // TODO optimize
-            vec![
-                OptionMonoid::unit(),
-                OptionMonoid::unit(),
-                OptionMonoid::unit(),
-            ]
-        );
-
+        assert_eq!(empty.tree, vec![OptionMonoid::unit(), OptionMonoid::unit()]);
         assert_eq!(empty.fold(..), OptionMonoid::unit());
         assert_eq!(empty.fold(0..0), OptionMonoid::unit());
     }
@@ -323,12 +312,7 @@ mod tests {
         assert_eq!(single.len(), 1);
         assert_eq!(
             single.tree,
-            // TODO optimize
-            vec![
-                OptionMonoid::from(Coalesce(Some(3))),
-                OptionMonoid::unit(),
-                OptionMonoid::unit(),
-            ]
+            vec![OptionMonoid::unit(), OptionMonoid::from(Coalesce(Some(3)))]
         );
 
         assert_eq!(single.fold(..), OptionMonoid::from(Coalesce(Some(3))));
