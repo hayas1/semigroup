@@ -348,7 +348,7 @@ mod tests {
 
     #[test]
     #[allow(clippy::reversed_empty_ranges)]
-    fn test_descending_range() {
+    fn test_descending_empty_range() {
         let data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         let sum_tree: SegmentTree<_> = data.into_iter().map(Sum).collect();
         assert_eq!(sum_tree.fold(10..0).0, 0);
@@ -358,26 +358,27 @@ mod tests {
 
     #[test]
     fn test_bisect() {
-        let data1 = [2, -5, 122, -33, -12, 14, -55, 500, 3];
-        let mut max_tree1: SegmentTree<_> = data1.into_iter().map(Max).collect();
-        assert_eq!(max_tree1.bisect_left(2..5, |&Max(x)| x >= 10), Some(2));
-        assert_eq!(max_tree1.bisect_left(3..5, |&Max(x)| x >= 10), None);
-        max_tree1.update(2, (-5).into());
-        assert_eq!(max_tree1.bisect_left(1..3, |&Max(x)| x >= -5), Some(1));
-        assert_eq!(max_tree1.bisect_left(1..5, |&Max(x)| x >= 500), None);
-        assert_eq!(max_tree1.bisect_left(5..10, |&Max(x)| x >= 500), Some(7));
-
-        let data2 = [2, -5, 122, -33, -12, 14, -55, 500, 3];
-        let mut max_tree2: SegmentTree<_> = data2.into_iter().map(Max).collect();
-        assert_eq!(max_tree2.bisect_right(2..5, |&Max(x)| x >= 10), Some(2));
-        assert_eq!(max_tree2.bisect_right(3..5, |&Max(x)| x >= 10), None);
-        max_tree2.update(2, (-5).into());
-        assert_eq!(max_tree2.bisect_right(1..3, |&Max(x)| x >= -5), Some(2));
-        assert_eq!(max_tree2.bisect_right(1..5, |&Max(x)| x >= 500), None);
-        assert_eq!(max_tree2.bisect_right(5..10, |&Max(x)| x >= 500), Some(7));
-        max_tree2.update(3, (-5).into());
-        assert_eq!(max_tree2.bisect_right(1..5, |&Max(x)| x >= -5), Some(3));
-        max_tree2.update(4, (-5).into());
-        assert_eq!(max_tree2.bisect_right(1..5, |&Max(x)| x >= -5), Some(4));
+        let data = [-22, -5, 122, -33, -12, 14, -55, 500, 3];
+        let mut max_tree: SegmentTree<_> = data.into_iter().map(Max).collect();
+        assert_eq!(max_tree.bisect_left(2..5, |&Max(x)| x >= 10), Some(2));
+        assert_eq!(max_tree.bisect_left(3..5, |&Max(x)| x >= 10), None);
+        assert_eq!(max_tree.bisect_right(2..5, |&Max(x)| x >= 10), Some(2));
+        assert_eq!(max_tree.bisect_right(3..5, |&Max(x)| x >= 10), None);
+        max_tree.update(2, (-5).into());
+        assert_eq!(max_tree.bisect_left(1..3, |&Max(x)| x >= -5), Some(1));
+        assert_eq!(max_tree.bisect_left(1..5, |&Max(x)| x >= 500), None);
+        assert_eq!(max_tree.bisect_left(5..10, |&Max(x)| x >= 500), Some(7));
+        assert_eq!(max_tree.bisect_right(1..3, |&Max(x)| x >= -5), Some(2));
+        assert_eq!(max_tree.bisect_right(1..5, |&Max(x)| x >= 500), None);
+        assert_eq!(max_tree.bisect_right(5..10, |&Max(x)| x >= 500), Some(7));
+        max_tree.update(3, (-5).into());
+        assert_eq!(max_tree.bisect_left(..5, |&Max(x)| x >= -5), Some(1));
+        assert_eq!(max_tree.bisect_right(..5, |&Max(x)| x >= -5), Some(3));
+        max_tree.update(4, (-5).into());
+        assert_eq!(max_tree.bisect_left(..5, |&Max(x)| x >= -5), Some(1));
+        assert_eq!(max_tree.bisect_right(..5, |&Max(x)| x >= -5), Some(4));
+        max_tree.update(0, (-5).into());
+        assert_eq!(max_tree.bisect_left(..5, |&Max(x)| x >= -5), Some(0));
+        assert_eq!(max_tree.bisect_right(..5, |&Max(x)| x >= -5), Some(4));
     }
 }
