@@ -98,7 +98,7 @@ impl<T: Monoid + Clone> SegmentTree<T> {
             result
         })
     }
-    /// amortized **O(log(n))**, push `x` to the segment tree, may reconstruct the segment tree.
+    /// amortized **O(log(n))**, push `x` to the segment tree, so when construct new segment tree should be used [`Self::from`] or [`Self::from_iter`] instead.
     pub fn push(&mut self, x: T) {
         self.resize(self.len() + 1);
         self.update(self.len() - 1, x);
@@ -408,16 +408,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::reversed_empty_ranges)]
-    fn test_descending_empty_range() {
-        let data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-        let sum_tree: SegmentTree<_> = data.into_iter().map(Sum).collect();
-        assert_eq!(sum_tree.fold(10..0).0, 0);
-        assert_eq!(sum_tree.fold(10..9).0, 0);
-        assert_eq!(sum_tree.fold(9..8).0, 0);
-    }
-
-    #[test]
     fn test_push() {
         let cum_sum = |s, t| (t - s + 1) * (s + t) / 2;
         let mut sum_tree = SegmentTree::new();
@@ -425,6 +415,25 @@ mod tests {
             sum_tree.push(Sum(i));
             assert_eq!(sum_tree.fold(..).0, cum_sum(0, i));
         }
+    }
+    #[test]
+    fn test_large_push() {
+        let cum_sum = |s, t| (t - s + 1) * (s + t) / 2;
+        let mut sum_tree = SegmentTree::new();
+        for i in 0..2000000 {
+            sum_tree.push(Sum(i)); // expensive loop
+            assert_eq!(sum_tree.fold(..).0, cum_sum(0u128, i));
+        }
+    }
+
+    #[test]
+    #[allow(clippy::reversed_empty_ranges)]
+    fn test_descending_empty_range() {
+        let data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        let sum_tree: SegmentTree<_> = data.into_iter().map(Sum).collect();
+        assert_eq!(sum_tree.fold(10..0).0, 0);
+        assert_eq!(sum_tree.fold(10..9).0, 0);
+        assert_eq!(sum_tree.fold(9..8).0, 0);
     }
 
     #[test]
