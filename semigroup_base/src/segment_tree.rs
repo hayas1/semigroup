@@ -15,17 +15,22 @@ impl<T: Monoid + Clone> FromIterator<T> for SegmentTree<T> {
         let iterator = iter.into_iter();
         let (lower, upper) = iterator.size_hint();
         match upper.filter(|&u| u == lower) {
-            Some(len) => Self::with_length(len).construct(iterator),
+            Some(len) => Self::new().construct(len, iterator),
             None => Self::from(iterator.collect::<Vec<_>>()),
         }
     }
 }
 impl<T: Monoid + Clone> From<Vec<T>> for SegmentTree<T> {
     fn from(v: Vec<T>) -> Self {
-        Self::with_length(v.len()).construct(v)
+        Self::new().construct(v.len(), v)
     }
 }
 impl<T> SegmentTree<T> {
+    /// **O(1)**, init empty segment tree.
+    pub fn new() -> Self {
+        let (tree, len) = (Vec::new(), 0);
+        Self { tree, len }
+    }
     /// **O(1)**, get size of the segment tree by given length.
     #[inline]
     fn size(len: usize) -> usize {
@@ -48,19 +53,18 @@ impl<T> SegmentTree<T> {
     }
 }
 impl<T: Monoid + Clone> SegmentTree<T> {
-    /// **O(1)**, init empty segment tree.
-    pub fn new() -> Self {
-        Self::with_length(0)
-    }
-    /// **O(len)**, init segment tree with capacity.
-    fn with_length(len: usize) -> Self {
-        let tree = (0..Self::size(len)).map(|_| T::unit()).collect();
-        Self { tree, len }
-    }
     /// **O(n)**, construct segment tree by given data.
-    fn construct<I: IntoIterator<Item = T>>(mut self, iter: I) -> Self {
+    fn construct<I: IntoIterator<Item = T>>(mut self, len: usize, iter: I) -> Self {
+        self.resize(len);
         self.reconstruct(iter);
         self
+    }
+    /// **O(len)**, allocate unit by given length.
+    fn resize(&mut self, len: usize) {
+        let data = (Self::size(self.len()) < Self::size(len)).then(|| self[..].to_vec());
+        self.tree.resize_with(Self::size(len), T::unit);
+        self.len = len.max(self.len());
+        data.into_iter().for_each(|d| self.reconstruct(d));
     }
     /// **O(n)**, reconstruct segment tree by given data.
     pub fn reconstruct<I: IntoIterator<Item = T>>(&mut self, iter: I) {
@@ -96,16 +100,8 @@ impl<T: Monoid + Clone> SegmentTree<T> {
     }
     /// amortized **O(log(n))**, push `x` to the segment tree, may reconstruct the segment tree.
     pub fn push(&mut self, x: T) {
-        let (len, leaf_offset) = (self.len(), self.leaf_offset());
-        if leaf_offset + len < self.tree.len() {
-            self.len += 1;
-            self.update(len, x);
-        } else {
-            let data: Vec<T> = self[..].iter().cloned().chain(Some(x)).collect();
-            self.len += 1;
-            self.tree.extend((0..self.leaf_offset()).map(|_| T::unit()));
-            self.reconstruct(data);
-        }
+        self.resize(self.len() + 1);
+        self.update(self.len() - 1, x);
     }
 
     /// **O(1)**, get half interval range of the segment tree leaf.
