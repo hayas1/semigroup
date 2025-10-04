@@ -30,11 +30,19 @@ impl<T, I: SliceIndex<[T]>> SegmentTreeIndex<T> for I {
 
     fn get(self, segment_tree: &SegmentTree<T>) -> Option<&Self::Output> {
         let (leaf_offset, len) = (segment_tree.leaf_offset(), segment_tree.len());
-        segment_tree.tree[leaf_offset..leaf_offset + len].get(self) // TODO optimize ?
+        if len == 0 {
+            segment_tree.tree[0..0].get(self) // for 1-indexed default tree
+        } else {
+            segment_tree.tree[leaf_offset..leaf_offset + len].get(self)
+        }
     }
     fn index(self, segment_tree: &SegmentTree<T>) -> &Self::Output {
         let (leaf_offset, len) = (segment_tree.leaf_offset(), segment_tree.len());
-        &segment_tree.tree[leaf_offset..leaf_offset + len][self] // TODO optimize ?
+        if len == 0 {
+            &segment_tree.tree[0..0][self] // for 1-indexed default tree
+        } else {
+            &segment_tree.tree[leaf_offset..leaf_offset + len][self]
+        }
     }
 }
 
