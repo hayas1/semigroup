@@ -48,13 +48,22 @@ impl<T> SegmentTree<T> {
     }
 }
 impl<T: Monoid + Clone> SegmentTree<T> {
+    /// **O(1)**, init empty segment tree.
+    pub fn new() -> Self {
+        Self::with_length(0)
+    }
     /// **O(len)**, init segment tree with capacity.
     fn with_length(len: usize) -> Self {
         let tree = (0..Self::size(len)).map(|_| T::unit()).collect();
         Self { tree, len }
     }
-    /// **O(n)**, init segment tree by given data.
+    /// **O(n)**, construct segment tree by given data.
     fn construct<I: IntoIterator<Item = T>>(mut self, iter: I) -> Self {
+        self.reconstruct(iter);
+        self
+    }
+    /// **O(n)**, reconstruct segment tree by given data.
+    pub fn reconstruct<I: IntoIterator<Item = T>>(&mut self, iter: I) {
         let leaf_offset = self.leaf_offset();
         for (i, d) in iter.into_iter().enumerate() {
             self.tree[leaf_offset + i] = d;
@@ -62,7 +71,6 @@ impl<T: Monoid + Clone> SegmentTree<T> {
         for i in (1..leaf_offset).rev() {
             self.tree[i] = T::semigroup_op(self.tree[i * 2].clone(), self.tree[i * 2 + 1].clone());
         }
-        self
     }
 
     /// **O(log(n))**, set `leaf[k] = x`, and update segment tree.
@@ -78,13 +86,26 @@ impl<T: Monoid + Clone> SegmentTree<T> {
             let mut node = self.leaf_offset() + i;
             let mut result = f(&self.tree[node]);
             std::mem::swap(&mut self.tree[node], &mut result);
-            while node > 0 {
+            while node > 1 {
                 node /= 2;
                 self.tree[node] =
                     T::semigroup_op(self.tree[node * 2].clone(), self.tree[node * 2 + 1].clone());
             }
             result
         })
+    }
+    /// amortized **O(log(n))**, push `x` to the segment tree, may reconstruct the segment tree.
+    pub fn push(&mut self, x: T) {
+        let (len, leaf_offset) = (self.len(), self.leaf_offset());
+        if leaf_offset + len < self.tree.len() {
+            self.len += 1;
+            self.update(len, x);
+        } else {
+            let data: Vec<T> = self[..].iter().cloned().chain(Some(x)).collect();
+            self.len += 1;
+            self.tree.extend((0..self.leaf_offset()).map(|_| T::unit()));
+            self.reconstruct(data);
+        }
     }
 
     /// **O(1)**, range to leaf index half interval `[start, end)`.
@@ -300,6 +321,7 @@ mod tests {
         let empty = SegmentTree::<OptionMonoid<Coalesce<u64>>>::from(vec![]);
         assert!(empty.is_empty());
         assert_eq!(empty.len(), 0);
+        assert_eq!(empty[..], vec![]);
         assert_eq!(empty.tree, vec![OptionMonoid::unit(), OptionMonoid::unit()]);
         assert_eq!(empty.fold(..), OptionMonoid::unit());
         assert_eq!(empty.fold(0..0), OptionMonoid::unit());
@@ -310,6 +332,7 @@ mod tests {
         let mut single = SegmentTree::<_>::from(vec![OptionMonoid::from(Coalesce(Some(3)))]);
         assert!(!single.is_empty());
         assert_eq!(single.len(), 1);
+        assert_eq!(single[..], vec![OptionMonoid::from(Coalesce(Some(3)))]);
         assert_eq!(
             single.tree,
             vec![OptionMonoid::unit(), OptionMonoid::from(Coalesce(Some(3)))]
@@ -321,6 +344,48 @@ mod tests {
         single.update(0, OptionMonoid::from(Coalesce(Some(5))));
         assert_eq!(single.fold(..), OptionMonoid::from(Coalesce(Some(5))));
         assert_eq!(single.fold(1..), OptionMonoid::unit());
+    }
+
+    #[test]
+    fn test_pair_tree() {
+        let mut pair = SegmentTree::<_>::from(vec![
+            OptionMonoid::from(Coalesce(Some(3))),
+            OptionMonoid::from(Coalesce(Some(4))),
+        ]);
+        assert!(!pair.is_empty());
+        assert_eq!(pair.len(), 2);
+        assert_eq!(
+            pair[..],
+            vec![
+                OptionMonoid::from(Coalesce(Some(3))),
+                OptionMonoid::from(Coalesce(Some(4))),
+            ]
+        );
+        assert_eq!(
+            pair.tree,
+            vec![
+                OptionMonoid::unit(),
+                OptionMonoid::from(Coalesce(Some(3))),
+                OptionMonoid::from(Coalesce(Some(3))),
+                OptionMonoid::from(Coalesce(Some(4))),
+            ]
+        );
+
+        assert_eq!(pair.fold(..), OptionMonoid::from(Coalesce(Some(3))));
+        assert_eq!(pair.fold(1..1), OptionMonoid::unit());
+        assert_eq!(pair.fold(1..), OptionMonoid::from(Coalesce(Some(4))));
+        pair.update(0, OptionMonoid::from(Coalesce(Some(5))));
+        assert_eq!(pair.fold(..), OptionMonoid::from(Coalesce(Some(5))));
+        assert_eq!(pair.fold(1..), OptionMonoid::from(Coalesce(Some(4))));
+        assert_eq!(
+            pair.tree,
+            vec![
+                OptionMonoid::unit(),
+                OptionMonoid::from(Coalesce(Some(5))),
+                OptionMonoid::from(Coalesce(Some(5))),
+                OptionMonoid::from(Coalesce(Some(4))),
+            ]
+        );
     }
 
     #[test]
@@ -354,6 +419,16 @@ mod tests {
         assert_eq!(sum_tree.fold(10..0).0, 0);
         assert_eq!(sum_tree.fold(10..9).0, 0);
         assert_eq!(sum_tree.fold(9..8).0, 0);
+    }
+
+    #[test]
+    fn test_push() {
+        let cum_sum = |s, t| (t - s + 1) * (s + t) / 2;
+        let mut sum_tree = SegmentTree::new();
+        for i in 0..1023 {
+            sum_tree.push(Sum(i));
+            assert_eq!(sum_tree.fold(..).0, cum_sum(0, i));
+        }
     }
 
     #[test]
