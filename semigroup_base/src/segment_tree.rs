@@ -108,7 +108,7 @@ impl<T: Monoid + Clone> SegmentTree<T> {
         }
     }
 
-    /// **O(1)**, range to leaf index half interval `[start, end)`.
+    /// **O(1)**, get half interval range of the segment tree leaf.
     fn indices<R>(&self, range: R) -> Range<usize>
     where
         R: RangeBounds<usize>,
