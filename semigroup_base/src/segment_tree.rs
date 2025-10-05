@@ -33,8 +33,12 @@ impl<T> SegmentTree<T> {
     }
     /// **O(1)**, get size of the segment tree by given length.
     #[inline]
-    fn size(len: usize) -> usize {
+    fn capacity(len: usize) -> usize {
         2 * len.next_power_of_two()
+    }
+    /// **O(1)**, check if this segment tree can be extended by given length.
+    fn over_capacity(&self, len: usize) -> bool {
+        Self::capacity(self.len()) < Self::capacity(len)
     }
     /// **O(1)**, get beginning index of the segment tree leaf.
     #[inline]
@@ -61,8 +65,8 @@ impl<T: Monoid + Clone> SegmentTree<T> {
     }
     /// **O(len)**, allocate unit by given length.
     fn resize(&mut self, len: usize) {
-        let data = (Self::size(self.len()) < Self::size(len)).then(|| self[..].to_vec());
-        self.tree.resize_with(Self::size(len), T::unit);
+        let data = self.over_capacity(len).then(|| self[..].to_vec());
+        self.tree.resize_with(Self::capacity(len), T::unit);
         self.len = len.max(self.len());
         data.into_iter().for_each(|d| self.reconstruct(d));
     }
@@ -98,10 +102,27 @@ impl<T: Monoid + Clone> SegmentTree<T> {
             result
         })
     }
-    /// amortized **O(log(n))**, push `x` to the segment tree, so when construct new segment tree should be used [`Self::from`] or [`Self::from_iter`] instead.
+    /// amortized **O(log(n))**, push `x` to the segment tree, when construct new segment tree should be used [`Self::from`] or [`Self::from_iter`] instead.
     pub fn push(&mut self, x: T) {
         self.resize(self.len() + 1);
         self.update(self.len() - 1, x);
+    }
+    /// **O(len(slice) log(n))**, extend segment tree by given slice.
+    pub fn extend_from_slice(&mut self, slice: &[T]) {
+        self.extend_with_length(slice.len(), slice.iter().cloned());
+    }
+    /// amortized **O(len log(n))**, extend segment tree by given iterator with given length.
+    fn extend_with_length<I: IntoIterator<Item = T>>(&mut self, len: usize, iter: I) {
+        if self.over_capacity(len) {
+            let data: Vec<_> = self[..].iter().cloned().chain(iter).collect();
+            self.resize(self.len() + len);
+            self.reconstruct(data);
+        } else {
+            let repeat_unit = std::iter::repeat_with(T::unit);
+            for d in iter.into_iter().chain(repeat_unit).take(len) {
+                self.push(d.clone());
+            }
+        }
     }
 
     /// **O(1)**, get half interval range of the segment tree leaf.
@@ -179,6 +200,16 @@ impl<T: Monoid + Clone> SegmentTree<T> {
             }
         }
         cmp(&self.tree[self.leaf_offset() + start]).then_some(start)
+    }
+}
+impl<T: Monoid + Clone> Extend<T> for SegmentTree<T> {
+    fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
+        let iterator = iter.into_iter();
+        let (lower, upper) = iterator.size_hint();
+        match upper.filter(|&u| u == lower) {
+            Some(len) => self.extend_with_length(len, iterator),
+            None => self.extend_from_slice(&iterator.collect::<Vec<_>>()),
+        }
     }
 }
 
@@ -424,6 +455,49 @@ mod tests {
             sum_tree.push(Sum(i)); // expensive loop
             assert_eq!(sum_tree.fold(..).0, cum_sum(0u128, i));
         }
+    }
+
+    #[test]
+    fn test_extend() {
+        let cum_sum = |s, t| (t - s + 1) * (s + t) / 2;
+        let mut sum_tree = SegmentTree::new();
+        sum_tree.extend((0..1).map(Sum));
+        assert_eq!(sum_tree.fold(..).0, cum_sum(0, 0));
+        sum_tree.extend((1..10).map(Sum));
+        assert_eq!(sum_tree.fold(..).0, cum_sum(0, 9));
+        sum_tree.extend((10..100).map(Sum));
+        assert_eq!(sum_tree.fold(..).0, cum_sum(0, 99));
+        sum_tree.extend((100..200).map(Sum));
+        assert_eq!(sum_tree.fold(..).0, cum_sum(0, 199));
+        sum_tree.extend((200..300).map(Sum));
+        assert_eq!(sum_tree.fold(..).0, cum_sum(0, 299));
+        sum_tree.extend((300..400).map(Sum));
+        assert_eq!(sum_tree.fold(..).0, cum_sum(0, 399));
+        sum_tree.extend((400..500).map(Sum));
+        assert_eq!(sum_tree.fold(..).0, cum_sum(0, 499));
+        sum_tree.extend((500..600).map(Sum));
+        assert_eq!(sum_tree.fold(..).0, cum_sum(0, 599));
+        sum_tree.extend((600..700).map(Sum));
+        assert_eq!(sum_tree.fold(..).0, cum_sum(0, 699));
+        sum_tree.extend((700..800).map(Sum));
+        assert_eq!(sum_tree.fold(..).0, cum_sum(0, 799));
+        sum_tree.extend((800..900).map(Sum));
+        assert_eq!(sum_tree.fold(..).0, cum_sum(0, 899));
+        sum_tree.extend((900..1000).map(Sum));
+        assert_eq!(sum_tree.fold(..).0, cum_sum(0, 999));
+        sum_tree.extend_from_slice(&[
+            Sum(1000),
+            Sum(1001),
+            Sum(1002),
+            Sum(1003),
+            Sum(1004),
+            Sum(1005),
+            Sum(1006),
+            Sum(1007),
+            Sum(1008),
+            Sum(1009),
+        ]);
+        assert_eq!(sum_tree.fold(..).0, cum_sum(0, 1009));
     }
 
     #[test]
