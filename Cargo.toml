@@ -24,6 +24,7 @@ derive = ["semigroup_derive"]
 test = ["semigroup_base/test"]
 serde = ["semigroup_base/serde"]
 clap = ["semigroup_base/clap"]
+monoid = ["semigroup_base/monoid"]
 
 [dependencies]
 semigroup_base = { path = "semigroup_base", default-features = false }
@@ -32,3 +33,11 @@ semigroup_derive = { path = "semigroup_derive", default-features = false, option
 [dev-dependencies]
 semigroup = { path = ".", features = ["derive", "test"] }
 trybuild = { version = "1.0.111", features = ["diff"] }
+
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(doc_cfg)'] }
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "doc_cfg"]

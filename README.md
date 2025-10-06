@@ -3,17 +3,18 @@
 Semigroup trait is useful
 - reading configs from multiple sources
 - statistically aggregation
+- fast range queries using segment tree
 
 ## Usage
 ```toml
 [dependencies]
-semigroup = { git = "https://github.com/hayas1/semigroup" }
+semigroup = { git = "https://github.com/hayas1/semigroup", features = ["derive", "monoid"] }
 ```
 
 ## Examples
 
-### Annotation
-#### Simple string annotation
+### Reading configs from multiple sources
+#### With simple string annotation
 ```rust
 use semigroup::{Annotate, Semigroup};
 #[derive(Debug, Clone, PartialEq, Semigroup)]
@@ -21,7 +22,7 @@ use semigroup::{Annotate, Semigroup};
 pub struct Config<'a> {
     pub num: Option<u32>,
     pub str: Option<&'a str>,
-    #[semigroup(with = "semigroup::op::annotation::replace::Replace")]
+    #[semigroup(with = "semigroup::op::annotation::overwrite::Overwrite")]
     pub boolean: bool,
 }
 
@@ -37,7 +38,7 @@ assert_eq!(config.annotation().str, "Env");
 assert_eq!(config.annotation().boolean, "Cli");
 ```
 
-#### Rich enum annotation
+#### With rich enum annotation
 ```rust
 use semigroup::{Annotate, Semigroup};
 #[derive(Debug, Clone, PartialEq, Semigroup)]
@@ -45,7 +46,7 @@ use semigroup::{Annotate, Semigroup};
 pub struct Config<'a> {
     pub num: Option<u32>,
     pub str: Option<&'a str>,
-    #[semigroup(with = "semigroup::op::annotation::replace::Replace")]
+    #[semigroup(with = "semigroup::op::annotation::overwrite::Overwrite")]
     pub boolean: bool,
 }
 #[derive(Debug, Clone, PartialEq)]
@@ -76,7 +77,7 @@ use semigroup::{Annotate, Semigroup};
 pub struct Config<'a> {
     pub num: Option<u32>,
     pub str: Option<&'a str>,
-    #[semigroup(with = "semigroup::op::annotation::replace::Replace")]
+    #[semigroup(with = "semigroup::op::annotation::overwrite::Overwrite")]
     pub boolean: bool,
 }
 
@@ -102,7 +103,7 @@ use semigroup::{Annotate, Semigroup, SemigroupIterator};
 pub struct Config<'a> {
     pub num: Option<u32>,
     pub str: Option<&'a str>,
-    #[semigroup(with = "semigroup::op::annotation::replace::Replace")]
+    #[semigroup(with = "semigroup::op::annotation::overwrite::Overwrite")]
     pub boolean: bool,
 }
 
@@ -119,6 +120,35 @@ assert_eq!(config.value(), &Config { num: Some(1), str: Some("thousand"), boolea
 assert_eq!(config.annotation().num, "File");
 assert_eq!(config.annotation().str, "Default");
 assert_eq!(config.annotation().boolean, "Default");
+```
+
+### Segment tree
+Only available with the `monoid` feature
+```rust
+use semigroup::{Semigroup, Construction, segment_tree::SegmentTree, monoid::Monoid};
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction,
+)]
+struct Max(pub i32);
+impl Semigroup for Max {
+    fn semigroup_op(base: Self, other: Self) -> Self {
+        Max(std::cmp::max(base.0, other.0))
+    }
+}
+impl Monoid for Max {
+    fn unit() -> Self {
+        Max(i32::MIN)
+    }
+}
+
+let data = [2, -5, 122, -33, -12, 14, -55, 500, 3];
+let mut max_tree: SegmentTree<_> = data.into_iter().map(Max).collect();
+assert_eq!(max_tree.fold(3..6).0, 14);
+max_tree.update_with(4, |Max(x)| Max(x + 1000));
+assert_eq!(max_tree.fold(3..6).0, 988);
+
+// #[test]
+semigroup::assert_monoid!(&max_tree[..]);
 ```
 
 ## Documents

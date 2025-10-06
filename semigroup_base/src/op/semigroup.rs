@@ -1,1 +1,9 @@
-pub mod add;
+#[cfg(feature = "monoid")]
+pub mod gcd;
+#[cfg(feature = "monoid")]
+pub mod lcm;
+pub mod max;
+pub mod min;
+pub mod prod;
+pub mod sum;
+pub mod xor;

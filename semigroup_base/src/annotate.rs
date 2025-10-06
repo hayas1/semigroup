@@ -68,9 +68,15 @@ impl<T, A> Annotated<T, A> {
             annotation: f(self.annotation),
         }
     }
-    pub fn map_parts<U, B>(self, f: impl FnOnce(T, A) -> (U, B)) -> Annotated<U, B> {
-        let (value, annotation) = f(self.value, self.annotation);
-        Annotated { value, annotation }
+    pub fn map_parts<U, B>(
+        self,
+        fv: impl FnOnce(T) -> U,
+        fa: impl FnOnce(A) -> B,
+    ) -> Annotated<U, B> {
+        Annotated {
+            value: fv(self.value),
+            annotation: fa(self.annotation),
+        }
     }
 
     pub fn as_ref(&self) -> Annotated<&T, &A> {
@@ -104,7 +110,7 @@ impl<T, A> Annotated<&T, &A> {
         T: Clone,
         A: Clone,
     {
-        self.map_parts(|v, a| (v.clone(), a.clone()))
+        self.map_parts(Clone::clone, Clone::clone)
     }
 }
 impl<T, A> Annotated<&mut T, &A> {
@@ -113,7 +119,7 @@ impl<T, A> Annotated<&mut T, &A> {
         T: Clone,
         A: Clone,
     {
-        self.map_parts(|v, a| (v.clone(), a.clone()))
+        self.map_parts(|v| v.clone(), Clone::clone)
     }
 }
 impl<T, A> Annotated<&T, &mut A> {
@@ -122,7 +128,7 @@ impl<T, A> Annotated<&T, &mut A> {
         T: Clone,
         A: Clone,
     {
-        self.map_parts(|v, a| (v.clone(), a.clone()))
+        self.map_parts(Clone::clone, |a| a.clone())
     }
 }
 impl<T, A> Annotated<&mut T, &mut A> {
@@ -131,7 +137,7 @@ impl<T, A> Annotated<&mut T, &mut A> {
         T: Clone,
         A: Clone,
     {
-        self.map_parts(|v, a| (v.clone(), a.clone()))
+        self.map_parts(|v| v.clone(), |a| a.clone())
     }
 }
 impl<T, A> Annotated<&T, A> {
