@@ -59,12 +59,12 @@ impl<T> SegmentTree<T> {
 impl<T: Monoid + Clone> SegmentTree<T> {
     /// **O(n)**, construct segment tree by given data.
     fn construct<I: IntoIterator<Item = T>>(mut self, len: usize, iter: I) -> Self {
-        self.resize(len);
+        self.resize_upto(len);
         self.reconstruct(iter);
         self
     }
-    /// **O(len)**, allocate unit by given length.
-    fn resize(&mut self, len: usize) {
+    /// **O(len)**, resize segment tree by allocating unit values without truncating.
+    fn resize_upto(&mut self, len: usize) {
         let data = self.over_capacity(len).then(|| self[..].to_vec());
         self.tree.resize_with(Self::capacity(len), T::unit);
         self.len = len.max(self.len());
@@ -104,7 +104,7 @@ impl<T: Monoid + Clone> SegmentTree<T> {
     }
     /// amortized **O(log(n))**, push `x` to the segment tree, when construct new segment tree should be used [`Self::from`] or [`Self::from_iter`] ([`std::iter::Iterator::collect`]) instead.
     pub fn push(&mut self, x: T) {
-        self.resize(self.len() + 1);
+        self.resize_upto(self.len() + 1);
         self.update(self.len() - 1, x);
     }
     /// amortized **O(len(slice) log(n))**, extend segment tree by given slice.
@@ -115,7 +115,7 @@ impl<T: Monoid + Clone> SegmentTree<T> {
     fn extend_with_length<I: IntoIterator<Item = T>>(&mut self, len: usize, iter: I) {
         if self.over_capacity(len) {
             let data: Vec<_> = self[..].iter().cloned().chain(iter).collect();
-            self.resize(self.len() + len);
+            self.resize_upto(self.len() + len);
             self.reconstruct(data);
         } else {
             let repeat_unit = std::iter::repeat_with(T::unit);
