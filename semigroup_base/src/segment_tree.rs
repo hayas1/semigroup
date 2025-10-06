@@ -81,11 +81,11 @@ impl<T: Monoid + Clone> SegmentTree<T> {
         }
     }
 
-    /// **O(log(n))**, set `leaf[k] = x`, and update segment tree.
+    /// **O(log(n))**, set `leaf[i] = x`, and update segment tree.
     pub fn update(&mut self, i: usize, x: T) -> Option<T> {
         self.update_with(i, |_| x)
     }
-    /// **O(log(n))**, update `leaf[k]` by `f(leaf[k])`, and update segment tree.
+    /// **O(log(n))**, update `leaf[i]` by `f(leaf[i])`, and update segment tree.
     pub fn update_with<F>(&mut self, i: usize, f: F) -> Option<T>
     where
         F: FnOnce(&T) -> T,
@@ -125,7 +125,7 @@ impl<T: Monoid + Clone> SegmentTree<T> {
         }
     }
 
-    /// **O(1)**, get half interval range of the segment tree leaf.
+    /// **O(1)**, get half-open interval range of the segment tree leaf.
     fn indices<R>(&self, range: R) -> Range<usize>
     where
         R: RangeBounds<usize>,
