@@ -71,7 +71,7 @@ impl<T: Monoid + Clone> SegmentTree<T> {
         data.into_iter().for_each(|d| self.reconstruct(d));
     }
     /// **O(n)**, reconstruct segment tree by given data.
-    pub fn reconstruct<I: IntoIterator<Item = T>>(&mut self, iter: I) {
+    fn reconstruct<I: IntoIterator<Item = T>>(&mut self, iter: I) {
         let leaf_offset = self.leaf_offset();
         for (i, d) in iter.into_iter().enumerate() {
             self.tree[leaf_offset + i] = d;
