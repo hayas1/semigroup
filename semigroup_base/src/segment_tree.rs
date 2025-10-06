@@ -102,12 +102,12 @@ impl<T: Monoid + Clone> SegmentTree<T> {
             result
         })
     }
-    /// amortized **O(log(n))**, push `x` to the segment tree, when construct new segment tree should be used [`Self::from`] or [`Self::from_iter`] instead.
+    /// amortized **O(log(n))**, push `x` to the segment tree, when construct new segment tree should be used [`Self::from`] or [`Self::from_iter`] ([`std::iter::Iterator::collect`]) instead.
     pub fn push(&mut self, x: T) {
         self.resize(self.len() + 1);
         self.update(self.len() - 1, x);
     }
-    /// **O(len(slice) log(n))**, extend segment tree by given slice.
+    /// amortized **O(len(slice) log(n))**, extend segment tree by given slice.
     pub fn extend_from_slice(&mut self, slice: &[T]) {
         self.extend_with_length(slice.len(), slice.iter().cloned());
     }
