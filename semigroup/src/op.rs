@@ -3,6 +3,8 @@ mod concat;
 mod overwrite;
 pub use {coalesce::*, concat::*, overwrite::*};
 
+mod all;
+mod any;
 #[cfg(feature = "monoid")]
 mod gcd;
 #[cfg(feature = "monoid")]
@@ -12,9 +14,9 @@ mod min;
 mod prod;
 mod sum;
 mod xor;
+pub use {all::*, any::*, max::*, min::*, prod::*, sum::*, xor::*};
 #[cfg(feature = "monoid")]
 pub use {gcd::*, lcm::*};
-pub use {max::*, min::*, prod::*, sum::*, xor::*};
 
 #[cfg(feature = "histogram")]
 mod hdr_histogram;
