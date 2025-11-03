@@ -28,7 +28,7 @@ impl<A> AnnotatedSemigroup<A> for All {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Construction, Semigroup};
+    use crate::{Annotate, Construction, Semigroup};
 
     use super::*;
 
@@ -79,5 +79,17 @@ mod tests {
 
         let (a, b, c) = (All(true), All(true), All(true));
         assert!(a.semigroup(b).semigroup(c).into_inner());
+    }
+
+    #[test]
+    fn test_all_annotated() {
+        let a = All(false).annotated(0);
+        let b = All(true).annotated(1);
+        let c = All(false).annotated(2);
+        let d = All(true).annotated(3);
+        assert_eq!(a.semigroup(b).semigroup(c).semigroup(d), a);
+        assert_eq!(d.semigroup(c).semigroup(b).semigroup(a), c);
+        assert_eq!(a.semigroup(c), a);
+        assert_eq!(b.semigroup(d), b);
     }
 }
