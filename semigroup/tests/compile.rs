@@ -5,17 +5,17 @@ fn test_ui() {
     let t = trybuild::TestCases::new();
     #[cfg(not(feature = "monoid"))]
     {
-        prepare_rs_file("tests/ui/compile_fail", "tests/ui/semigroup").unwrap();
+        cp_rs_file("tests/ui/compile_fail", "tests/ui/semigroup").unwrap();
         t.compile_fail("tests/ui/semigroup/**/*.rs");
     }
     #[cfg(feature = "monoid")]
     {
-        prepare_rs_file("tests/ui/compile_fail", "tests/ui/monoid").unwrap();
+        cp_rs_file("tests/ui/compile_fail", "tests/ui/monoid").unwrap();
         t.compile_fail("tests/ui/monoid/**/*.rs");
     }
 }
 
-fn prepare_rs_file<P: AsRef<Path>>(source: P, target: P) -> Result<(), std::io::Error> {
+fn cp_rs_file<P: AsRef<Path>>(source: P, target: P) -> Result<(), std::io::Error> {
     let files = std::fs::read_dir(source.as_ref())?;
     files
         .filter_map(Result::ok)
