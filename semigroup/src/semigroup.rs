@@ -187,6 +187,7 @@ pub mod test_semigroup {
         assert_semigroup_reverse(a.clone(), b.clone(), c.clone());
         assert_combine_iter(a.clone(), b.clone(), c.clone());
         assert_lazy(a.clone(), b.clone(), c.clone());
+        assert_semigroup_tuple(a.clone(), b.clone(), c.clone());
         #[cfg(feature = "monoid")]
         crate::test_monoid::assert_option_monoid(a.clone(), b.clone(), c.clone());
     }
@@ -195,5 +196,16 @@ pub mod test_semigroup {
         let ab_c = Semigroup::op(Semigroup::op(a.clone(), b.clone()), c.clone());
         let a_bc = Semigroup::op(a.clone(), Semigroup::op(b.clone(), c.clone()));
         assert_eq!(ab_c, a_bc);
+    }
+
+    pub fn assert_semigroup_tuple<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
+        let abc = (a.clone(), b.clone(), c.clone());
+        let bca = (b.clone(), c.clone(), a.clone());
+        let cab = (c.clone(), a.clone(), b.clone());
+
+        let (a_b_c, b_c_a, c_a_b) = abc.semigroup(bca).semigroup(cab);
+        assert_eq!(a_b_c, a.clone().semigroup(b.clone()).semigroup(c.clone()));
+        assert_eq!(b_c_a, b.clone().semigroup(c.clone()).semigroup(a.clone()));
+        assert_eq!(c_a_b, c.clone().semigroup(a.clone()).semigroup(b.clone()));
     }
 }
