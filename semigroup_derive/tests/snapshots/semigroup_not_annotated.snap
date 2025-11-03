@@ -1,18 +1,15 @@
 ---
 source: semigroup_derive/src/semigroup.rs
-assertion_line: 77
+assertion_line: 89
 expression: formatted
 ---
 #[automatically_derived]
 impl<T: std::ops::Add> crate::Semigroup for UnnamedStruct<T> {
     fn op(base: Self, other: Self) -> Self {
+        use crate::Construction;
         Self {
-            0: <semigroup::op::Added<
-                _,
-            > as crate::Construction<_>>::lift_op(base.0, other.0),
-            1: <semigroup::op::Overwrite<
-                _,
-            > as crate::Construction<_>>::lift_op(base.1, other.1),
+            0: semigroup::op::Added::lift_op(base.0, other.0),
+            1: semigroup::op::Overwrite::lift_op(base.1, other.1),
         }
     }
 }
