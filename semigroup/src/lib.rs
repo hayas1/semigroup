@@ -60,8 +60,8 @@
 //! let env = Config { num: Some(100), str: None, boolean: true }.annotated(Source::Env);
 //!
 //! let lazy = Lazy::from(cli).semigroup(file.into()).semigroup(env.into());
-//! assert_eq!(lazy.first().value(), &Config { num: Some(1), str: None, boolean: true });
-//! assert_eq!(lazy.last().value(), &Config { num: Some(100), str: None, boolean: false });
+//! assert_eq!(lazy.first().value(), &Config { num: Some(1), str: None, boolean: false });
+//! assert_eq!(lazy.last().value(), &Config { num: Some(100), str: None, boolean: true });
 //!
 //! let config = lazy.combine();
 //! assert_eq!(config.value(), &Config { num: Some(1), str: Some("ten"), boolean: true });

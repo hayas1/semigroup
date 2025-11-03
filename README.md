@@ -24,17 +24,17 @@ use semigroup::Semigroup;
 pub struct Config<'a> {
     pub num: Option<u32>,
     pub str: Option<&'a str>,
-    #[semigroup(with = "semigroup::op::Overwrite")]
+    #[semigroup(with = "semigroup::op::Any")]
     pub boolean: bool,
 }
 
-let cli = Config { num: Some(1), str: None, boolean: true };
+let cli = Config { num: Some(1), str: None, boolean: false };
 let file = Config { num: None, str: Some("ten"), boolean: false };
-let env = Config { num: Some(100), str: None, boolean: false };
+let env = Config { num: Some(100), str: None, boolean: true };
 
 let config = cli.semigroup(file).semigroup(env);
 
-assert_eq!(config, Config { num: Some(1), str: Some("ten"), boolean: false });
+assert_eq!(config, Config { num: Some(1), str: Some("ten"), boolean: true });
 ```
 
 ### Coalesce with rich enum annotation and lazy evaluation
@@ -46,7 +46,7 @@ use semigroup::{Annotate, Lazy, Semigroup};
 pub struct Config<'a> {
     pub num: Option<u32>,
     pub str: Option<&'a str>,
-    #[semigroup(with = "semigroup::op::Overwrite")]
+    #[semigroup(with = "semigroup::op::Any")]
     pub boolean: bool,
 }
 #[derive(Debug, Clone, PartialEq)]
@@ -56,16 +56,16 @@ pub enum Source {
     Cli,
 }
 
-let cli = Config { num: Some(1), str: None, boolean: true }.annotated(Source::Cli);
+let cli = Config { num: Some(1), str: None, boolean: false }.annotated(Source::Cli);
 let file = Config { num: None, str: Some("ten"), boolean: false }.annotated(Source::File);
-let env = Config { num: Some(100), str: None, boolean: false }.annotated(Source::Env);
+let env = Config { num: Some(100), str: None, boolean: true }.annotated(Source::Env);
 
 let lazy = Lazy::from(cli).semigroup(file.into()).semigroup(env.into());
-assert_eq!(lazy.first().value(), &Config { num: Some(1), str: None, boolean: true });
-assert_eq!(lazy.last().value(), &Config { num: Some(100), str: None, boolean: false });
+assert_eq!(lazy.first().value(), &Config { num: Some(1), str: None, boolean: false });
+assert_eq!(lazy.last().value(), &Config { num: Some(100), str: None, boolean: true });
 
 let config = lazy.combine();
-assert_eq!(config.value(), &Config { num: Some(1), str: Some("ten"), boolean: false });
+assert_eq!(config.value(), &Config { num: Some(1), str: Some("ten"), boolean: true });
 assert_eq!(config.annotation().num, Source::Cli);
 assert_eq!(config.annotation().str, Source::File);
 assert_eq!(config.annotation().boolean, Source::Env);
