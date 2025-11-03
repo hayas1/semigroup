@@ -1,5 +1,5 @@
 error[E0277]: the trait bound `Overwrite<_>: ConstructionMonoid<_>` is not satisfied
- --> tests/ui/histogram/derive_monoid_without_monoid.rs:3:35
+ --> tests/ui/monoid/derive_monoid_without_monoid.rs:3:35
   |
 3 | #[derive(Debug, Clone, PartialEq, Semigroup)]
   |                                   ^^^^^^^^^ the trait `ConstructionMonoid<_>` is not implemented for `Overwrite<_>`
