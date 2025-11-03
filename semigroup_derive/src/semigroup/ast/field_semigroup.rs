@@ -51,12 +51,7 @@ impl<'a> FieldSemigroupOp<'a> {
 
     pub fn impl_field_semigroup_op(&self) -> FieldValue {
         let Self {
-            constant:
-                Constant {
-                    path_semigroup,
-                    path_construction_trait,
-                    ..
-                },
+            constant: Constant { path_semigroup, .. },
             container_attr,
             member,
             field_attr,
@@ -65,7 +60,7 @@ impl<'a> FieldSemigroupOp<'a> {
         let with = field_attr.with(container_attr);
         with.map(|path| {
             parse_quote! {
-                #member: <#path<_> as #path_construction_trait<_>>::lift_op(base.#member, other.#member)
+                #member: #path::lift_op(base.#member, other.#member)
             }
         })
         .unwrap_or_else(|| {
@@ -76,12 +71,7 @@ impl<'a> FieldSemigroupOp<'a> {
     }
     pub fn impl_field_monoid_identity(&self) -> FieldValue {
         let Self {
-            constant:
-                Constant {
-                    path_monoid,
-                    path_construction_monoid,
-                    ..
-                },
+            constant: Constant { path_monoid, .. },
             container_attr,
             member,
             field_attr,
@@ -90,7 +80,7 @@ impl<'a> FieldSemigroupOp<'a> {
         let with = field_attr.with(container_attr);
         with.map(|path| {
             parse_quote! {
-                #member: <#path<_> as #path_construction_monoid<_>>::lift_identity()
+                #member: #path::lift_identity()
             }
         })
         .unwrap_or_else(|| {
@@ -167,7 +157,6 @@ impl<'a> FieldAnnotatedOp<'a> {
         let Constant {
             path_annotated_semigroup,
             path_annotated,
-            path_construction_annotated,
             ..
         } = constant;
         let (ident_value, ident_annotation) = self.ident_parts();
@@ -175,7 +164,7 @@ impl<'a> FieldAnnotatedOp<'a> {
 
         with.map(|path| {
             parse_quote! {
-                let (#ident_value, #ident_annotation) = <#path::<_> as #path_construction_annotated<_, _>>::lift_annotated_op(
+                let (#ident_value, #ident_annotation) = #path::lift_annotated_op(
                     #path_annotated::new(base_value.#member, base_annotation.#member),
                     #path_annotated::new(other_value.#member, other_annotation.#member),
                 ).into_parts();

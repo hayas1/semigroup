@@ -49,7 +49,11 @@ impl<'a> StructSemigroup<'a> {
             field_ops,
             ..
         } = self;
-        let Constant { path_semigroup, .. } = constant;
+        let Constant {
+            path_semigroup,
+            path_construction_trait,
+            ..
+        } = constant;
         let DeriveInput {
             ident, generics, ..
         } = derive;
@@ -59,6 +63,7 @@ impl<'a> StructSemigroup<'a> {
             #[automatically_derived]
             impl #impl_generics #path_semigroup for #ident #ty_generics #where_clause {
                 fn op(base: Self, other: Self) -> Self {
+                    use #path_construction_trait;
                     Self {
                         #(#fields_op),*
                     }
@@ -77,6 +82,7 @@ impl<'a> StructSemigroup<'a> {
         let Constant {
             path_monoid,
             attr_feature_monoid,
+            path_construction_monoid,
             ..
         } = constant;
         let DeriveInput {
@@ -108,6 +114,7 @@ impl<'a> StructSemigroup<'a> {
                         #attr_feature_monoid
                         impl #impl_generics #path_monoid for #ident #ty_generics #where_clause {
                             fn identity() -> Self {
+                                use #path_construction_monoid;
                                 Self {
                                     #(#fields_op),*
                                 }
@@ -237,6 +244,7 @@ impl<'a> StructAnnotate<'a> {
         let Constant {
             path_annotated_semigroup,
             path_annotated,
+            path_construction_annotated,
             ..
         } = constant;
         let DeriveInput {
@@ -249,6 +257,7 @@ impl<'a> StructAnnotate<'a> {
             #[automatically_derived]
             impl #impl_generics #path_annotated_semigroup<#annotation_type> for #ident #ty_generics #where_clause {
                 fn annotated_op(base: #path_annotated<Self, #annotation_type>, other: #path_annotated<Self, #annotation_type>) -> #path_annotated<Self, #annotation_type> {
+                    use #path_construction_annotated;
                     let (base_value, base_annotation) = base.into_parts();
                     let (other_value, other_annotation) = other.into_parts();
                     #( #local )*
