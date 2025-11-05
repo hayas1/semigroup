@@ -29,7 +29,7 @@ use crate::{Annotated, AnnotatedSemigroup};
 #[properties_priv(
     annotated,
     monoid,
-    annotation_where = "A: IntoIterator + FromIterator<A::Item>"
+    annotation_where = "A: IntoIterator + FromIterator<A::Item>, A::Item: Clone"
 )]
 pub struct Concat<T: IntoIterator + FromIterator<T::Item>>(pub T);
 impl<T: IntoIterator + FromIterator<T::Item>, A: IntoIterator + FromIterator<A::Item>>
