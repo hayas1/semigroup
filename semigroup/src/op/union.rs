@@ -1,4 +1,7 @@
-use std::{collections::HashSet, hash::Hash};
+use std::{
+    collections::{HashMap, HashSet},
+    hash::Hash,
+};
 
 use semigroup_derive::{ConstructionPriv, properties_priv};
 
@@ -23,6 +26,32 @@ use crate::Semigroup;
 #[properties_priv(monoid, commutative)]
 pub struct Union<T: Eq + Hash>(pub HashSet<T>);
 impl<T: Eq + Hash> Semigroup for Union<T> {
+    fn op(base: Self, other: Self) -> Self {
+        let (Self(mut b), Self(o)) = (base, other);
+        b.extend(o);
+        Self(b)
+    }
+}
+
+/// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that union two maps.
+/// # Properties
+/// <!-- properties -->
+///
+/// # Examples
+/// ```
+/// use semigroup::{op::UnionMap, Construction, Semigroup};
+///
+/// let a = UnionMap(vec![("one", 1), ("two",2)].into_iter().collect());
+/// let b = UnionMap(vec![("three", 3), ("four", 4)].into_iter().collect());
+///
+/// assert_eq!(a.semigroup(b).into_inner(), vec![("one", 1), ("two",2), ("three", 3), ("four", 4)].into_iter().collect());
+/// ```
+#[derive(Debug, Clone, PartialEq, Eq, Default, ConstructionPriv)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[construction(monoid, commutative, identity = Self(HashMap::new()))]
+#[properties_priv(monoid, commutative)]
+pub struct UnionMap<K: Eq + Hash, V>(pub HashMap<K, V>);
+impl<K: Eq + Hash, V> Semigroup for UnionMap<K, V> {
     fn op(base: Self, other: Self) -> Self {
         let (Self(mut b), Self(o)) = (base, other);
         b.extend(o);
