@@ -74,6 +74,15 @@ mod tests {
         );
         crate::assert_semigroup!(a, b, c);
     }
+    #[test]
+    fn test_union_map_semigroup() {
+        let (a, b, c) = (
+            UnionMap(vec![("one", 1), ("two", 2)].into_iter().collect()),
+            UnionMap(vec![("three", 3), ("four", 4)].into_iter().collect()),
+            UnionMap(vec![("five", 5), ("six", 6)].into_iter().collect()),
+        );
+        crate::assert_semigroup!(a, b, c);
+    }
 
     #[test]
     #[cfg(feature = "monoid")]
@@ -82,6 +91,16 @@ mod tests {
             Union(vec![1].into_iter().collect()),
             Union(vec![2].into_iter().collect()),
             Union(vec![3].into_iter().collect()),
+        );
+        crate::assert_monoid!(a, b, c)
+    }
+    #[test]
+    #[cfg(feature = "monoid")]
+    fn test_union_map_monoid() {
+        let (a, b, c) = (
+            UnionMap(vec![("one", 1), ("two", 2)].into_iter().collect()),
+            UnionMap(vec![("three", 3), ("four", 4)].into_iter().collect()),
+            UnionMap(vec![("five", 5), ("six", 6)].into_iter().collect()),
         );
         crate::assert_monoid!(a, b, c)
     }
@@ -99,6 +118,25 @@ mod tests {
         assert_eq!(
             b.semigroup(a).into_inner(),
             vec![2, 1].into_iter().collect()
+        );
+    }
+    #[test]
+    fn test_union_map() {
+        let (a, b) = (
+            UnionMap(vec![("one", 1), ("two", 2)].into_iter().collect()),
+            UnionMap(vec![("three", 3), ("four", 4)].into_iter().collect()),
+        );
+        assert_eq!(
+            a.clone().semigroup(b.clone()).into_inner(),
+            vec![("one", 1), ("two", 2), ("three", 3), ("four", 4)]
+                .into_iter()
+                .collect()
+        );
+        assert_eq!(
+            b.semigroup(a).into_inner(),
+            vec![("three", 3), ("four", 4), ("one", 1), ("two", 2)]
+                .into_iter()
+                .collect()
         );
     }
 }
