@@ -117,7 +117,7 @@ mod tests {
         );
         assert_eq!(
             b.semigroup(a).into_inner(),
-            vec![2, 1].into_iter().collect()
+            vec![1, 2].into_iter().collect()
         );
     }
     #[test]
@@ -134,7 +134,7 @@ mod tests {
         );
         assert_eq!(
             b.semigroup(a).into_inner(),
-            vec![("three", 3), ("four", 4), ("one", 1), ("two", 2)]
+            vec![("one", 1), ("two", 2), ("three", 3), ("four", 4)]
                 .into_iter()
                 .collect()
         );
