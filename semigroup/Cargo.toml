@@ -17,20 +17,20 @@ histogram = ["dep:hdrhistogram"]
 async = ["dep:futures"]
 
 [dependencies]
-semigroup_derive = { version = "0.4.1", path = "../semigroup_derive" }
-serde = { version = "1.0.228", features = ["derive"], optional = true }
-num = { version = "0.4.3", optional = true }
-rand = { version = "0.9.2", optional = true }
-hdrhistogram = { version = "7.5.4", optional = true }
-futures = { version = "0.3.31", optional = true }
+semigroup_derive = { version = "0.4", path = "../semigroup_derive" }
+serde = { version = "1", features = ["derive"], optional = true }
+num = { version = "0.4", optional = true }
+rand = { version = "0.9", optional = true }
+hdrhistogram = { version = "7", optional = true }
+futures = { version = "0.3", optional = true }
 
 [dev-dependencies]
 semigroup = { path = ".", features = ["derive", "test"] }
-rstest = "0.26.1"
-trybuild = { version = "1.0.113", features = ["diff"] }
-serde_json = "1.0.145"
-serde = { version = "1.0.228", features = ["derive"] }
-clap = { version = "4.5.51", features = ["derive", "env"] }
+rstest = "0.26"
+trybuild = { version = "1", features = ["diff"] }
+serde_json = "1"
+serde = { version = "1", features = ["derive"] }
+clap = { version = "4", features = ["derive", "env"] }
 
 
 [lints.rust]
