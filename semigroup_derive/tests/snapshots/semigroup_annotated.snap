@@ -26,8 +26,13 @@ pub struct NamedStructAnnotation<A> {
     baz: A,
 }
 #[automatically_derived]
-impl<A: Clone> ::semigroup::AnnotatedSemigroup<NamedStructAnnotation<A>>
-for NamedStruct {
+impl<A: Clone> ::semigroup::AnnotatedSemigroup<NamedStructAnnotation<A>> for NamedStruct
+where
+    Option<u32>: ::semigroup::AnnotatedSemigroup<NamedStructAnnotation<A>>,
+    semigroup::op::Overwrite<
+        bool,
+    >: ::semigroup::AnnotatedSemigroup<NamedStructAnnotation<A>>,
+{
     fn annotated_op(
         base: ::semigroup::Annotated<Self, NamedStructAnnotation<A>>,
         other: ::semigroup::Annotated<Self, NamedStructAnnotation<A>>,
