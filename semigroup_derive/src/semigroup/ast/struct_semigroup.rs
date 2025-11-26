@@ -238,6 +238,7 @@ impl<'a> StructAnnotate<'a> {
             derive,
             annotation_ident,
             annotation,
+            field_ops,
             ..
         } = self;
         let Constant {
@@ -249,8 +250,15 @@ impl<'a> StructAnnotate<'a> {
             ident, generics, ..
         } = derive;
         let (local, value, field_annotation) = self.impl_annotated_semigroup_fields();
-        let (_, ty_generics, _) = generics.split_for_impl();
-        let (impl_generics, annotation_type, where_clause) = annotation.split_for_impl(generics);
+        let mut g = generics.clone();
+        let where_clause = g.make_where_clause();
+        field_ops
+            .iter()
+            .flat_map(|op| op.where_predicate(annotation.ty()))
+            .for_each(|w| where_clause.predicates.push(w));
+
+        let (_, ty_generics, _) = g.split_for_impl();
+        let (impl_generics, annotation_type, where_clause) = annotation.split_for_impl(&g);
         parse_quote! {
             #[automatically_derived]
             impl #impl_generics #path_annotated_semigroup<#annotation_type> for #ident #ty_generics #where_clause {

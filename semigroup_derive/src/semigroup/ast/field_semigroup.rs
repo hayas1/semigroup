@@ -1,4 +1,4 @@
-use quote::format_ident;
+use quote::{ToTokens, format_ident};
 use syn::{
     DeriveInput, Field, FieldValue, Fields, Ident, Member, Stmt, Type, WherePredicate, parse_quote,
 };
@@ -118,6 +118,7 @@ pub struct FieldAnnotatedOp<'a> {
     constant: &'a Constant,
     container_attr: &'a ContainerAttr,
     member: Member,
+    ty: &'a Type,
     field_attr: FieldAttr,
 }
 impl<'a> FieldAnnotatedOp<'a> {
@@ -126,14 +127,15 @@ impl<'a> FieldAnnotatedOp<'a> {
         _derive: &'a DeriveInput,
         container_attr: &'a ContainerAttr,
         member: Member,
-        field_attr: FieldAttr,
-    ) -> Self {
-        Self {
+        field: &'a Field,
+    ) -> syn::Result<Self> {
+        Ok(Self {
             constant,
             container_attr,
             member,
-            field_attr,
-        }
+            ty: &field.ty,
+            field_attr: FieldAttr::new(field)?,
+        })
     }
     pub fn new_fields(
         constant: &'a Constant,
@@ -144,15 +146,7 @@ impl<'a> FieldAnnotatedOp<'a> {
         fields
             .iter()
             .zip(fields.members())
-            .map(|(field, member)| {
-                Ok(Self::new(
-                    constant,
-                    derive,
-                    container_attr,
-                    member,
-                    FieldAttr::new(field)?,
-                ))
-            })
+            .map(|(field, member)| Self::new(constant, derive, container_attr, member, field))
             .collect()
     }
 
@@ -175,6 +169,7 @@ impl<'a> FieldAnnotatedOp<'a> {
             container_attr,
             member,
             field_attr,
+            ..
         } = self;
         let Constant {
             path_annotated_semigroup,
@@ -215,5 +210,25 @@ impl<'a> FieldAnnotatedOp<'a> {
         parse_quote! {
             #member: #ident_annotation
         }
+    }
+
+    pub fn where_predicate<A: ToTokens>(&self, annotation_type: A) -> Option<WherePredicate> {
+        let Self {
+            constant:
+                Constant {
+                    path_annotated_semigroup,
+                    ..
+                },
+            container_attr,
+            ty,
+            field_attr,
+            ..
+        } = self;
+        let with = field_attr.with(container_attr);
+        with.is_none().then(|| {
+            parse_quote! {
+                #ty: #path_annotated_semigroup<#annotation_type>
+            }
+        })
     }
 }
