@@ -2,18 +2,15 @@ use semigroup::Semigroup;
 
 #[derive(Debug, Clone, PartialEq, Semigroup)]
 pub struct NamedStruct<'a> {
-    pub num: Option<u32>,
+    pub num: u32,
     #[semigroup(with = "semigroup::op::Coalesce")]
     pub str: Option<&'a str>,
 }
 
 fn main() {
-    let a = NamedStruct {
-        num: Some(1),
-        str: None,
-    };
+    let a = NamedStruct { num: 1, str: None };
     let b = NamedStruct {
-        num: None,
+        num: 0,
         str: Some("ten"),
     };
 
@@ -22,7 +19,7 @@ fn main() {
     assert_eq!(
         c,
         NamedStruct {
-            num: Some(1),
+            num: 1,
             str: Some("ten"),
         }
     );
