@@ -90,9 +90,15 @@ impl<'a> StructSemigroup<'a> {
         } = derive;
         (attr.is_monoid() && attr.with_monoid_impl()).then(|| {
             let mut g = generics.clone();
+            let where_clause = g.make_where_clause();
+            field_ops
+                .iter()
+                .flat_map(|op| op.ty().map(|ty| parse_quote! { #ty: #path_monoid }))
+                .for_each(|w| where_clause.predicates.push(w));
             attr.monoid_where()
                 .into_iter()
-                .for_each(|w| g.make_where_clause().predicates.push(w));
+                .for_each(|w| where_clause.predicates.push(w));
+
             let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
 
             attr.identity()
@@ -127,6 +133,7 @@ impl<'a> StructSemigroup<'a> {
         let Self {
             constant,
             derive,
+            field_ops,
             attr,
             ..
         } = self;
@@ -137,9 +144,15 @@ impl<'a> StructSemigroup<'a> {
             ident, generics, ..
         } = derive;
         let mut g = generics.clone();
+        let where_clause = g.make_where_clause();
+        field_ops
+            .iter()
+            .flat_map(|op| op.ty().map(|ty| parse_quote! { #ty: #path_commutative }))
+            .for_each(|w| where_clause.predicates.push(w));
         attr.commutative_where()
             .into_iter()
-            .for_each(|w| g.make_where_clause().predicates.push(w));
+            .for_each(|w| where_clause.predicates.push(w));
+
         let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
         attr.is_commutative().then(|| {
             parse_quote! {
