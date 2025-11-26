@@ -94,7 +94,7 @@ impl<'a> FieldSemigroupOp<'a> {
         })
     }
 
-    pub fn ty(&self) -> Option<&Type> {
+    pub fn where_ty(&self) -> Option<&Type> {
         let Self {
             container_attr,
             ty,
@@ -205,7 +205,7 @@ impl<'a> FieldAnnotatedOp<'a> {
         }
     }
 
-    pub fn ty(&self) -> Option<&Type> {
+    pub fn where_ty(&self) -> Option<&Type> {
         let Self {
             container_attr,
             ty,

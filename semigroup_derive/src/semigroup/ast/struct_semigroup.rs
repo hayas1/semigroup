@@ -57,7 +57,10 @@ impl<'a> StructSemigroup<'a> {
         let where_clause = g.make_where_clause();
         field_ops
             .iter()
-            .flat_map(|op| op.ty().map(|ty| parse_quote! { #ty: #path_semigroup }))
+            .flat_map(|op| {
+                op.where_ty()
+                    .map(|ty| parse_quote! { #ty: #path_semigroup })
+            })
             .for_each(|w| where_clause.predicates.push(w));
         let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
         let fields_op = field_ops.iter().map(|op| op.impl_field_semigroup_op());
@@ -93,7 +96,7 @@ impl<'a> StructSemigroup<'a> {
             let where_clause = g.make_where_clause();
             field_ops
                 .iter()
-                .flat_map(|op| op.ty().map(|ty| parse_quote! { #ty: #path_monoid }))
+                .flat_map(|op| op.where_ty().map(|ty| parse_quote! { #ty: #path_monoid }))
                 .for_each(|w| where_clause.predicates.push(w));
             attr.monoid_where()
                 .into_iter()
@@ -147,7 +150,10 @@ impl<'a> StructSemigroup<'a> {
         let where_clause = g.make_where_clause();
         field_ops
             .iter()
-            .flat_map(|op| op.ty().map(|ty| parse_quote! { #ty: #path_commutative }))
+            .flat_map(|op| {
+                op.where_ty()
+                    .map(|ty| parse_quote! { #ty: #path_commutative })
+            })
             .for_each(|w| where_clause.predicates.push(w));
         attr.commutative_where()
             .into_iter()
@@ -268,7 +274,7 @@ impl<'a> StructAnnotate<'a> {
         field_ops
             .iter()
             .flat_map(|op| {
-                op.ty().map(|ty| {
+                op.where_ty().map(|ty| {
                     let annotation_type = annotation.ty();
                     parse_quote! { #ty: #path_annotated_semigroup<#annotation_type> }
                 })
