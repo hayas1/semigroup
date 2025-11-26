@@ -1,0 +1,18 @@
+error[E0599]: the method `semigroup` exists for struct `NamedStruct<'_, {integer}>`, but its trait bounds were not satisfied
+  --> tests/ui/semigroup/unimplemented_semigroup_generics.rs:20:15
+   |
+4  | pub struct NamedStruct<'a, T> {
+   | ----------------------------- method `semigroup` not found for this struct because it doesn't satisfy `NamedStruct<'_, {integer}>: Semigroup`
+...
+20 |     let c = a.semigroup(b);
+   |               ^^^^^^^^^ method cannot be called on `NamedStruct<'_, {integer}>` due to unsatisfied trait bounds
+   |
+  ::: $RUST/core/src/option.rs
+   |
+   | pub enum Option<T> {
+   | ------------------ doesn't satisfy `Option<{integer}>: Semigroup`
+   |
+   = note: trait bound `Option<{integer}>: Semigroup` was not satisfied
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `semigroup`, perhaps you need to implement it:
+           candidate #1: `Semigroup`
