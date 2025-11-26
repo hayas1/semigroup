@@ -1,7 +1,7 @@
 error[E0599]: the method `semigroup` exists for struct `NamedStruct<'_, {integer}>`, but its trait bounds were not satisfied
   --> tests/ui/semigroup/unimplemented_semigroup_generics.rs:17:15
    |
-4  | pub struct NamedStruct<'a, T> {
+ 4 | pub struct NamedStruct<'a, T> {
    | ----------------------------- method `semigroup` not found for this struct because it doesn't satisfy `NamedStruct<'_, {integer}>: Semigroup`
 ...
 17 |     let c = a.semigroup(b);

@@ -20,7 +20,7 @@ error[E0277]: the trait bound `u32: Semigroup` is not satisfied
 error[E0599]: the method `semigroup` exists for struct `NamedStruct<'_>`, but its trait bounds were not satisfied
   --> tests/ui/histogram/unimplemented_semigroup.rs:17:15
    |
-4  | pub struct NamedStruct<'a> {
+ 4 | pub struct NamedStruct<'a> {
    | -------------------------- method `semigroup` not found for this struct because it doesn't satisfy `NamedStruct<'_>: Semigroup`
 ...
 17 |     let c = a.semigroup(b);
