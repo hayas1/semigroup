@@ -1,10 +1,14 @@
 ---
 source: semigroup_derive/src/semigroup.rs
-assertion_line: 77
+assertion_line: 100
 expression: formatted
 ---
 #[automatically_derived]
-impl ::semigroup::Semigroup for NamedStruct {
+impl ::semigroup::Semigroup for NamedStruct
+where
+    Option<u32>: ::semigroup::Semigroup,
+    semigroup::op::Overwrite<bool>: ::semigroup::Semigroup,
+{
     fn op(base: Self, other: Self) -> Self {
         Self {
             foo: <semigroup::op::Overwrite<
