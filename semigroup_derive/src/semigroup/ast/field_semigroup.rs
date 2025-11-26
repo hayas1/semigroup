@@ -1,7 +1,5 @@
-use quote::{ToTokens, format_ident};
-use syn::{
-    DeriveInput, Field, FieldValue, Fields, Ident, Member, Stmt, Type, WherePredicate, parse_quote,
-};
+use quote::format_ident;
+use syn::{DeriveInput, Field, FieldValue, Fields, Ident, Member, Stmt, Type, parse_quote};
 
 use crate::{
     constant::Constant,
@@ -96,20 +94,15 @@ impl<'a> FieldSemigroupOp<'a> {
         })
     }
 
-    pub fn where_predicate(&self) -> Option<WherePredicate> {
+    pub fn ty(&self) -> Option<&Type> {
         let Self {
-            constant: Constant { path_semigroup, .. },
             container_attr,
             ty,
             field_attr,
             ..
         } = self;
         let with = field_attr.with(container_attr);
-        with.is_none().then(|| {
-            parse_quote! {
-                #ty: #path_semigroup
-            }
-        })
+        with.is_none().then_some(*ty)
     }
 }
 
@@ -212,23 +205,14 @@ impl<'a> FieldAnnotatedOp<'a> {
         }
     }
 
-    pub fn where_predicate<A: ToTokens>(&self, annotation_type: A) -> Option<WherePredicate> {
+    pub fn ty(&self) -> Option<&Type> {
         let Self {
-            constant:
-                Constant {
-                    path_annotated_semigroup,
-                    ..
-                },
             container_attr,
             ty,
             field_attr,
             ..
         } = self;
         let with = field_attr.with(container_attr);
-        with.is_none().then(|| {
-            parse_quote! {
-                #ty: #path_annotated_semigroup<#annotation_type>
-            }
-        })
+        with.is_none().then_some(*ty)
     }
 }
