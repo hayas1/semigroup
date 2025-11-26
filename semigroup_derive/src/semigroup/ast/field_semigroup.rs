@@ -1,5 +1,7 @@
 use quote::format_ident;
-use syn::{DeriveInput, FieldValue, Fields, Ident, Member, Stmt, parse_quote};
+use syn::{
+    DeriveInput, Field, FieldValue, Fields, Ident, Member, Stmt, Type, WherePredicate, parse_quote,
+};
 
 use crate::{
     constant::Constant,
@@ -11,6 +13,7 @@ pub struct FieldSemigroupOp<'a> {
     constant: &'a Constant,
     container_attr: &'a ContainerAttr,
     member: Member,
+    ty: &'a Type,
     field_attr: FieldAttr,
 }
 impl<'a> FieldSemigroupOp<'a> {
@@ -19,14 +22,15 @@ impl<'a> FieldSemigroupOp<'a> {
         _derive: &'a DeriveInput,
         container_attr: &'a ContainerAttr,
         member: Member,
-        field_attr: FieldAttr,
-    ) -> Self {
-        Self {
+        field: &'a Field,
+    ) -> syn::Result<Self> {
+        Ok(Self {
             constant,
             container_attr,
             member,
-            field_attr,
-        }
+            ty: &field.ty,
+            field_attr: FieldAttr::new(field)?,
+        })
     }
     pub fn new_fields(
         constant: &'a Constant,
@@ -37,15 +41,7 @@ impl<'a> FieldSemigroupOp<'a> {
         fields
             .iter()
             .zip(fields.members())
-            .map(|(field, member)| {
-                Ok(Self::new(
-                    constant,
-                    derive,
-                    container_attr,
-                    member,
-                    FieldAttr::new(field)?,
-                ))
-            })
+            .map(|(field, member)| Self::new(constant, derive, container_attr, member, field))
             .collect()
     }
 
@@ -96,6 +92,22 @@ impl<'a> FieldSemigroupOp<'a> {
         .unwrap_or_else(|| {
             parse_quote! {
                 #member: #path_monoid::identity()
+            }
+        })
+    }
+
+    pub fn where_predicate(&self) -> Option<WherePredicate> {
+        let Self {
+            constant: Constant { path_semigroup, .. },
+            container_attr,
+            ty,
+            field_attr,
+            ..
+        } = self;
+        let with = field_attr.with(container_attr);
+        with.is_none().then(|| {
+            parse_quote! {
+                #ty: #path_semigroup
             }
         })
     }
