@@ -132,7 +132,7 @@ impl<T: Semigroup> Semigroup for OptionMonoid<T> {
         match (self, other) {
             (Self(Some(b)), Self(Some(o))) => b.op_assign(o),
             (_, Self(None)) => {}
-            (Self(s @ None), Self(o)) => *s = o,
+            (Self(s @ None), Self(o @ Some(_))) => *s = o,
         }
     }
 }
