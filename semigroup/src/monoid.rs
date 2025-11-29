@@ -128,11 +128,11 @@ impl<T: Semigroup> From<T> for OptionMonoid<T> {
     }
 }
 impl<T: Semigroup> Semigroup for OptionMonoid<T> {
-    fn op(base: Self, other: Self) -> Self {
-        match (base, other) {
-            (Self(Some(b)), Self(Some(o))) => Self(Some(Semigroup::op(b, o))),
-            (b, Self(None)) => b,
-            (Self(None), o) => o,
+    fn op_assign(&mut self, other: Self) {
+        match (self, other) {
+            (Self(Some(b)), Self(Some(o))) => b.op_assign(o),
+            (_, Self(None)) => {}
+            (Self(s @ None), Self(o)) => *s = o,
         }
     }
 }

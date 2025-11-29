@@ -32,9 +32,8 @@ use crate::{Annotated, Semigroup};
 #[properties_priv(commutative, commutative_where = "T: crate::Commutative")]
 pub struct Lazy<T>(Vec<T>);
 impl<T> Semigroup for Lazy<T> {
-    fn op(mut base: Self, other: Self) -> Self {
-        base.extend(other);
-        base
+    fn op_assign(&mut self, other: Self) {
+        self.extend(other);
     }
 }
 impl<T: Semigroup> Lazy<T> {

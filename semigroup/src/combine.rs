@@ -217,6 +217,9 @@ impl<T: Semigroup> Semigroup for Reverse<T> {
     fn op(base: Self, other: Self) -> Self {
         Self(Semigroup::op(other.0, base.0))
     }
+    fn op_assign(&mut self, _other: Self) {
+        todo!("unsupported op_assign for Reverse");
+    }
 }
 
 #[cfg(feature = "test")]
