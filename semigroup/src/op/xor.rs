@@ -1,4 +1,4 @@
-use std::ops::BitXor;
+use std::ops::BitXorAssign;
 
 use semigroup_derive::{ConstructionPriv, properties_priv};
 
@@ -20,10 +20,10 @@ use crate::Semigroup;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[construction(monoid, commutative, identity = Self(T::zero()), monoid_where = "T: num::Zero")]
 #[properties_priv(monoid, commutative, monoid_where = "T: num::Zero")]
-pub struct Xor<T: BitXor<Output = T>>(pub T);
-impl<T: BitXor<Output = T>> Semigroup for Xor<T> {
-    fn op(base: Self, other: Self) -> Self {
-        Self(base.0 ^ other.0)
+pub struct Xor<T: BitXorAssign>(pub T);
+impl<T: BitXorAssign> Semigroup for Xor<T> {
+    fn op_assign(&mut self, other: Self) {
+        self.0 ^= other.0;
     }
 }
 

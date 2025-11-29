@@ -22,8 +22,8 @@ use crate::Semigroup;
 #[properties_priv(monoid, commutative)]
 pub struct Lcm<T: Unsigned + Integer + Clone>(pub T);
 impl<T: Unsigned + Integer + Clone> Semigroup for Lcm<T> {
-    fn op(base: Self, other: Self) -> Self {
-        Self(num::integer::lcm(base.0, other.0))
+    fn op_assign(&mut self, other: Self) {
+        self.0 = num::integer::lcm(self.0.clone(), other.0);
     }
 }
 

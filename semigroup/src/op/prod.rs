@@ -1,4 +1,4 @@
-use std::ops::Mul;
+use std::ops::MulAssign;
 
 use semigroup_derive::{ConstructionPriv, properties_priv};
 
@@ -21,10 +21,10 @@ use crate::Semigroup;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[construction(monoid, commutative, identity = Self(T::one()), monoid_where = "T: num::One")]
 #[properties_priv(monoid, commutative, monoid_where = "T: num::One")]
-pub struct Prod<T: Mul<Output = T>>(pub T);
-impl<T: Mul<Output = T>> Semigroup for Prod<T> {
-    fn op(base: Self, other: Self) -> Self {
-        Self(base.0 * other.0)
+pub struct Prod<T: MulAssign>(pub T);
+impl<T: MulAssign> Semigroup for Prod<T> {
+    fn op_assign(&mut self, other: Self) {
+        self.0 *= other.0;
     }
 }
 
