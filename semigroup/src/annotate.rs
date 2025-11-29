@@ -121,13 +121,17 @@ pub struct Annotated<T, A> {
 }
 impl<T: AnnotatedSemigroup<A>, A> Semigroup for Annotated<T, A> {
     fn op_assign(&mut self, other: Self) {
-        AnnotatedSemigroup::annotated_op_assign(self, other);
+        AnnotatedSemigroup::annotated_op_assign(self.as_mut(), other);
     }
 }
 impl<T: AnnotatedSemigroup<A>, A> Annotated<T, A> {
+    pub fn lift_unit_annotated_op_assign((base, unit1): (&mut T, &mut A), (other, unit2): (T, A)) {
+        let (b, o) = (Annotated::new(base, unit1), Self::new(other, unit2));
+        AnnotatedSemigroup::annotated_op_assign(b, o);
+    }
     pub fn lift_unit_annotated_op((base, unit1): (T, A), (other, unit2): (T, A)) -> T {
-        let (b, o) = (Self::new(base, unit1), Self::new(other, unit2));
-        AnnotatedSemigroup::annotated_op(b, o).into_value()
+        AnnotatedSemigroup::annotated_op(Self::new(base, unit1), Self::new(other, unit2))
+            .into_value()
     }
 }
 
@@ -208,6 +212,12 @@ impl<T, A> Annotated<T, A> {
     {
         self.as_ref_mut().map(|v| v.deref_mut())
     }
+    pub fn as_mut(&mut self) -> Annotated<&mut T, &mut A> {
+        Annotated {
+            value: &mut self.value,
+            annotation: &mut self.annotation,
+        }
+    }
 }
 impl<T, A> Annotated<&T, &A> {
     pub fn cloned(self) -> Annotated<T, A>
@@ -243,6 +253,12 @@ impl<T, A> Annotated<&mut T, &mut A> {
         A: Clone,
     {
         self.map_parts(|v| v.clone(), |a| a.clone())
+    }
+    pub fn replace(&mut self, other: Annotated<T, A>) -> Annotated<T, A> {
+        Annotated {
+            value: std::mem::replace(self.value, other.value),
+            annotation: std::mem::replace(self.annotation, other.annotation),
+        }
     }
 }
 impl<T, A> Annotated<&T, A> {

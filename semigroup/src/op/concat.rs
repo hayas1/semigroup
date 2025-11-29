@@ -31,7 +31,7 @@ pub struct Concat<T: Default + Extend<T::Item> + IntoIterator>(pub T);
 impl<T: Default + Extend<T::Item> + IntoIterator, A: Default + Extend<A::Item> + IntoIterator>
     AnnotatedSemigroup<A> for Concat<T>
 {
-    fn annotated_op_assign(base: &mut Annotated<Self, A>, other: Annotated<Self, A>) {
+    fn annotated_op_assign(mut base: Annotated<&mut Self, &mut A>, other: Annotated<Self, A>) {
         let (other_value, other_annotation) = other.into_parts();
         base.value_mut().0.extend(other_value.0);
         base.annotation_mut().extend(other_annotation);
