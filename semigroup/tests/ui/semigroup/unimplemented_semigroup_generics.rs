@@ -1,8 +1,8 @@
 use semigroup::Semigroup;
 
 #[derive(Debug, Clone, PartialEq, Semigroup)]
-pub struct NamedStruct<'a> {
-    pub num: u32,
+pub struct NamedStruct<'a, T> {
+    pub num: T,
     #[semigroup(with = "semigroup::op::Coalesce")]
     pub str: Option<&'a str>,
 }

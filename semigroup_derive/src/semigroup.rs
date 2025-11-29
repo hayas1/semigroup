@@ -78,6 +78,17 @@ mod tests {
             }
         },
     )]
+    #[case::semigroup_generics(
+        "semigroup_generics",
+        impl_semigroup::<Internal>,
+        syn::parse_quote! {
+            #[derive(SemigroupPriv)]
+            pub struct UnnamedStruct<T, U> (
+                T,
+                Vec<U>,
+            );
+        },
+    )]
     fn test_derive_semigroup_snapshot(
         #[case] case: &str,
         #[case] f: impl Fn(&DeriveInput) -> syn::Result<TokenStream>,

@@ -1,10 +1,14 @@
 ---
 source: semigroup_derive/src/semigroup.rs
-assertion_line: 77
+assertion_line: 100
 expression: formatted
 ---
 #[automatically_derived]
-impl ::semigroup::Semigroup for NamedStruct {
+impl ::semigroup::Semigroup for NamedStruct
+where
+    Option<u32>: ::semigroup::Semigroup,
+    semigroup::op::Overwrite<bool>: ::semigroup::Semigroup,
+{
     fn op(base: Self, other: Self) -> Self {
         Self {
             foo: <semigroup::op::Overwrite<
@@ -22,8 +26,13 @@ pub struct NamedStructAnnotation<A> {
     baz: A,
 }
 #[automatically_derived]
-impl<A: Clone> ::semigroup::AnnotatedSemigroup<NamedStructAnnotation<A>>
-for NamedStruct {
+impl<A: Clone> ::semigroup::AnnotatedSemigroup<NamedStructAnnotation<A>> for NamedStruct
+where
+    Option<u32>: ::semigroup::AnnotatedSemigroup<NamedStructAnnotation<A>>,
+    semigroup::op::Overwrite<
+        bool,
+    >: ::semigroup::AnnotatedSemigroup<NamedStructAnnotation<A>>,
+{
     fn annotated_op(
         base: ::semigroup::Annotated<Self, NamedStructAnnotation<A>>,
         other: ::semigroup::Annotated<Self, NamedStructAnnotation<A>>,
