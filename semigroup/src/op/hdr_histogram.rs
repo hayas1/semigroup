@@ -110,7 +110,7 @@ impl<C: Counter> From<HdrHistogram<C>> for Histogram<C> {
     }
 }
 impl<C: Counter> HdrHistogram<C> {
-    pub fn histogram(&self) -> Cow<Histogram<C>> {
+    pub fn histogram(&self) -> Cow<'_, Histogram<C>> {
         self.0.histogram()
     }
     pub fn into_histogram(self) -> Histogram<C> {
@@ -180,7 +180,7 @@ impl<C: Counter> HdrHistogramInner<C> {
     fn value_histogram(value: u64) -> Histogram<C> {
         Some(value).into_iter().collect::<Self>().into()
     }
-    fn histogram(&self) -> Cow<Histogram<C>> {
+    fn histogram(&self) -> Cow<'_, Histogram<C>> {
         match self {
             Self::Value(v) => Cow::Owned(Self::value_histogram(*v)),
             Self::Histogram(h) => Cow::Borrowed(h),
