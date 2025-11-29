@@ -21,8 +21,8 @@ use crate::{Annotated, AnnotatedSemigroup};
 #[properties_priv(annotated)]
 pub struct Overwrite<T>(pub T);
 impl<T, A> AnnotatedSemigroup<A> for Overwrite<T> {
-    fn annotated_op(_base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
-        other
+    fn annotated_op_assign(base: &mut Annotated<Self, A>, other: Annotated<Self, A>) {
+        *base = other;
     }
 }
 

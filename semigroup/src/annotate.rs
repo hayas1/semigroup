@@ -120,8 +120,8 @@ pub struct Annotated<T, A> {
     annotation: A,
 }
 impl<T: AnnotatedSemigroup<A>, A> Semigroup for Annotated<T, A> {
-    fn op(base: Self, other: Self) -> Self {
-        AnnotatedSemigroup::annotated_op(base, other)
+    fn op_assign(&mut self, other: Self) {
+        AnnotatedSemigroup::annotated_op_assign(self, other);
     }
 }
 impl<T: AnnotatedSemigroup<A>, A> Annotated<T, A> {
@@ -156,6 +156,9 @@ impl<T, A> Annotated<T, A> {
     }
     pub fn annotation(&self) -> &A {
         &self.annotation
+    }
+    pub fn annotation_mut(&mut self) -> &mut A {
+        &mut self.annotation
     }
 
     pub fn map<U>(self, f: impl FnOnce(T) -> U) -> Annotated<U, A> {

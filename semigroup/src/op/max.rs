@@ -21,8 +21,10 @@ use crate::{Annotated, AnnotatedSemigroup};
 #[properties_priv(annotated, monoid, commutative, monoid_where = "T: num::Bounded")]
 pub struct Max<T: Ord>(pub T);
 impl<A, T: Ord> AnnotatedSemigroup<A> for Max<T> {
-    fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
-        std::cmp::max_by(base, other, |a, b| a.value().cmp(b.value()))
+    fn annotated_op_assign(base: &mut Annotated<Self, A>, other: Annotated<Self, A>) {
+        if base.value().0 < other.value().0 {
+            *base = other;
+        }
     }
 }
 

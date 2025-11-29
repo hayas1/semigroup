@@ -21,10 +21,10 @@ use crate::{Annotated, AnnotatedSemigroup};
 #[properties_priv(annotated, monoid)]
 pub struct Coalesce<T>(pub Option<T>);
 impl<T, A> AnnotatedSemigroup<A> for Coalesce<T> {
-    fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
+    fn annotated_op_assign(base: &mut Annotated<Self, A>, other: Annotated<Self, A>) {
         match (&base.value().0, &other.value().0) {
-            (Some(_), _) | (None, None) => base,
-            (None, Some(_)) => other,
+            (Some(_), _) | (None, None) => {}
+            (None, Some(_)) => *base = other,
         }
     }
 }

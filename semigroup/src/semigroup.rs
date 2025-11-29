@@ -67,7 +67,11 @@ pub trait Semigroup: Sized {
 
 /// [`AnnotatedSemigroup`] is a [`Semigroup`] that has an annotation, such as [`crate::Annotate`].
 pub trait AnnotatedSemigroup<A>: Sized + Semigroup {
-    fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A>;
+    fn annotated_op_assign(base: &mut Annotated<Self, A>, other: Annotated<Self, A>);
+    fn annotated_op(mut base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
+        AnnotatedSemigroup::annotated_op_assign(&mut base, other);
+        base
+    }
 }
 
 #[cfg(feature = "test")]
