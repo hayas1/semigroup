@@ -1,8 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::{ToTokens, format_ident};
-use syn::{
-    DataStruct, DeriveInput, FieldValue, Fields, Ident, ItemImpl, ItemStruct, Stmt, parse_quote,
-};
+use syn::{DataStruct, DeriveInput, FieldValue, Fields, Ident, ItemImpl, ItemStruct, parse_quote};
 
 use crate::{
     annotation::Annotation,

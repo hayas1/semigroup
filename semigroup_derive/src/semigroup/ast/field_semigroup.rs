@@ -1,5 +1,4 @@
-use quote::format_ident;
-use syn::{DeriveInput, Field, FieldValue, Fields, Ident, Member, Stmt, Type, parse_quote};
+use syn::{DeriveInput, Field, FieldValue, Fields, Member, Stmt, Type, parse_quote};
 
 use crate::{
     constant::Constant,
@@ -142,19 +141,6 @@ impl<'a> FieldAnnotatedOp<'a> {
             .collect()
     }
 
-    pub fn ident_variable(&self) -> Ident {
-        match &self.member {
-            Member::Named(ident) => ident.clone(),
-            Member::Unnamed(index) => format_ident!("_{}", index.index),
-        }
-    }
-    pub fn ident_parts(&self) -> (Ident, Ident) {
-        let ident = self.ident_variable();
-        (
-            format_ident!("{}_value", ident),
-            format_ident!("{}_annotation", ident),
-        )
-    }
     pub fn impl_field_annotated_op_assign(&self) -> Stmt {
         let Self {
             constant,
@@ -169,7 +155,6 @@ impl<'a> FieldAnnotatedOp<'a> {
             path_construction_annotated,
             ..
         } = constant;
-        let (ident_value, ident_annotation) = self.ident_parts();
         let with = field_attr.with(container_attr);
 
         with.map(|path| {
