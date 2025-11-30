@@ -1,6 +1,6 @@
 use std::ops::{Deref, DerefMut};
 
-use semigroup_derive::{ConstructionPriv, properties_priv};
+use semigroup_derive::{OpPriv, properties_priv};
 
 use crate::{AnnotatedSemigroup, Semigroup};
 
@@ -54,10 +54,10 @@ use crate::{AnnotatedSemigroup, Semigroup};
 ///
 /// Some operations are already provided by [`crate::op`].
 /// ```
-/// use semigroup::{Annotate, Annotated, AnnotatedOp, Construction, Op, Semigroup};
+/// use semigroup::{Annotate, Annotated, AnnotatedOp, Op, Semigroup};
 ///
-/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction)]
-/// #[construction(annotated)]
+/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Op)]
+/// #[op(annotated)]
 /// struct Coalesce<T>(Option<T>);
 /// impl<A, T> AnnotatedOp<Option<T>, A> for Coalesce<T> {
 ///     fn lift_annotated_op_assign(
@@ -107,8 +107,8 @@ pub trait Annotate<A>: Sized {
 /// assert_eq!(annotated.annotation(), &"first");
 /// assert_eq!(annotated, Annotated::new(Coalesce(Some(1)), "first"));
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionPriv)]
-#[construction(
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
+#[op(
     commutative,
     commutative_where = "T: AnnotatedSemigroup<A> + crate::Commutative",
     without_construction

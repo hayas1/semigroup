@@ -88,9 +88,9 @@ pub mod test_commutative {
     /// # Panics
     /// - If the given function does not satisfy the *commutative* property.
     /// ```should_panic
-    /// use semigroup::{assert_commutative, Construction, Op, Semigroup};
-    /// #[derive(Debug, Clone, PartialEq, Construction)]
-    /// #[construction(commutative)]
+    /// use semigroup::{assert_commutative, Op, Semigroup};
+    /// #[derive(Debug, Clone, PartialEq, Op)]
+    /// #[op(commutative)]
     /// pub struct Sub(i32);
     /// impl Op<i32> for Sub {
     ///     fn lift_op_assign(base: &mut i32, other: i32) {
