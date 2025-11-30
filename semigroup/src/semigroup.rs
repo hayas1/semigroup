@@ -29,7 +29,7 @@ use crate::Annotated;
 /// ```
 ///
 /// ## Construction
-/// [`Semigroup`] can be constructed by [`crate::Construction`].
+/// [`Semigroup`] can be constructed as [`crate::Op`] by [`crate::Construction`].
 ///
 /// Some operations are already provided by [`crate::op`].
 /// ```

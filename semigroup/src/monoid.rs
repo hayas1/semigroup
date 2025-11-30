@@ -30,7 +30,7 @@ use crate::Semigroup;
 /// ```
 ///
 /// ## Construction
-/// [`Monoid`] can be constructed by [`crate::ConstructionMonoid`] like [`Semigroup`], use `monoid` attribute.
+/// [`Monoid`] can be constructed by [`crate::MonoidOp`] like [`Semigroup`], use `monoid` attribute.
 ///
 /// Some operations are already provided by [`crate::op`].
 /// ```

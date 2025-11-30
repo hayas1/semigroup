@@ -49,12 +49,12 @@ use crate::{AnnotatedSemigroup, Semigroup};
 /// ```
 ///
 /// ## Construction
-/// [`Annotate`] can be constructed by [`crate::ConstructionAnnotated`] like [`Semigroup`], use `annotated` attribute.
+/// [`Annotate`] can be constructed by [`crate::AnnotatedOp`] like [`Semigroup`], use `annotated` attribute.
 /// In this case, the [`Semigroup`] annotated operation is represented by [`AnnotatedSemigroup`].
 ///
 /// Some operations are already provided by [`crate::op`].
 /// ```
-/// use semigroup::{AnnotatedSemigroup, Annotate, Annotated, Construction, ConstructionAnnotated, Semigroup};
+/// use semigroup::{AnnotatedSemigroup, Annotate, Annotated, Construction, AnnotatedOp, Semigroup};
 ///
 /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction)]
 /// #[construction(annotated)]
