@@ -4,7 +4,7 @@ use syn::{DeriveInput, Expr, TypeParam, WherePredicate, parse_quote};
 use crate::{annotation::Annotation, constant::Constant, error::ConstructionError, name::var_name};
 
 #[derive(Debug, Clone, PartialEq, FromDeriveInput)]
-#[darling(attributes(construction), and_then = Self::validate)]
+#[darling(attributes(op), and_then = Self::validate)]
 pub struct ContainerAttr {
     #[darling(default)]
     annotated: bool,
@@ -159,7 +159,7 @@ mod tests {
 
     fn default_container_attr() -> ContainerAttr {
         ContainerAttr::new(&parse_quote! {
-            #[derive(Construction)]
+            #[derive(Op)]
             pub struct Construct<T>(T);
         })
         .unwrap()
@@ -168,8 +168,8 @@ mod tests {
     #[rstest]
     #[case::ok(
         syn::parse_quote! {
-            #[derive(Construction)]
-            #[construction(annotated)]
+            #[derive(Op)]
+            #[op(annotated)]
             pub struct Coalesce<T>(pub Option<T>);
         },
         Ok(ContainerAttr {
@@ -179,16 +179,16 @@ mod tests {
     )]
     #[case::invalid_annotated_attr(
         syn::parse_quote! {
-            #[derive(Construction)]
-            #[construction(unit_annotation = ())]
+            #[derive(Op)]
+            #[op(unit_annotation = ())]
             pub struct Construct<T>(T);
         },
         Err("attribute `unit_annotation` are supported only with `annotated`"),
     )]
     #[case::invalid_monoid_attr(
         syn::parse_quote! {
-            #[derive(Construction)]
-            #[construction(identity = ())]
+            #[derive(Op)]
+            #[op(identity = ())]
             pub struct Construct<T>(T);
         },
         Err("attribute `identity` are supported only with `monoid`"),
