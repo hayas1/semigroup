@@ -34,14 +34,14 @@ use crate::{Op, Semigroup};
 ///
 /// Some operations are already provided by [`crate::op`].
 /// ```
-/// use semigroup::{Construction, Semigroup, Monoid};
+/// use semigroup::{Construction, Semigroup, Op, Monoid};
 ///
 /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction)]
 /// #[construction(monoid, identity = Self(0))]
 /// pub struct Sum(u64);
-/// impl Semigroup for Sum {
-///     fn op(base: Self, other: Self) -> Self {
-///         Self(base.0 + other.0)
+/// impl Op<u64> for Sum {
+///     fn lift_op_assign(base: &mut u64, other: u64) {
+///         *base += other;
 ///     }
 /// }
 /// let (a, b, c) = (Sum::identity(), Sum(2), Sum(3));
@@ -169,13 +169,13 @@ pub mod test_monoid {
     /// # Panics
     /// - If the given function does not satisfy the *monoid* property.
     /// ```should_panic
-    /// use semigroup::{assert_monoid, Construction, Semigroup};
+    /// use semigroup::{assert_monoid, Construction, Op, Semigroup};
     /// #[derive(Debug, Clone, PartialEq, Construction)]
     /// #[construction(monoid, identity = Self(0))]
     /// pub struct Sub(i32);
-    /// impl Semigroup for Sub {
-    ///     fn op(base: Self, other: Self) -> Self {
-    ///         Self(base.0 - other.0)
+    /// impl Op<i32> for Sub {
+    ///     fn lift_op_assign(base: &mut i32, other: i32) {
+    ///         *base -= other;
     ///     }
     /// }
     /// let a = Sub(1);

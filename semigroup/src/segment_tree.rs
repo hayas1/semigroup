@@ -24,15 +24,15 @@ pub mod iter;
 ///
 /// ## Custom monoid operator
 /// ```
-/// use semigroup::{Semigroup, Construction, segment_tree::SegmentTree, Monoid};
+/// use semigroup::{Semigroup, Construction, Op, segment_tree::SegmentTree, Monoid};
 /// #[derive(
 ///     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction,
 /// )]
 /// #[construction(monoid, commutative, identity = Self(i32::MIN))]
 /// struct Max(pub i32);
-/// impl Semigroup for Max {
-///     fn op(base: Self, other: Self) -> Self {
-///         Self(std::cmp::max(base.0, other.0))
+/// impl Op<i32> for Max {
+///     fn lift_op_assign(base: &mut i32, other: i32) {
+///         *base = std::cmp::max(*base, other);
 ///     }
 /// }
 ///
