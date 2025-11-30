@@ -1,6 +1,6 @@
 use semigroup_derive::{ConstructionPriv, properties_priv};
 
-use crate::{Construction, Lazy, Semigroup};
+use crate::{Construction, Lazy, Op, Semigroup};
 
 /// Extensions for [`Iterator`]s that items implement [`Semigroup`].
 pub trait CombineIterator: Sized + Iterator {
@@ -212,13 +212,12 @@ impl<I: Iterator> CombineIterator for I {}
 )]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Reverse<T: Semigroup>(pub T);
-
-impl<T: Semigroup> Semigroup for Reverse<T> {
-    fn op(base: Self, other: Self) -> Self {
-        Self(Semigroup::op(other.0, base.0))
-    }
-    fn op_assign(&mut self, _other: Self) {
+impl<T: Semigroup> Op<T> for Reverse<T> {
+    fn lift_op_assign(_base: &mut T, _other: T) {
         todo!("unsupported op_assign for Reverse");
+    }
+    fn lift_op(base: T, other: T) -> T {
+        Semigroup::op(other, base)
     }
 }
 

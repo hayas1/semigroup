@@ -1,6 +1,6 @@
 use semigroup_derive::{ConstructionPriv, properties_priv};
 
-use crate::{Annotate, Annotated, AnnotatedSemigroup};
+use crate::{Annotate, Annotated, AnnotatedOp};
 
 /// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that concatenates two values.
 /// # Properties
@@ -29,11 +29,13 @@ use crate::{Annotate, Annotated, AnnotatedSemigroup};
 #[properties_priv(annotated, monoid, annotation_where = "A::Item: Clone")]
 pub struct Concat<T: Default + Extend<T::Item> + IntoIterator>(pub T);
 impl<T: Default + Extend<T::Item> + IntoIterator, A: Default + Extend<A::Item> + IntoIterator>
-    AnnotatedSemigroup<A> for Concat<T>
+    AnnotatedOp<T, A> for Concat<T>
+where
+    A::Item: Clone,
 {
-    fn annotated_op_assign(mut base: Annotated<&mut Self, &mut A>, other: Annotated<Self, A>) {
+    fn lift_annotated_op_assign(mut base: Annotated<&mut T, &mut A>, other: Annotated<T, A>) {
         let (other_value, other_annotation) = other.into_parts();
-        base.value_mut().0.extend(other_value.0);
+        base.value_mut().extend(other_value);
         base.annotation_mut().extend(other_annotation);
     }
 }

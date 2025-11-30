@@ -1,7 +1,7 @@
 use num::{Integer, Unsigned};
 use semigroup_derive::{ConstructionPriv, properties_priv};
 
-use crate::Semigroup;
+use crate::Op;
 
 /// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that returns the least common multiple.
 /// # Properties
@@ -21,9 +21,9 @@ use crate::Semigroup;
 #[construction(monoid, commutative, identity = Self(T::one()))]
 #[properties_priv(monoid, commutative)]
 pub struct Lcm<T: Unsigned + Integer + Clone>(pub T);
-impl<T: Unsigned + Integer + Clone> Semigroup for Lcm<T> {
-    fn op_assign(&mut self, other: Self) {
-        self.0 = num::integer::lcm(self.0.clone(), other.0);
+impl<T: Unsigned + Integer + Clone> Op<T> for Lcm<T> {
+    fn lift_op_assign(base: &mut T, other: T) {
+        *base = num::integer::lcm(base.clone(), other);
     }
 }
 

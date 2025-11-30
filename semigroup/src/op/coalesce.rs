@@ -1,6 +1,6 @@
 use semigroup_derive::{ConstructionPriv, properties_priv};
 
-use crate::{Annotated, AnnotatedSemigroup};
+use crate::{Annotated, AnnotatedOp};
 
 /// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that returns the first non-`None` value.
 /// # Properties
@@ -20,9 +20,12 @@ use crate::{Annotated, AnnotatedSemigroup};
 #[construction(annotated, monoid, identity = Self(None))]
 #[properties_priv(annotated, monoid)]
 pub struct Coalesce<T>(pub Option<T>);
-impl<T, A> AnnotatedSemigroup<A> for Coalesce<T> {
-    fn annotated_op_assign(mut base: Annotated<&mut Self, &mut A>, other: Annotated<Self, A>) {
-        match (&base.value().0, &other.value().0) {
+impl<T, A> AnnotatedOp<Option<T>, A> for Coalesce<T> {
+    fn lift_annotated_op_assign(
+        mut base: Annotated<&mut Option<T>, &mut A>,
+        other: Annotated<Option<T>, A>,
+    ) {
+        match (&base.value(), &other.value()) {
             (Some(_), _) | (None, None) => {}
             (None, Some(_)) => {
                 base.replace(other);

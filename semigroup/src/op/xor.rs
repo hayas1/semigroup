@@ -2,7 +2,7 @@ use std::ops::BitXorAssign;
 
 use semigroup_derive::{ConstructionPriv, properties_priv};
 
-use crate::Semigroup;
+use crate::Op;
 
 /// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that returns the exclusive or.
 /// # Properties
@@ -21,9 +21,9 @@ use crate::Semigroup;
 #[construction(monoid, commutative, identity = Self(T::zero()), monoid_where = "T: num::Zero")]
 #[properties_priv(monoid, commutative, monoid_where = "T: num::Zero")]
 pub struct Xor<T: BitXorAssign>(pub T);
-impl<T: BitXorAssign> Semigroup for Xor<T> {
-    fn op_assign(&mut self, other: Self) {
-        self.0 ^= other.0;
+impl<T: BitXorAssign> Op<T> for Xor<T> {
+    fn lift_op_assign(base: &mut T, other: T) {
+        *base ^= other;
     }
 }
 

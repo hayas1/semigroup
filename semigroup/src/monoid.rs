@@ -1,6 +1,6 @@
 use semigroup_derive::{ConstructionPriv, properties_priv};
 
-use crate::Semigroup;
+use crate::{Op, Semigroup};
 
 /// [`Monoid`] represents a binary operation that satisfies the following properties
 /// 1. *Closure*: `op: T × T → T`
@@ -127,12 +127,12 @@ impl<T: Semigroup> From<T> for OptionMonoid<T> {
         Self(Some(value))
     }
 }
-impl<T: Semigroup> Semigroup for OptionMonoid<T> {
-    fn op_assign(&mut self, other: Self) {
-        match (self, other) {
-            (Self(Some(b)), Self(Some(o))) => b.op_assign(o),
-            (_, Self(None)) => {}
-            (Self(s @ None), Self(o @ Some(_))) => *s = o,
+impl<T: Semigroup> Op<Option<T>> for OptionMonoid<T> {
+    fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {
+        match (base, other) {
+            (Some(b), Some(o)) => b.op_assign(o),
+            (_, None) => {}
+            (b @ None, o @ Some(_)) => *b = o,
         }
     }
 }

@@ -1,6 +1,6 @@
 use semigroup_derive::{ConstructionPriv, properties_priv};
 
-use crate::{Annotated, AnnotatedSemigroup};
+use crate::{Annotated, AnnotatedOp};
 
 /// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that returns the maximum value.
 /// # Properties
@@ -20,9 +20,9 @@ use crate::{Annotated, AnnotatedSemigroup};
 #[construction(annotated, monoid, commutative, identity = Self(T::min_value()), monoid_where = "T: num::Bounded")]
 #[properties_priv(annotated, monoid, commutative, monoid_where = "T: num::Bounded")]
 pub struct Max<T: Ord>(pub T);
-impl<A, T: Ord> AnnotatedSemigroup<A> for Max<T> {
-    fn annotated_op_assign(mut base: Annotated<&mut Self, &mut A>, other: Annotated<Self, A>) {
-        if base.value().0 < other.value().0 {
+impl<T: Ord, A> AnnotatedOp<T, A> for Max<T> {
+    fn lift_annotated_op_assign(mut base: Annotated<&mut T, &mut A>, mut other: Annotated<T, A>) {
+        if base.value() < &other.value_mut() {
             base.replace(other);
         }
     }

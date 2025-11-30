@@ -2,7 +2,7 @@ use std::ops::MulAssign;
 
 use semigroup_derive::{ConstructionPriv, properties_priv};
 
-use crate::Semigroup;
+use crate::Op;
 
 /// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that returns the product.
 /// # Properties
@@ -22,9 +22,9 @@ use crate::Semigroup;
 #[construction(monoid, commutative, identity = Self(T::one()), monoid_where = "T: num::One")]
 #[properties_priv(monoid, commutative, monoid_where = "T: num::One")]
 pub struct Prod<T: MulAssign>(pub T);
-impl<T: MulAssign> Semigroup for Prod<T> {
-    fn op_assign(&mut self, other: Self) {
-        self.0 *= other.0;
+impl<T: MulAssign> Op<T> for Prod<T> {
+    fn lift_op_assign(base: &mut T, other: T) {
+        *base *= other;
     }
 }
 
