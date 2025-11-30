@@ -27,7 +27,7 @@ pub struct ContainerAttr {
     without_annotate_impl: bool,
 
     #[darling(default)]
-    without_construction: bool,
+    hidden_inner: bool,
 }
 impl ContainerAttr {
     pub fn new(derive: &DeriveInput) -> syn::Result<Self> {
@@ -146,8 +146,8 @@ impl ContainerAttr {
         !self.without_annotate_impl
     }
 
-    pub fn with_construction(&self) -> bool {
-        !self.without_construction
+    pub fn open_inner(&self) -> bool {
+        !self.hidden_inner
     }
 }
 

@@ -151,7 +151,7 @@ impl<C: Counter> HdrHistogram<C> {
 }
 
 #[derive(Debug, Clone, PartialEq, OpPriv)]
-#[op(monoid, commutative, identity = HdrHistogramInner::new(), without_construction)]
+#[op(monoid, commutative, identity = HdrHistogramInner::new(), hidden_inner)]
 enum HdrHistogramInner<C: Counter> {
     Value(u64),
     Histogram(Histogram<C>),

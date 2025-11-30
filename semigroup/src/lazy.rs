@@ -24,11 +24,7 @@ use crate::{Annotated, Semigroup};
 /// assert_eq!(lazy.combine(), Coalesce(Some(1)));
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, OpPriv)]
-#[op(
-    commutative,
-    commutative_where = "T: crate::Commutative",
-    without_construction
-)]
+#[op(commutative, commutative_where = "T: crate::Commutative", hidden_inner)]
 #[properties_priv(commutative, commutative_where = "T: crate::Commutative")]
 pub struct Lazy<T>(Vec<T>);
 impl<T> Semigroup for Lazy<T> {

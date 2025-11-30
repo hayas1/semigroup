@@ -111,7 +111,7 @@ pub trait Annotate<A>: Sized {
 #[op(
     commutative,
     commutative_where = "T: AnnotatedSemigroup<A> + crate::Commutative",
-    without_construction
+    hidden_inner
 )]
 #[properties_priv(
     commutative,

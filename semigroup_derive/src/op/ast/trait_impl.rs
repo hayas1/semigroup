@@ -49,7 +49,7 @@ impl<'a> TraitImpl<'a> {
         } = self;
 
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-        attr.with_construction().then(|| {
+        attr.open_inner().then(|| {
             parse_quote! {
                 #[automatically_derived]
                 impl #impl_generics #path_semigroup for #ident #ty_generics #where_clause {

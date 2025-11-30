@@ -35,11 +35,11 @@ impl<'a> Op<'a> {
         attr: &'a ContainerAttr,
     ) -> syn::Result<Self> {
         let construction_trait = attr
-            .with_construction()
+            .open_inner()
             .then(|| ConstructionTrait::new(constant, derive, attr, Self::newtype_field(derive)?))
             .transpose()?;
         let op_trait = attr
-            .with_construction()
+            .open_inner()
             .then(|| OpTrait::new(constant, derive, attr, Self::newtype_field(derive)?))
             .transpose()?;
         let trait_impl = TraitImpl::new(constant, derive, attr);
