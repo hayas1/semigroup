@@ -193,7 +193,7 @@ mod tests {
         },
         Err("attribute `identity` are supported only with `monoid`"),
     )]
-    fn test_construction_container_attr(
+    fn test_op_container_attr(
         #[case] input: DeriveInput,
         #[case] expected: Result<ContainerAttr, &str>,
     ) {

@@ -44,11 +44,9 @@ impl<'a> FieldSemigroupOp<'a> {
 
     pub fn impl_field_semigroup_op_assign(&self) -> Stmt {
         let Self {
-            constant:
-                Constant {
-                    path_construction_semigroup,
-                    ..
-                },
+            constant: Constant {
+                path_semigroup_op, ..
+            },
             container_attr,
             member,
             field_attr,
@@ -57,7 +55,7 @@ impl<'a> FieldSemigroupOp<'a> {
         let with = field_attr.with(container_attr);
         with.map(|path| {
             parse_quote! {
-                <#path<_> as #path_construction_semigroup<_>>::lift_op_assign(&mut self.#member, other.#member);
+                <#path<_> as #path_semigroup_op<_>>::lift_op_assign(&mut self.#member, other.#member);
             }
         })
         .unwrap_or_else(|| {
@@ -71,7 +69,7 @@ impl<'a> FieldSemigroupOp<'a> {
             constant:
                 Constant {
                     path_monoid,
-                    path_construction_monoid,
+                    path_monoid_op,
                     ..
                 },
             container_attr,
@@ -82,7 +80,7 @@ impl<'a> FieldSemigroupOp<'a> {
         let with = field_attr.with(container_attr);
         with.map(|path| {
             parse_quote! {
-                #member: <#path<_> as #path_construction_monoid<_>>::lift_identity()
+                #member: <#path<_> as #path_monoid_op<_>>::lift_identity()
             }
         })
         .unwrap_or_else(|| {
@@ -152,14 +150,14 @@ impl<'a> FieldAnnotatedOp<'a> {
         let Constant {
             path_annotated_semigroup,
             path_annotated,
-            path_construction_annotated,
+            path_annotated_op,
             ..
         } = constant;
         let with = field_attr.with(container_attr);
 
         with.map(|path| {
             parse_quote! {
-                <#path::<_> as #path_construction_annotated<_, _>>::lift_annotated_op_assign(
+                <#path::<_> as #path_annotated_op<_, _>>::lift_annotated_op_assign(
                     #path_annotated::new(&mut base_value.#member, &mut base_annotation.#member),
                     #path_annotated::new(other_value.#member, other_annotation.#member),
                 );

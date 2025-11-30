@@ -16,7 +16,7 @@ pub struct OpTrait<'a> {
 impl ToTokens for OpTrait<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.impl_op_with_unit_annotation().to_tokens(tokens);
-        self.impl_construction_monoid().to_tokens(tokens);
+        self.impl_monoid_op().to_tokens(tokens);
     }
 }
 impl<'a> OpTrait<'a> {
@@ -39,8 +39,8 @@ impl<'a> OpTrait<'a> {
             constant:
                 Constant {
                     path_annotated,
-                    path_construction_semigroup,
-                    path_construction_annotated,
+                    path_semigroup_op,
+                    path_annotated_op,
                     ..
                 },
             derive: DeriveInput {
@@ -56,26 +56,26 @@ impl<'a> OpTrait<'a> {
             let unit_annotation = attr.unit_annotation();
             parse_quote! {
                 #[automatically_derived]
-                impl #impl_generics #path_construction_semigroup<#ty> for #ident #ty_generics #where_clause {
+                impl #impl_generics #path_semigroup_op<#ty> for #ident #ty_generics #where_clause {
                     fn lift_op_assign(base: &mut #ty, other: #ty) {
                         let (mut base_unit, other_unit) = (#unit_annotation, #unit_annotation);
                         let (b, o) = (
                             #path_annotated::new(base, &mut base_unit),
                             #path_annotated::new(other, other_unit),
                         );
-                        <Self as #path_construction_annotated<_, _>>::lift_annotated_op_assign(b, o);
+                        <Self as #path_annotated_op<_, _>>::lift_annotated_op_assign(b, o);
                     }
                 }
             }
         })
     }
 
-    pub fn impl_construction_monoid(&self) -> Option<ItemImpl> {
+    pub fn impl_monoid_op(&self) -> Option<ItemImpl> {
         let Self {
             constant:
                 Constant {
                     path_monoid,
-                    path_construction_monoid,
+                    path_monoid_op,
                     attr_feature_monoid,
                     ..
                 },
@@ -89,12 +89,14 @@ impl<'a> OpTrait<'a> {
 
         attr.is_monoid().then(|| {
             let mut g = generics.clone();
-            g.make_where_clause().predicates.push(parse_quote!{ Self: #path_monoid });
+            g.make_where_clause()
+                .predicates
+                .push(parse_quote! { Self: #path_monoid });
             let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
             parse_quote! {
                 #[automatically_derived]
                 #attr_feature_monoid
-                impl #impl_generics #path_construction_monoid<#ty> for #ident #ty_generics #where_clause {}
+                impl #impl_generics #path_monoid_op<#ty> for #ident #ty_generics #where_clause {}
             }
         })
     }

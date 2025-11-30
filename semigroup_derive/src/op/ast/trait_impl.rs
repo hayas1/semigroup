@@ -38,7 +38,7 @@ impl<'a> TraitImpl<'a> {
             constant:
                 Constant {
                     path_semigroup,
-                    path_construction_semigroup,
+                    path_semigroup_op,
                     ..
                 },
             derive: DeriveInput {
@@ -54,11 +54,11 @@ impl<'a> TraitImpl<'a> {
                 #[automatically_derived]
                 impl #impl_generics #path_semigroup for #ident #ty_generics #where_clause {
                     fn op_assign(&mut self, other: Self) {
-                        <Self as #path_construction_semigroup<_>>::lift_op_assign(&mut self.0, other.0);
+                        <Self as #path_semigroup_op<_>>::lift_op_assign(&mut self.0, other.0);
                     }
                     fn op(base: Self, other: Self) -> Self {
                         // TODO Reverse
-                        Self::from(<Self as #path_construction_semigroup<_>>::lift_op(base.0, other.0))
+                        Self::from(<Self as #path_semigroup_op<_>>::lift_op(base.0, other.0))
                     }
                 }
             }
@@ -103,7 +103,7 @@ impl<'a> TraitImpl<'a> {
         let Self {
             constant:
                 Constant {
-                    path_construction_annotated,
+                    path_annotated_op,
                     path_annotated_semigroup,
                     path_annotated,
                     ..
@@ -123,7 +123,7 @@ impl<'a> TraitImpl<'a> {
                 #[automatically_derived]
                 impl #impl_generics #path_annotated_semigroup<#annotated_type> for #ident #ty_generics #where_clause {
                     fn annotated_op_assign(base: #path_annotated<&mut Self, &mut #annotated_type>, other: #path_annotated<Self, #annotated_type>) {
-                        <Self as #path_construction_annotated<_, #annotated_type>>::lift_annotated_op_assign(
+                        <Self as #path_annotated_op<_, #annotated_type>>::lift_annotated_op_assign(
                             base.map(|v| &mut v.0),
                             other.map(|v| v.0),
                         );
