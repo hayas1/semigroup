@@ -2,14 +2,13 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{DeriveInput, Field, ItemImpl, parse_quote};
 
-use crate::{annotation::Annotation, constant::Constant, construction::attr::ContainerAttr};
+use crate::{constant::Constant, construction::attr::ContainerAttr};
 
 #[derive(Debug, Clone)]
 pub struct OpTrait<'a> {
     constant: &'a Constant,
     derive: &'a DeriveInput,
     attr: &'a ContainerAttr,
-    annotation: Annotation,
 
     field: &'a Field,
 }
@@ -17,6 +16,7 @@ pub struct OpTrait<'a> {
 impl ToTokens for OpTrait<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.impl_op_with_unit_annotation().to_tokens(tokens);
+        self.impl_construction_monoid().to_tokens(tokens);
     }
 }
 impl<'a> OpTrait<'a> {
@@ -26,13 +26,10 @@ impl<'a> OpTrait<'a> {
         attr: &'a ContainerAttr,
         field: &'a Field,
     ) -> syn::Result<Self> {
-        let annotation = attr.annotation(constant);
-
         Ok(Self {
             constant,
             derive,
             attr,
-            annotation,
             field,
         })
     }
@@ -69,6 +66,35 @@ impl<'a> OpTrait<'a> {
                         <Self as #path_construction_annotated<_, _>>::lift_annotated_op_assign(b, o);
                     }
                 }
+            }
+        })
+    }
+
+    pub fn impl_construction_monoid(&self) -> Option<ItemImpl> {
+        let Self {
+            constant:
+                Constant {
+                    path_monoid,
+                    path_construction_monoid,
+                    attr_feature_monoid,
+                    ..
+                },
+            derive: DeriveInput {
+                ident, generics, ..
+            },
+            field: Field { ty, .. },
+            attr,
+            ..
+        } = self;
+
+        attr.is_monoid().then(|| {
+            let mut g = generics.clone();
+            g.make_where_clause().predicates.push(parse_quote!{ Self: #path_monoid });
+            let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
+            parse_quote! {
+                #[automatically_derived]
+                #attr_feature_monoid
+                impl #impl_generics #path_construction_monoid<#ty> for #ident #ty_generics #where_clause {}
             }
         })
     }
