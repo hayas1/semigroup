@@ -4,8 +4,8 @@ use semigroup::{Construction, Op, Semigroup, assert_monoid, assert_semigroup, pr
 /// A semigroup construction that join two [`String`]s into a [`String`].
 /// # Properties
 /// <!-- properties -->
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction)]
-#[construction(monoid, identity = Self(String::new()))]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Op)]
+#[op(monoid, identity = Self(String::new()))]
 #[properties(monoid)]
 pub struct Join(pub String);
 impl Op<String> for Join {
