@@ -1,8 +1,8 @@
-use semigroup_derive::{ConstructionPriv, properties_priv};
+use semigroup_derive::{OpPriv, properties_priv};
 
 use crate::{Annotated, AnnotatedOp};
 
-/// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that returns the minimum value.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns the minimum value.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -15,9 +15,9 @@ use crate::{Annotated, AnnotatedOp};
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), 1);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionPriv)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[construction(annotated, monoid, commutative, identity = Self(T::max_value()), monoid_where = "T: num::Bounded")]
+#[op(annotated, monoid, commutative, identity = Self(T::max_value()), monoid_where = "T: num::Bounded")]
 #[properties_priv(annotated, monoid, commutative, monoid_where = "T: num::Bounded")]
 pub struct Min<T: Ord>(pub T);
 impl<T: Ord, A> AnnotatedOp<T, A> for Min<T> {

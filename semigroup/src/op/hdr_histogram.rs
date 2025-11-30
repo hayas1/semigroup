@@ -1,11 +1,11 @@
 use std::borrow::Cow;
 
 use hdrhistogram::{Counter, Histogram};
-use semigroup_derive::{ConstructionPriv, SemigroupPriv, properties_priv};
+use semigroup_derive::{OpPriv, SemigroupPriv, properties_priv};
 
 use crate::Semigroup;
 
-/// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) merging two `HdrHistogram`s.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) merging two `HdrHistogram`s.
 ///
 /// Histogram can be used to aggregate data with the following properties:
 /// - mean
@@ -150,8 +150,8 @@ impl<C: Counter> HdrHistogram<C> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, ConstructionPriv)]
-#[construction(monoid, commutative, identity = HdrHistogramInner::new(), without_construction)]
+#[derive(Debug, Clone, PartialEq, OpPriv)]
+#[op(monoid, commutative, identity = HdrHistogramInner::new(), without_construction)]
 enum HdrHistogramInner<C: Counter> {
     Value(u64),
     Histogram(Histogram<C>),

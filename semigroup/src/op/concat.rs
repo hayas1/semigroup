@@ -1,8 +1,8 @@
-use semigroup_derive::{ConstructionPriv, properties_priv};
+use semigroup_derive::{OpPriv, properties_priv};
 
 use crate::{Annotate, Annotated, AnnotatedOp};
 
-/// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that concatenates two values.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that concatenates two values.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -15,9 +15,9 @@ use crate::{Annotate, Annotated, AnnotatedOp};
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), vec![1, 2, 3, 4]);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionPriv)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[construction(
+#[op(
     annotated,
     monoid,
     identity = Self(Default::default()),
