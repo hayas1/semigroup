@@ -16,7 +16,8 @@ impl ToTokens for TraitImpl<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.impl_monoid().to_tokens(tokens);
         self.impl_commutative().to_tokens(tokens);
-        self.impl_semigroup_with_unit_annotation().to_tokens(tokens);
+        self.impl_semigroup().to_tokens(tokens);
+        self.impl_annotated_semigroup().to_tokens(tokens);
         self.impl_annotate().to_tokens(tokens);
     }
 }
@@ -108,12 +109,12 @@ impl<'a> TraitImpl<'a> {
         })
     }
 
-    pub fn impl_semigroup_with_unit_annotation(&self) -> Option<ItemImpl> {
+    pub fn impl_semigroup(&self) -> Option<ItemImpl> {
         let Self {
             constant:
                 Constant {
                     path_semigroup,
-                    path_annotated,
+                    path_construction_semigroup,
                     ..
                 },
             derive: DeriveInput {
@@ -123,14 +124,13 @@ impl<'a> TraitImpl<'a> {
             ..
         } = self;
 
-        attr.is_annotated().then(|| {
-            let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-            let unit_annotation = attr.unit_annotation();
+        let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+        attr.with_construction().then(|| {
             parse_quote! {
                 #[automatically_derived]
                 impl #impl_generics #path_semigroup for #ident #ty_generics #where_clause {
-                    fn op(base: Self, other: Self) -> Self {
-                        #path_annotated::lift_unit_annotated_op((base, #unit_annotation), (other, #unit_annotation))
+                    fn op_assign(&mut self, other: Self) {
+                        <Self as #path_construction_semigroup<_>>::lift_op_assign(&mut self.0, other.0);
                     }
                 }
             }
@@ -165,6 +165,40 @@ impl<'a> TraitImpl<'a> {
                             self,
                             annotation,
                         )
+                    }
+                }
+            }
+        })
+    }
+
+    pub fn impl_annotated_semigroup(&self) -> Option<ItemImpl> {
+        let Self {
+            constant:
+                Constant {
+                    path_construction_annotated,
+                    path_annotated_semigroup,
+                    path_annotated,
+                    ..
+                },
+            derive: DeriveInput {
+                ident, generics, ..
+            },
+            attr,
+            annotation,
+            ..
+        } = self;
+
+        attr.is_annotated().then(|| {
+            let (_, ty_generics, _) = generics.split_for_impl();
+            let (impl_generics, annotated_type, where_clause) = annotation.split_for_impl(generics);
+            parse_quote! {
+                #[automatically_derived]
+                impl #impl_generics #path_annotated_semigroup<#annotated_type> for #ident #ty_generics #where_clause {
+                    fn annotated_op_assign(base: #path_annotated<&mut Self, &mut #annotated_type>, other: #path_annotated<Self, #annotated_type>) {
+                        <Self as #path_construction_annotated<_, #annotated_type>>::lift_annotated_op_assign(
+                            base.map(|v| &mut v.0),
+                            other.map(|v| v.0),
+                        );
                     }
                 }
             }

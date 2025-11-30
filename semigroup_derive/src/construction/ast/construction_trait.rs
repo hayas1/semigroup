@@ -19,7 +19,7 @@ impl ToTokens for ConstructionTrait<'_> {
         self.impl_deref().to_tokens(tokens);
         self.impl_deref_mut().to_tokens(tokens);
         self.impl_construction().to_tokens(tokens);
-        self.impl_construction_annotated().to_tokens(tokens);
+        // self.impl_construction_annotated().to_tokens(tokens);
         self.impl_construction_monoid().to_tokens(tokens);
     }
 }

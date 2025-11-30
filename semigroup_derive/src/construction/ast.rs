@@ -5,24 +5,27 @@ use syn::{Data, DataEnum, DataStruct, DataUnion, DeriveInput, Field, Fields, Fie
 use crate::{
     constant::Constant,
     construction::{
-        ast::{construction_trait::ConstructionTrait, trait_impl::TraitImpl},
+        ast::{construction_trait::ConstructionTrait, op_trait::OpTrait, trait_impl::TraitImpl},
         attr::ContainerAttr,
     },
     error::ConstructionError,
 };
 
 pub mod construction_trait;
+pub mod op_trait;
 pub mod trait_impl;
 
 #[derive(Debug, Clone)]
 pub struct Construction<'a> {
     construction_trait: Option<ConstructionTrait<'a>>,
+    op_trait: Option<OpTrait<'a>>,
     trait_impl: TraitImpl<'a>,
 }
 impl ToTokens for Construction<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.trait_impl.to_tokens(tokens);
         self.construction_trait.to_tokens(tokens);
+        self.op_trait.to_tokens(tokens);
+        self.trait_impl.to_tokens(tokens);
     }
 }
 impl<'a> Construction<'a> {
@@ -35,9 +38,14 @@ impl<'a> Construction<'a> {
             .with_construction()
             .then(|| ConstructionTrait::new(constant, derive, attr, Self::newtype_field(derive)?))
             .transpose()?;
+        let op_trait = attr
+            .with_construction()
+            .then(|| OpTrait::new(constant, derive, attr, Self::newtype_field(derive)?))
+            .transpose()?;
         let trait_impl = TraitImpl::new(constant, derive, attr);
         Ok(Self {
             construction_trait,
+            op_trait,
             trait_impl,
         })
     }
