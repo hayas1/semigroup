@@ -5,14 +5,14 @@ use syn::{DeriveInput, ItemImpl, parse_quote};
 use crate::{annotation::Annotation, constant::Constant, construction::attr::ContainerAttr};
 
 #[derive(Debug, Clone)]
-pub struct OpTrait<'a> {
+pub struct TraitImpl<'a> {
     constant: &'a Constant,
     derive: &'a DeriveInput,
 
     attr: &'a ContainerAttr,
     annotation: Annotation,
 }
-impl ToTokens for OpTrait<'_> {
+impl ToTokens for TraitImpl<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.impl_monoid().to_tokens(tokens);
         self.impl_commutative().to_tokens(tokens);
@@ -20,7 +20,7 @@ impl ToTokens for OpTrait<'_> {
         self.impl_annotate().to_tokens(tokens);
     }
 }
-impl<'a> OpTrait<'a> {
+impl<'a> TraitImpl<'a> {
     pub fn new(constant: &'a Constant, derive: &'a DeriveInput, attr: &'a ContainerAttr) -> Self {
         let annotation = attr.annotation(constant);
 
