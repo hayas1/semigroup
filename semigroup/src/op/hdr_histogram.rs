@@ -90,6 +90,38 @@ use crate::Semigroup;
 /// assert_eq!(request_aggregate.p99_latency(), Duration::from_millis(9904127));
 /// # });
 /// ```
+///
+/// ## Aggregation as side-effect
+/// ```
+/// # #[cfg(feature = "async")]
+/// # futures::executor::block_on(async {
+/// use futures::StreamExt;
+/// use semigroup::{Monoid, OptionMonoid, Semigroup, op::HdrHistogram};
+/// use std::{
+///     sync::{Arc, Mutex},
+///     time::Duration,
+/// };
+///
+/// let latencies = OptionMonoid::<HdrHistogram<u64>>::identity();
+/// let agg = Arc::new(Mutex::new(latencies));
+///
+/// let stream = futures::stream::iter(0..10000000).map(|i| {
+///     let duration = Duration::from_millis(i);
+///     let mut g = agg.lock().unwrap();
+///     g.op_assign(HdrHistogram::from(duration.as_millis() as u64).into());
+///     "ok"
+/// });
+///
+/// let count = stream.count().await;
+/// assert_eq!(count, 10000000);
+///
+/// let g = agg.lock().unwrap();
+/// assert_eq!(
+///     g.as_ref().unwrap().histogram().value_at_quantile(0.99),
+///     9904127
+/// );
+/// # });
+/// ```
 #[derive(Debug, Clone, PartialEq, SemigroupPriv)]
 #[semigroup(monoid, commutative)]
 #[properties_priv(monoid, commutative)]
