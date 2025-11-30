@@ -54,16 +54,18 @@ use crate::{AnnotatedSemigroup, Semigroup};
 ///
 /// Some operations are already provided by [`crate::op`].
 /// ```
-/// use semigroup::{AnnotatedSemigroup, Annotate, Annotated, Construction, AnnotatedOp, Semigroup};
+/// use semigroup::{Annotate, Annotated, AnnotatedOp, Construction, Op, Semigroup};
 ///
 /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction)]
 /// #[construction(annotated)]
 /// struct Coalesce<T>(Option<T>);
-/// impl<A, T> AnnotatedSemigroup<A> for Coalesce<T> {
-///     fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
-///         match (&base.value().0, &other.value().0) {
-///             (Some(_), _) | (None, None) => base,
-///             (None, Some(_)) => other,
+/// impl<A, T> AnnotatedOp<Option<T>, A> for Coalesce<T> {
+///     fn lift_annotated_op_assign(
+///         mut base: Annotated<&mut Option<T>, &mut A>,
+///         other: Annotated<Option<T>, A>,
+///     ) {
+///         if base.value().is_none() && other.value().is_some() {
+///             base.replace(other);
 ///         }
 ///     }
 /// }

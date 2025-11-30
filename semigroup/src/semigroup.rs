@@ -33,13 +33,13 @@ use crate::Annotated;
 ///
 /// Some operations are already provided by [`crate::op`].
 /// ```
-/// use semigroup::{Construction, Semigroup};
+/// use semigroup::{Construction, Op, Semigroup};
 ///
 /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction)]
 /// pub struct Sum(u64);
-/// impl Semigroup for Sum {
-///     fn op(base: Self, other: Self) -> Self {
-///         Self(base.0 + other.0)
+/// impl Op<u64> for Sum {
+///     fn lift_op_assign(base: &mut u64, other: u64) {
+///         *base += other;
 ///     }
 /// }
 ///
@@ -113,12 +113,12 @@ pub mod test_semigroup {
     /// # Panics
     /// - If the given function does not satisfy the *semigroup* property.
     /// ```should_panic
-    /// use semigroup::{assert_semigroup, Construction, Semigroup};
+    /// use semigroup::{assert_semigroup, Construction, Op, Semigroup};
     /// #[derive(Debug, Clone, PartialEq, Construction)]
     /// pub struct Sub(i32);
-    /// impl Semigroup for Sub {
-    ///     fn op(base: Self, other: Self) -> Self {
-    ///         Self(base.0 - other.0)
+    /// impl Op<i32> for Sub {
+    ///     fn lift_op_assign(base: &mut i32, other: i32) {
+    ///         *base -= other;
     ///     }
     /// }
     /// let a = Sub(1);
