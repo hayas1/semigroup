@@ -133,10 +133,10 @@ impl<C: Counter> Semigroup for HdrHistogramInner<C> {
                 *self = Self::Histogram(b);
             }
             (Self::Histogram(a), Self::Value(b)) => {
-                a.record(b).unwrap();
+                *a += b;
             }
             (Self::Histogram(a), Self::Histogram(b)) => {
-                a.add(b).unwrap();
+                *a += b;
             }
         }
     }
