@@ -132,6 +132,10 @@ impl<'a> TraitImpl<'a> {
                     fn op_assign(&mut self, other: Self) {
                         <Self as #path_construction_semigroup<_>>::lift_op_assign(&mut self.0, other.0);
                     }
+                    fn op(base: Self, other: Self) -> Self {
+                        // TODO Reverse
+                        Self::from(<Self as #path_construction_semigroup<_>>::lift_op(base.0, other.0))
+                    }
                 }
             }
         })

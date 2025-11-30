@@ -50,8 +50,9 @@ pub trait Op<T>: Semigroup + Construction<T> {
     /// let b = Some(2);
     /// assert_eq!(Coalesce::lift_op(a, b), Some(2));
     /// ```
-    fn lift_op(base: T, other: T) -> T {
-        Semigroup::op(Self::from(base), Self::from(other)).into_inner()
+    fn lift_op(mut base: T, other: T) -> T {
+        Self::lift_op_assign(&mut base, other);
+        base
     }
 }
 
