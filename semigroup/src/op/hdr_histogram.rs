@@ -127,10 +127,16 @@ enum HdrHistogramInner<C: Counter> {
 impl<C: Counter> Semigroup for HdrHistogramInner<C> {
     fn op_assign(&mut self, other: Self) {
         match (&mut *self, other) {
-            (Self::Histogram(a), Self::Value(b)) => *a += b,
-            (Self::Histogram(a), Self::Histogram(b)) => *a += b,
-            (this @ Self::Value(_), that) => {
-                *this = that.semigroup(std::mem::replace(this, Self::Value(0)))
+            (Self::Value(a), Self::Value(b)) => *self = vec![*a, b].into_iter().collect(),
+            (Self::Value(a), Self::Histogram(mut b)) => {
+                b += *a;
+                *self = Self::Histogram(b);
+            }
+            (Self::Histogram(a), Self::Value(b)) => {
+                a.record(b).unwrap();
+            }
+            (Self::Histogram(a), Self::Histogram(b)) => {
+                a.add(b).unwrap();
             }
         }
     }
