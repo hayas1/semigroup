@@ -81,7 +81,7 @@ impl<'a> TraitImpl<'a> {
             ..
         } = self;
 
-        (attr.is_annotated() && attr.with_annotate_impl()).then(|| {
+        (attr.is_annotated() && attr.gen_annotate_impl()).then(|| {
             let (_, ty_generics, _) = generics.split_for_impl();
             let (impl_generics, annotated_type, where_clause) = annotation.split_for_impl(generics);
             parse_quote! {
