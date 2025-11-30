@@ -14,7 +14,7 @@ pub trait Construction<T>: Sized + From<T> + Deref<Target = T> + DerefMut {
     /// ```
     /// use semigroup::{Construction, Op, Semigroup};
     ///
-    /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction)]
+    /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Op)]
     /// struct Coalesce<T>(Option<T>);
     /// impl<T> Op<Option<T>> for Coalesce<T> {
     ///     fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {
@@ -40,7 +40,7 @@ pub trait Op<T>: Semigroup + Construction<T> {
     /// ```
     /// use semigroup::{Construction, Op, Semigroup};
     ///
-    /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction)]
+    /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Op)]
     /// struct Coalesce<T>(Option<T>);
     /// impl<T> Op<Option<T>> for Coalesce<T> {
     ///     fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {
@@ -75,8 +75,8 @@ pub trait AnnotatedOp<T, A>: Op<T> + AnnotatedSemigroup<A> + Annotate<A> {
     /// ```
     /// use semigroup::{Annotate, Annotated, AnnotatedOp, Construction, Op};
     ///
-    /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction)]
-    /// #[construction(annotated)]
+    /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Op)]
+    /// #[op(annotated)]
     /// struct Coalesce<T>(Option<T>);
     /// impl<A, T> AnnotatedOp<Option<T>, A> for Coalesce<T> {
     ///     fn lift_annotated_op_assign(
@@ -113,8 +113,8 @@ pub trait MonoidOp<T>: Op<T> + crate::Monoid {
     /// ```
     /// use semigroup::{Construction, MonoidOp, Op, Semigroup};
     ///
-    /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction)]
-    /// #[construction(monoid, identity = Self(None))]
+    /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Op)]
+    /// #[op(monoid, identity = Self(None))]
     /// struct Coalesce<T>(Option<T>);
     /// impl<T> Op<Option<T>> for Coalesce<T> {
     ///     fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {

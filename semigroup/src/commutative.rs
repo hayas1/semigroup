@@ -35,10 +35,10 @@ use crate::Semigroup;
 /// ## Construction
 /// [`Commutative`] can be constructed like [`Semigroup`], use `commutative` attribute.
 /// ```
-/// use semigroup::{Construction, Op, Semigroup};
+/// use semigroup::{Op, Semigroup};
 ///
-/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction)]
-/// #[construction(commutative)]
+/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Op)]
+/// #[op(commutative)]
 /// pub struct Sum(u64);
 /// impl Op<u64> for Sum {
 ///     fn lift_op_assign(base: &mut u64, other: u64) {

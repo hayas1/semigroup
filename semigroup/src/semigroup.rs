@@ -35,7 +35,7 @@ use crate::Annotated;
 /// ```
 /// use semigroup::{Construction, Op, Semigroup};
 ///
-/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction)]
+/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Op)]
 /// pub struct Sum(u64);
 /// impl Op<u64> for Sum {
 ///     fn lift_op_assign(base: &mut u64, other: u64) {
@@ -114,7 +114,7 @@ pub mod test_semigroup {
     /// - If the given function does not satisfy the *semigroup* property.
     /// ```should_panic
     /// use semigroup::{assert_semigroup, Construction, Op, Semigroup};
-    /// #[derive(Debug, Clone, PartialEq, Construction)]
+    /// #[derive(Debug, Clone, PartialEq, Op)]
     /// pub struct Sub(i32);
     /// impl Op<i32> for Sub {
     ///     fn lift_op_assign(base: &mut i32, other: i32) {
