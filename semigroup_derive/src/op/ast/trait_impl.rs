@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{DeriveInput, ItemImpl, parse_quote};
 
-use crate::{annotation::Annotation, constant::Constant, construction::attr::ContainerAttr};
+use crate::{annotation::Annotation, constant::Constant, op::attr::ContainerAttr};
 
 #[derive(Debug, Clone)]
 pub struct TraitImpl<'a> {

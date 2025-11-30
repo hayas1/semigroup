@@ -4,7 +4,7 @@ use syn::DeriveInput;
 
 use crate::{
     constant::ConstantExt,
-    construction::{ast::Construction, attr::ContainerAttr},
+    op::{ast::Op, attr::ContainerAttr},
 };
 
 mod ast;
@@ -13,7 +13,7 @@ mod attr;
 pub fn impl_op<C: ConstantExt>(derive: &DeriveInput) -> syn::Result<TokenStream> {
     let constant = C::constant();
     let attr = ContainerAttr::new(derive)?;
-    let op = Construction::new(&constant, derive, &attr)?;
+    let op = Op::new(&constant, derive, &attr)?;
     Ok(op.into_token_stream())
 }
 

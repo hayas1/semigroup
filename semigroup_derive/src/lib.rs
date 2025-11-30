@@ -1,15 +1,15 @@
 mod annotation;
 mod constant;
-mod construction;
 mod error;
 mod name;
+mod op;
 mod properties;
 mod semigroup;
 
 #[proc_macro_derive(Op, attributes(op))]
 pub fn derive_op(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let derive = syn::parse_macro_input!(input);
-    construction::impl_op::<constant::External>(&derive)
+    op::impl_op::<constant::External>(&derive)
         .unwrap_or_else(syn::Error::into_compile_error)
         .into()
 }
@@ -17,7 +17,7 @@ pub fn derive_op(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(OpPriv, attributes(op))]
 pub fn derive_op_internal(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let derive = syn::parse_macro_input!(input);
-    construction::impl_op::<constant::Internal>(&derive)
+    op::impl_op::<constant::Internal>(&derive)
         .unwrap_or_else(syn::Error::into_compile_error)
         .into()
 }
