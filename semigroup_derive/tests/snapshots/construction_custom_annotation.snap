@@ -1,5 +1,5 @@
 ---
-source: semigroup_derive/src/construction.rs
+source: semigroup_derive/src/op.rs
 assertion_line: 70
 expression: formatted
 ---
@@ -49,9 +49,6 @@ where
 impl<T: IntoIterator + FromIterator<T::Item>> ::semigroup::Semigroup for Concat<T> {
     fn op_assign(&mut self, other: Self) {
         <Self as ::semigroup::Op<_>>::lift_op_assign(&mut self.0, other.0);
-    }
-    fn op(base: Self, other: Self) -> Self {
-        Self::from(<Self as ::semigroup::Op<_>>::lift_op(base.0, other.0))
     }
 }
 #[automatically_derived]
