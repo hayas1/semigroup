@@ -1,6 +1,4 @@
-use semigroup_derive::{OpPriv, properties_priv};
-
-use crate::{Construction, Lazy, Op, Semigroup};
+use crate::{Lazy, Semigroup};
 
 /// Extensions for [`Iterator`]s that items implement [`Semigroup`].
 pub trait CombineIterator: Sized + Iterator {
@@ -26,7 +24,7 @@ pub trait CombineIterator: Sized + Iterator {
         }
     }
 
-    /// Folds every [`Semigroup`] element in reverse order using [`Reverse`]. Given argument is the final value.
+    /// Folds every [`Semigroup`] element in reverse order using [`Reversible`]. Given argument is the final value.
     ///
     /// # Examples
     /// ```
@@ -41,9 +39,7 @@ pub trait CombineIterator: Sized + Iterator {
     where
         Self::Item: Semigroup,
     {
-        self.map(Reverse)
-            .fold(Reverse(fin), Semigroup::op)
-            .into_inner()
+        self.fold(fin, Reversible::rev_op)
     }
 
     /// This method like [`CombineIterator::fold_final`], but no argument is required and return [`Option`].
@@ -85,7 +81,7 @@ pub trait CombineIterator: Sized + Iterator {
     where
         Self::Item: Semigroup,
     {
-        self.map(Reverse).reduce(Semigroup::op).map(|Reverse(x)| x)
+        self.reduce(Reversible::rev_op)
     }
 
     /// This method like [`CombineIterator::fold_final`], but no argument is required.
@@ -149,27 +145,16 @@ pub trait CombineIterator: Sized + Iterator {
 }
 impl<I: Iterator> CombineIterator for I {}
 
-/// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that flips the order of operands:
-/// `op(Reverse(a), Reverse(b)) = Reverse(op(b, a))`.
+/// [`Reversible`] provides a reverse operation of [`Semigroup`], `rev_op(a, b) = op(b, a)`.
 ///
-/// If `T` is [`Commutative`], then `op(a, b) = op(b, a)`, and thus [`Reverse`] is meaningless.
+/// If `T` is [`Commutative`](crate::Commutative), then `op(a, b) = op(b, a)`, and thus [`Reversible`] is meaningless.
 ///
 /// ## Calculate right fold by left fold algorithm
-/// By using [`Reverse`], a right fold can be computed using a left fold algorithm.
-/// - Let the underlying operation be `a ⊙ b := op(a, b)`, therefore `Reverse(a) ⊙ Reverse(b) := Reverse(b ⊙ a)`
-///     - `op` is [`Semigroup`], so that has associativity property: `a ⊙ b ⊙ c = a ⊙ (b ⊙ c) = (a ⊙ b) ⊙ c`
-/// - A left fold evaluates as: `v1 ⊙ v2 ... ⊙ vn`
-/// - A right fold evaluates as: `vn ⊙ vn-1 ... ⊙ v1`
-/// Now, the left fold of [`Reverse`] is `Reverse(v1) ⊙ Reverse(v2) ... ⊙ Reverse(vn)`.
-/// ```text
-/// Reverse(v1) ⊙ Reverse(v2) ⊙ Reverse(v3) ⊙ ... ⊙ Reverse(vn-1) ⊙ Reverse(vn)
-/// = Reverse(v2 ⊙ v1) ⊙ Reverse(v3) ⊙ ... ⊙ Reverse(vn-1) ⊙ Reverse(vn)
-/// = Reverse(v3 ⊙ v2 ⊙ v1) ⊙ ... ⊙ Reverse(vn-1) ⊙ Reverse(vn)
-/// ...
-/// = Reverse(vn-1 ⊙ ... ⊙ v3 ⊙ v2 ⊙ v1) ⊙ Reverse(vn)
-/// = Reverse(vn ⊙ vn-1 ⊙ ... ⊙ v3 ⊙ v2 ⊙ v1)
-/// ```
-/// The inner expression `vn ⊙ vn-1 ⊙ ... ⊙ v3 ⊙ v2 ⊙ v1` is exactly the right fold of original semigroup.
+/// By using [`Reversible`], a right fold can be computed using a left fold algorithm.
+/// - Let the underlying operation be `a ⊙ b := op(a, b)`, and `a ⊡ b := rev_op(a, b) = op(b, a) = b ⊙ a`
+/// - `op` is [`Semigroup`], so that has associativity property: `a ⊙ b ⊙ c = a ⊙ (b ⊙ c) = (a ⊙ b) ⊙ c`
+/// - Now, `c ⊙ b ⊙ a = rev_op(b, c) ⊙ a = rev_op(a, rev_op(b, c)) = rev_op(a, b ⊡ c) = a ⊡ b ⊡ c`
+/// - This implies that right fold of `op`` `vn ⊙ vn-1 ⊙ ... ⊙ v1` is equal to left fold of `rev_op` `v1 ⊡ v2 ⊡ ... ⊡ vn`.
 ///
 /// # Properties
 /// <!-- properties -->
@@ -177,49 +162,27 @@ impl<I: Iterator> CombineIterator for I {}
 /// # Examples
 /// ## Simple reverse two elements
 /// ```
-/// use semigroup::{op::Coalesce, Reverse, Construction, Semigroup};
+/// use semigroup::{op::Coalesce, Reversible, Construction, Semigroup};
 ///
 /// let a = Coalesce(Some(1));
 /// let b = Coalesce(Some(2));
 ///
-/// assert_eq!(a.semigroup(b), Coalesce(Some(1)));
-///
-/// let ra = Reverse(a);
-/// let rb = Reverse(b);
-///
-/// assert_eq!(ra.semigroup(rb).into_inner(), Coalesce(Some(2)));
+/// assert_eq!(Semigroup::op(a, b), Coalesce(Some(1)));
+/// assert_eq!(Reversible::rev_op(a, b), Coalesce(Some(2)));
 /// ```
 ///
 /// ## Calculate right fold by left fold algorithm
 /// ```
 /// # #[cfg(feature = "monoid")]
 /// # {
-/// use semigroup::{op::Coalesce, Reverse, Construction, Semigroup, Monoid};
+/// use semigroup::{op::Coalesce, Reversible, Construction, Semigroup, Monoid};
 ///
 /// let v = (1..100).map(Some).map(Coalesce).collect::<Vec<_>>();
 ///
 /// assert_eq!(v.iter().cloned().fold(Monoid::identity(), Semigroup::op), Coalesce(Some(1)));
-/// assert_eq!(v.iter().cloned().map(Reverse).fold(Monoid::identity(), Semigroup::op).into_inner(), Coalesce(Some(99)));
+/// assert_eq!(v.iter().cloned().fold(Monoid::identity(), Reversible::rev_op), Coalesce(Some(99)));
 /// # }
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
-#[op(monoid, commutative, identity = Self(T::identity()), monoid_where = "T: crate::Monoid", commutative_where = "T: crate::Commutative")]
-#[properties_priv(
-    monoid,
-    commutative,
-    monoid_where = "T: crate::Monoid",
-    commutative_where = "T: crate::Commutative"
-)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Reverse<T: Semigroup>(pub T);
-impl<T: Semigroup> Op<T> for Reverse<T> {
-    fn lift_op_assign(_base: &mut T, _other: T) {
-        todo!("unsupported op_assign for Reverse");
-    }
-    fn lift_op(base: T, other: T) -> T {
-        Semigroup::op(other, base)
-    }
-}
 pub trait Reversible: Semigroup {
     fn rev_op(base: Self, other: Self) -> Self {
         Semigroup::op(other, base)
@@ -230,8 +193,6 @@ impl<T: Semigroup> Reversible for T {}
 #[cfg(feature = "test")]
 pub mod test_combine {
     use std::fmt::Debug;
-
-    use crate::semigroup::test_semigroup::assert_associative_law;
 
     use super::*;
 
@@ -272,18 +233,17 @@ pub mod test_combine {
     }
 
     pub fn assert_reverse_reverse<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
-        let (ra, rb, rc) = (Reverse(a.clone()), Reverse(b.clone()), Reverse(c.clone()));
         assert_eq!(
             Semigroup::op(a.clone(), b.clone()),
-            Semigroup::op(rb.clone(), ra.clone()).0
+            Reversible::rev_op(b.clone(), a.clone())
         );
         assert_eq!(
             Semigroup::op(b.clone(), c.clone()),
-            Semigroup::op(rc.clone(), rb.clone()).0
+            Reversible::rev_op(c.clone(), b.clone())
         );
         assert_eq!(
             Semigroup::op(a.clone(), c.clone()),
-            Semigroup::op(rc.clone(), ra.clone()).0
+            Reversible::rev_op(c.clone(), a.clone())
         );
     }
     pub fn assert_reverse_associative_law<T: Semigroup + Clone + PartialEq + Debug>(
@@ -291,7 +251,8 @@ pub mod test_combine {
         b: T,
         c: T,
     ) {
-        let (ra, rb, rc) = (Reverse(a), Reverse(b), Reverse(c));
-        assert_associative_law(ra, rb, rc);
+        let ab_c = Reversible::rev_op(Reversible::rev_op(a.clone(), b.clone()), c.clone());
+        let a_bc = Reversible::rev_op(a.clone(), Reversible::rev_op(b.clone(), c.clone()));
+        assert_eq!(ab_c, a_bc);
     }
 }

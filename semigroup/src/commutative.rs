@@ -63,7 +63,7 @@ pub trait Commutative: Semigroup {}
 pub mod test_commutative {
     use std::fmt::Debug;
 
-    use crate::Reverse;
+    use crate::Reversible;
 
     use super::*;
 
@@ -158,18 +158,17 @@ pub mod test_commutative {
         b: T,
         c: T,
     ) {
-        let (ra, rb, rc) = (Reverse(a.clone()), Reverse(b.clone()), Reverse(c.clone()));
         assert_eq!(
             Semigroup::op(a.clone(), b.clone()),
-            Semigroup::op(ra.clone(), rb.clone()).0
+            Reversible::rev_op(a.clone(), b.clone())
         );
         assert_eq!(
             Semigroup::op(b.clone(), c.clone()),
-            Semigroup::op(rb.clone(), rc.clone()).0
+            Reversible::rev_op(b.clone(), c.clone())
         );
         assert_eq!(
             Semigroup::op(c.clone(), a.clone()),
-            Semigroup::op(rc.clone(), ra.clone()).0
+            Reversible::rev_op(c.clone(), a.clone())
         );
     }
 }
