@@ -130,7 +130,7 @@ impl<T: Semigroup> From<T> for OptionMonoid<T> {
 impl<T: Semigroup> Op<Option<T>> for OptionMonoid<T> {
     fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {
         match (base, other) {
-            (Some(b), Some(o)) => b.op_assign(o),
+            (Some(b), Some(o)) => Semigroup::op_assign(b, o),
             (_, None) => {}
             (b @ None, o @ Some(_)) => *b = o,
         }

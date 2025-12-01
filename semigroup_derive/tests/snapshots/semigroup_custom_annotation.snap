@@ -5,16 +5,16 @@ expression: formatted
 ---
 #[automatically_derived]
 impl ::semigroup::Semigroup for NamedStruct {
-    fn op_assign(&mut self, other: Self) {
+    fn op_assign(base: &mut Self, other: Self) {
         <semigroup::op::Overwrite<
             _,
-        > as ::semigroup::Op<_>>::lift_op_assign(&mut self.foo, other.foo);
+        > as ::semigroup::Op<_>>::lift_op_assign(&mut base.foo, other.foo);
         <semigroup::op::Overwrite<
             _,
-        > as ::semigroup::Op<_>>::lift_op_assign(&mut self.bar, other.bar);
+        > as ::semigroup::Op<_>>::lift_op_assign(&mut base.bar, other.bar);
         <semigroup::op::Overwrite<
             _,
-        > as ::semigroup::Op<_>>::lift_op_assign(&mut self.baz, other.baz);
+        > as ::semigroup::Op<_>>::lift_op_assign(&mut base.baz, other.baz);
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]

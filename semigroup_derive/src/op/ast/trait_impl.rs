@@ -53,8 +53,8 @@ impl<'a> TraitImpl<'a> {
             parse_quote! {
                 #[automatically_derived]
                 impl #impl_generics #path_semigroup for #ident #ty_generics #where_clause {
-                    fn op_assign(&mut self, other: Self) {
-                        <Self as #path_semigroup_op<_>>::lift_op_assign(&mut self.0, other.0);
+                    fn op_assign(base: &mut Self, other: Self) {
+                        <Self as #path_semigroup_op<_>>::lift_op_assign(&mut base.0, other.0);
                     }
                 }
             }

@@ -5,10 +5,10 @@ expression: formatted
 ---
 #[automatically_derived]
 impl<T: std::ops::Add> crate::Semigroup for UnnamedStruct<T> {
-    fn op_assign(&mut self, other: Self) {
-        <semigroup::op::Added<_> as crate::Op<_>>::lift_op_assign(&mut self.0, other.0);
+    fn op_assign(base: &mut Self, other: Self) {
+        <semigroup::op::Added<_> as crate::Op<_>>::lift_op_assign(&mut base.0, other.0);
         <semigroup::op::Overwrite<
             _,
-        > as crate::Op<_>>::lift_op_assign(&mut self.1, other.1);
+        > as crate::Op<_>>::lift_op_assign(&mut base.1, other.1);
     }
 }
