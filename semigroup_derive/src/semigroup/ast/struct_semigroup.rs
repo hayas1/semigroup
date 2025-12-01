@@ -47,11 +47,7 @@ impl<'a> StructSemigroup<'a> {
             field_ops,
             ..
         } = self;
-        let Constant {
-            path_semigroup,
-            path_construction_trait,
-            ..
-        } = constant;
+        let Constant { path_semigroup, .. } = constant;
         let DeriveInput {
             ident, generics, ..
         } = derive;
@@ -88,7 +84,6 @@ impl<'a> StructSemigroup<'a> {
         let Constant {
             path_monoid,
             attr_feature_monoid,
-            path_construction_monoid,
             ..
         } = constant;
         let DeriveInput {
@@ -126,7 +121,6 @@ impl<'a> StructSemigroup<'a> {
                         #attr_feature_monoid
                         impl #impl_generics #path_monoid for #ident #ty_generics #where_clause {
                             fn identity() -> Self {
-                                use #path_construction_monoid;
                                 Self {
                                     #(#fields_op),*
                                 }
@@ -254,7 +248,6 @@ impl<'a> StructAnnotate<'a> {
         let Constant {
             path_annotated_semigroup,
             path_annotated,
-            path_construction_annotated,
             ..
         } = constant;
         let DeriveInput {
