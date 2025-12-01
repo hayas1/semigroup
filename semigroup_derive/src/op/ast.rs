@@ -4,11 +4,11 @@ use syn::{Data, DataEnum, DataStruct, DataUnion, DeriveInput, Field, Fields, Fie
 
 use crate::{
     constant::Constant,
-    construction::{
+    error::ConstructionError,
+    op::{
         ast::{construction_trait::ConstructionTrait, op_trait::OpTrait, trait_impl::TraitImpl},
         attr::ContainerAttr,
     },
-    error::ConstructionError,
 };
 
 pub mod construction_trait;
@@ -16,30 +16,30 @@ pub mod op_trait;
 pub mod trait_impl;
 
 #[derive(Debug, Clone)]
-pub struct Construction<'a> {
+pub struct Op<'a> {
     construction_trait: Option<ConstructionTrait<'a>>,
     op_trait: Option<OpTrait<'a>>,
     trait_impl: TraitImpl<'a>,
 }
-impl ToTokens for Construction<'_> {
+impl ToTokens for Op<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.construction_trait.to_tokens(tokens);
         self.op_trait.to_tokens(tokens);
         self.trait_impl.to_tokens(tokens);
     }
 }
-impl<'a> Construction<'a> {
+impl<'a> Op<'a> {
     pub fn new(
         constant: &'a Constant,
         derive: &'a DeriveInput,
         attr: &'a ContainerAttr,
     ) -> syn::Result<Self> {
         let construction_trait = attr
-            .with_construction()
+            .open_inner()
             .then(|| ConstructionTrait::new(constant, derive, attr, Self::newtype_field(derive)?))
             .transpose()?;
         let op_trait = attr
-            .with_construction()
+            .open_inner()
             .then(|| OpTrait::new(constant, derive, attr, Self::newtype_field(derive)?))
             .transpose()?;
         let trait_impl = TraitImpl::new(constant, derive, attr);

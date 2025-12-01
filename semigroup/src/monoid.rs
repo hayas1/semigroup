@@ -1,4 +1,4 @@
-use semigroup_derive::{ConstructionPriv, properties_priv};
+use semigroup_derive::{OpPriv, properties_priv};
 
 use crate::{Op, Semigroup};
 
@@ -34,10 +34,10 @@ use crate::{Op, Semigroup};
 ///
 /// Some operations are already provided by [`crate::op`].
 /// ```
-/// use semigroup::{Construction, Semigroup, Op, Monoid};
+/// use semigroup::{Semigroup, Op, Monoid};
 ///
-/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction)]
-/// #[construction(monoid, identity = Self(0))]
+/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Op)]
+/// #[op(monoid, identity = Self(0))]
 /// pub struct Sum(u64);
 /// impl Op<u64> for Sum {
 ///     fn lift_op_assign(base: &mut u64, other: u64) {
@@ -118,8 +118,8 @@ pub trait Monoid: Semigroup {
 /// }
 /// assert_eq!(bd.as_ref().unwrap().duration(), Duration::from_millis(250));
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionPriv)]
-#[construction(monoid, commutative, identity = Self(None), commutative_where = "T: crate::Commutative")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
+#[op(monoid, commutative, identity = Self(None), commutative_where = "T: crate::Commutative")]
 #[properties_priv(monoid, commutative, commutative_where = "T: crate::Commutative")]
 pub struct OptionMonoid<T: Semigroup>(pub Option<T>);
 impl<T: Semigroup> From<T> for OptionMonoid<T> {
@@ -169,9 +169,9 @@ pub mod test_monoid {
     /// # Panics
     /// - If the given function does not satisfy the *monoid* property.
     /// ```should_panic
-    /// use semigroup::{assert_monoid, Construction, Op, Semigroup};
-    /// #[derive(Debug, Clone, PartialEq, Construction)]
-    /// #[construction(monoid, identity = Self(0))]
+    /// use semigroup::{assert_monoid, Op, Semigroup};
+    /// #[derive(Debug, Clone, PartialEq, Op)]
+    /// #[op(monoid, identity = Self(0))]
     /// pub struct Sub(i32);
     /// impl Op<i32> for Sub {
     ///     fn lift_op_assign(base: &mut i32, other: i32) {

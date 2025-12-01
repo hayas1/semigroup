@@ -4,17 +4,17 @@ use syn::DeriveInput;
 
 use crate::{
     constant::ConstantExt,
-    construction::{ast::Construction, attr::ContainerAttr},
+    op::{ast::Op, attr::ContainerAttr},
 };
 
 mod ast;
 mod attr;
 
-pub fn impl_construction<C: ConstantExt>(derive: &DeriveInput) -> syn::Result<TokenStream> {
+pub fn impl_op<C: ConstantExt>(derive: &DeriveInput) -> syn::Result<TokenStream> {
     let constant = C::constant();
     let attr = ContainerAttr::new(derive)?;
-    let construction = Construction::new(&constant, derive, &attr)?;
-    Ok(construction.into_token_stream())
+    let op = Op::new(&constant, derive, &attr)?;
+    Ok(op.into_token_stream())
 }
 
 #[cfg(test)]
@@ -28,28 +28,28 @@ mod tests {
     #[rstest]
     #[case::construction_annotated(
         "construction_annotated",
-        impl_construction::<External>,
+        impl_op::<External>,
         syn::parse_quote! {
-            #[derive(Construction)]
-            #[construction(annotated)]
+            #[derive(Op)]
+            #[op(annotated)]
             pub struct Coalesce<T>(pub Option<T>);
         },
     )]
     #[case::construction_not_annotated(
         "construction_not_annotated",
-        impl_construction::<Internal>,
+        impl_op::<Internal>,
         syn::parse_quote! {
-            #[derive(ConstructionPriv)]
-            #[construction(monoid, commutative, identity = Default::default())]
+            #[derive(OpPriv)]
+            #[op(monoid, commutative, identity = Default::default())]
             pub struct Sum<T: std::ops::Add>(pub T);
         },
     )]
     #[case::construction_custom_annotation(
         "construction_custom_annotation",
-        impl_construction::<External>,
+        impl_op::<External>,
         syn::parse_quote! {
-            #[derive(Construction)]
-            #[construction(
+            #[derive(Op)]
+            #[op(
                 annotated,
                 monoid,
                 annotation_type_param = "X: IntoIterator + FromIterator<X::Item>",

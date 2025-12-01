@@ -1,10 +1,10 @@
 use std::ops::BitXorAssign;
 
-use semigroup_derive::{ConstructionPriv, properties_priv};
+use semigroup_derive::{OpPriv, properties_priv};
 
 use crate::Op;
 
-/// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that returns the exclusive or.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns the exclusive or.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -16,9 +16,9 @@ use crate::Op;
 /// let b = Xor(0b100);
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), 0b001);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionPriv)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[construction(monoid, commutative, identity = Self(T::zero()), monoid_where = "T: num::Zero")]
+#[op(monoid, commutative, identity = Self(T::zero()), monoid_where = "T: num::Zero")]
 #[properties_priv(monoid, commutative, monoid_where = "T: num::Zero")]
 pub struct Xor<T: BitXorAssign>(pub T);
 impl<T: BitXorAssign> Op<T> for Xor<T> {

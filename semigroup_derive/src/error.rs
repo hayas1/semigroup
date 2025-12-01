@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    constant::{DERIVE_CONSTRUCTION, DERIVE_SEMIGROUP},
+    constant::{DERIVE_OP, DERIVE_SEMIGROUP},
     name::Name,
 };
 
@@ -20,10 +20,7 @@ impl Display for ConstructionError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::ExpectNewType => {
-                write!(
-                    f,
-                    "derive {DERIVE_CONSTRUCTION} only supports newtype structs",
-                )
+                write!(f, "derive {DERIVE_OP} only supports newtype structs",)
             }
             Self::OnlyAnnotated(Name(name)) => {
                 write!(f, "attribute `{name}` are supported only with `annotated`")

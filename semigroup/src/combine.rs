@@ -1,4 +1,4 @@
-use semigroup_derive::{ConstructionPriv, properties_priv};
+use semigroup_derive::{OpPriv, properties_priv};
 
 use crate::{Construction, Lazy, Op, Semigroup};
 
@@ -202,8 +202,8 @@ impl<I: Iterator> CombineIterator for I {}
 /// assert_eq!(v.iter().cloned().map(Reverse).fold(Monoid::identity(), Semigroup::op).into_inner(), Coalesce(Some(99)));
 /// # }
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionPriv)]
-#[construction(monoid, commutative, identity = Self(T::identity()), monoid_where = "T: crate::Monoid", commutative_where = "T: crate::Commutative")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
+#[op(monoid, commutative, identity = Self(T::identity()), monoid_where = "T: crate::Monoid", commutative_where = "T: crate::Commutative")]
 #[properties_priv(
     monoid,
     commutative,

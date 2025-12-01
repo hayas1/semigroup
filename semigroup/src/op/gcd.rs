@@ -1,9 +1,9 @@
 use num::{Integer, Unsigned};
-use semigroup_derive::{ConstructionPriv, properties_priv};
+use semigroup_derive::{OpPriv, properties_priv};
 
 use crate::Op;
 
-/// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that returns the greatest common divisor.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns the greatest common divisor.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -16,9 +16,9 @@ use crate::Op;
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), 6);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionPriv)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[construction(monoid, commutative, identity = Self(T::zero()))]
+#[op(monoid, commutative, identity = Self(T::zero()))]
 #[properties_priv(monoid, commutative)]
 pub struct Gcd<T: Unsigned + Integer + Clone>(pub T);
 impl<T: Unsigned + Integer + Clone> Op<T> for Gcd<T> {

@@ -1,8 +1,8 @@
-use semigroup_derive::{ConstructionPriv, properties_priv};
+use semigroup_derive::{OpPriv, properties_priv};
 
 use crate::{Annotated, AnnotatedOp};
 
-/// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that returns the second value.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns the second value.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -15,9 +15,9 @@ use crate::{Annotated, AnnotatedOp};
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), 2);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionPriv)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[construction(annotated)]
+#[op(annotated)]
 #[properties_priv(annotated)]
 pub struct Overwrite<T>(pub T);
 impl<T, A> AnnotatedOp<T, A> for Overwrite<T> {

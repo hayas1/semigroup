@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{DeriveInput, Field, ItemImpl, parse_quote};
 
-use crate::{constant::Constant, construction::attr::ContainerAttr};
+use crate::{constant::Constant, op::attr::ContainerAttr};
 
 #[derive(Debug, Clone)]
 pub struct ConstructionTrait<'a> {

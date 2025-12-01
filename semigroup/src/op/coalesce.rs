@@ -1,8 +1,8 @@
-use semigroup_derive::{ConstructionPriv, properties_priv};
+use semigroup_derive::{OpPriv, properties_priv};
 
 use crate::{Annotated, AnnotatedOp};
 
-/// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that returns the first non-`None` value.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns the first non-`None` value.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -15,9 +15,9 @@ use crate::{Annotated, AnnotatedOp};
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), Some(2));
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionPriv)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[construction(annotated, monoid, identity = Self(None))]
+#[op(annotated, monoid, identity = Self(None))]
 #[properties_priv(annotated, monoid)]
 pub struct Coalesce<T>(pub Option<T>);
 impl<T, A> AnnotatedOp<Option<T>, A> for Coalesce<T> {
