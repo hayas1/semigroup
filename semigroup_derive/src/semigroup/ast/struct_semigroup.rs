@@ -67,7 +67,7 @@ impl<'a> StructSemigroup<'a> {
         parse_quote! {
             #[automatically_derived]
             impl #impl_generics #path_semigroup for #ident #ty_generics #where_clause {
-                fn op_assign(&mut self, other: Self) {
+                fn op_assign(base: &mut Self, other: Self) {
                     #(#fields_op_assign)*
                 }
             }

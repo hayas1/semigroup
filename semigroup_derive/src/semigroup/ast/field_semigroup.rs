@@ -44,9 +44,12 @@ impl<'a> FieldSemigroupOp<'a> {
 
     pub fn impl_field_semigroup_op_assign(&self) -> Stmt {
         let Self {
-            constant: Constant {
-                path_semigroup_op, ..
-            },
+            constant:
+                Constant {
+                    path_semigroup,
+                    path_semigroup_op,
+                    ..
+                },
             container_attr,
             member,
             field_attr,
@@ -55,12 +58,12 @@ impl<'a> FieldSemigroupOp<'a> {
         let with = field_attr.with(container_attr);
         with.map(|path| {
             parse_quote! {
-                <#path<_> as #path_semigroup_op<_>>::lift_op_assign(&mut self.#member, other.#member);
+                <#path<_> as #path_semigroup_op<_>>::lift_op_assign(&mut base.#member, other.#member);
             }
         })
         .unwrap_or_else(|| {
             parse_quote! {
-                self.#member.op_assign(other.#member);
+               #path_semigroup::op_assign(&mut base.#member, other.#member);
             }
         })
     }
