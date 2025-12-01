@@ -169,9 +169,9 @@ pub mod test_monoid {
     /// # Panics
     /// - If the given function does not satisfy the *monoid* property.
     /// ```should_panic
-    /// use semigroup::{assert_monoid, Construction, Op, Semigroup};
-    /// #[derive(Debug, Clone, PartialEq, Construction)]
-    /// #[construction(monoid, identity = Self(0))]
+    /// use semigroup::{assert_monoid, Op, Semigroup};
+    /// #[derive(Debug, Clone, PartialEq, Op)]
+    /// #[op(monoid, identity = Self(0))]
     /// pub struct Sub(i32);
     /// impl Op<i32> for Sub {
     ///     fn lift_op_assign(base: &mut i32, other: i32) {

@@ -24,11 +24,9 @@ pub mod iter;
 ///
 /// ## Custom monoid operator
 /// ```
-/// use semigroup::{Semigroup, Construction, Op, segment_tree::SegmentTree, Monoid};
-/// #[derive(
-///     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction,
-/// )]
-/// #[construction(monoid, commutative, identity = Self(i32::MIN))]
+/// use semigroup::{Semigroup, Op, segment_tree::SegmentTree, Monoid};
+/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Op)]
+/// #[op(monoid, commutative, identity = Self(i32::MIN))]
 /// struct Max(pub i32);
 /// impl Op<i32> for Max {
 ///     fn lift_op_assign(base: &mut i32, other: i32) {
