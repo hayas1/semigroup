@@ -41,8 +41,8 @@ impl<T> ::semigroup::Op<Option<T>> for Coalesce<T> {
 }
 #[automatically_derived]
 impl<T> ::semigroup::Semigroup for Coalesce<T> {
-    fn op_assign(&mut self, other: Self) {
-        <Self as ::semigroup::Op<_>>::lift_op_assign(&mut self.0, other.0);
+    fn op_assign(base: &mut Self, other: Self) {
+        <Self as ::semigroup::Op<_>>::lift_op_assign(&mut base.0, other.0);
     }
 }
 #[automatically_derived]

@@ -5,10 +5,10 @@ expression: formatted
 ---
 #[automatically_derived]
 impl ::semigroup::Semigroup for MonoidStruct {
-    fn op_assign(&mut self, other: Self) {
+    fn op_assign(base: &mut Self, other: Self) {
         <semigroup::op::Sum<
             _,
-        > as ::semigroup::Op<_>>::lift_op_assign(&mut self.sum, other.sum);
+        > as ::semigroup::Op<_>>::lift_op_assign(&mut base.sum, other.sum);
     }
 }
 #[automatically_derived]

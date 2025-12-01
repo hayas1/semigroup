@@ -9,12 +9,12 @@ where
     Option<u32>: ::semigroup::Semigroup,
     semigroup::op::Overwrite<bool>: ::semigroup::Semigroup,
 {
-    fn op_assign(&mut self, other: Self) {
+    fn op_assign(base: &mut Self, other: Self) {
         <semigroup::op::Overwrite<
             _,
-        > as ::semigroup::Op<_>>::lift_op_assign(&mut self.foo, other.foo);
-        self.bar.op_assign(other.bar);
-        self.baz.op_assign(other.baz);
+        > as ::semigroup::Op<_>>::lift_op_assign(&mut base.foo, other.foo);
+        ::semigroup::Semigroup::op_assign(&mut base.bar, other.bar);
+        ::semigroup::Semigroup::op_assign(&mut base.baz, other.baz);
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
