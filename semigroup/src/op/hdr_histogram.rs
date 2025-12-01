@@ -108,7 +108,7 @@ use crate::Semigroup;
 /// let stream = futures::stream::iter(0..10000000).map(|i| {
 ///     let duration = Duration::from_millis(i);
 ///     let mut g = agg.lock().unwrap();
-///     g.op_assign(HdrHistogram::from(duration.as_millis() as u64).into());
+///     g.semigroup_assign(HdrHistogram::from(duration.as_millis() as u64).into());
 ///     "ok"
 /// });
 ///
@@ -157,12 +157,12 @@ enum HdrHistogramInner<C: Counter> {
     Histogram(Histogram<C>),
 }
 impl<C: Counter> Semigroup for HdrHistogramInner<C> {
-    fn op_assign(&mut self, other: Self) {
-        match (&mut *self, other) {
-            (Self::Value(a), Self::Value(b)) => *self = vec![*a, b].into_iter().collect(),
+    fn op_assign(base: &mut Self, other: Self) {
+        match (&mut *base, other) {
+            (Self::Value(a), Self::Value(b)) => *base = vec![*a, b].into_iter().collect(),
             (Self::Value(a), Self::Histogram(mut b)) => {
                 b += *a;
-                *self = Self::Histogram(b);
+                *base = Self::Histogram(b);
             }
             (Self::Histogram(a), Self::Value(b)) => {
                 *a += b;

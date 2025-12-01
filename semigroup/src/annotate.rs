@@ -122,8 +122,8 @@ pub struct Annotated<T, A> {
     annotation: A,
 }
 impl<T: AnnotatedSemigroup<A>, A> Semigroup for Annotated<T, A> {
-    fn op_assign(&mut self, other: Self) {
-        AnnotatedSemigroup::annotated_op_assign(self.as_mut(), other);
+    fn op_assign(base: &mut Self, other: Self) {
+        AnnotatedSemigroup::annotated_op_assign(base.as_mut(), other);
     }
 }
 impl<T: AnnotatedSemigroup<A>, A> Annotated<T, A> {
