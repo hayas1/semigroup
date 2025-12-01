@@ -220,6 +220,12 @@ impl<T: Semigroup> Op<T> for Reverse<T> {
         Semigroup::op(other, base)
     }
 }
+pub trait Reversible: Semigroup {
+    fn rev_op(base: Self, other: Self) -> Self {
+        Semigroup::op(other, base)
+    }
+}
+impl<T: Semigroup> Reversible for T {}
 
 #[cfg(feature = "test")]
 pub mod test_combine {
