@@ -39,8 +39,8 @@ mod tests {
                 /// A semigroup construction that returns the first non-`None` value.
                 /// # Properties
                 /// <!-- properties -->
-                #[derive(Construction)]
-                #[construction(annotated, monoid)]
+                #[derive(Op)]
+                #[op(annotated, monoid)]
                 pub struct Coalesce<T>(pub Option<T>);
             },
         ),
@@ -77,8 +77,8 @@ mod tests {
                 /// A semigroup construction that returns the sum.
                 /// # Properties
                 /// <!-- properties -->
-                #[derive(SemigroupPriv)]
-                #[construction(monoid, commutative, identity = Self(T::zero()), monoid_where = "T: num::Zero")]
+                #[derive(OpPriv)]
+                #[op(monoid, commutative, identity = Self(T::zero()), monoid_where = "T: num::Zero")]
                 pub struct Sum<T: Add<Output = T>>(pub T);
             },
         )

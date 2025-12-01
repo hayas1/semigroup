@@ -4,7 +4,7 @@ use syn::{DeriveInput, Expr, TypeParam, WherePredicate, parse_quote};
 use crate::{annotation::Annotation, constant::Constant, error::ConstructionError, name::var_name};
 
 #[derive(Debug, Clone, PartialEq, FromDeriveInput)]
-#[darling(attributes(construction), and_then = Self::validate)]
+#[darling(attributes(op), and_then = Self::validate)]
 pub struct ContainerAttr {
     #[darling(default)]
     annotated: bool,
@@ -24,10 +24,10 @@ pub struct ContainerAttr {
     annotation_type_param: Option<TypeParam>,
     annotation_where: Option<String>, // TODO Vec
     #[darling(default)]
-    without_annotate_impl: bool,
+    manual_annotate_impl: bool,
 
     #[darling(default)]
-    without_construction: bool,
+    hidden_inner: bool,
 }
 impl ContainerAttr {
     pub fn new(derive: &DeriveInput) -> syn::Result<Self> {
@@ -39,7 +39,7 @@ impl ContainerAttr {
             unit_annotation,
             annotation_type_param,
             annotation_where,
-            without_annotate_impl,
+            manual_annotate_impl,
             monoid,
             identity,
             monoid_where,
@@ -55,8 +55,8 @@ impl ContainerAttr {
                 Some(var_name!(annotation_type_param))
             } else if annotation_where.is_some() {
                 Some(var_name!(annotation_where))
-            } else if *without_annotate_impl {
-                Some(var_name!(without_annotate_impl))
+            } else if *manual_annotate_impl {
+                Some(var_name!(manual_annotate_impl))
             } else {
                 None
             };
@@ -142,12 +142,12 @@ impl ContainerAttr {
                 .map(|p| p.unwrap_or_else(|e| todo!("{e}"))),
         )
     }
-    pub fn with_annotate_impl(&self) -> bool {
-        !self.without_annotate_impl
+    pub fn gen_annotate_impl(&self) -> bool {
+        !self.manual_annotate_impl
     }
 
-    pub fn with_construction(&self) -> bool {
-        !self.without_construction
+    pub fn open_inner(&self) -> bool {
+        !self.hidden_inner
     }
 }
 
@@ -159,7 +159,7 @@ mod tests {
 
     fn default_container_attr() -> ContainerAttr {
         ContainerAttr::new(&parse_quote! {
-            #[derive(Construction)]
+            #[derive(Op)]
             pub struct Construct<T>(T);
         })
         .unwrap()
@@ -168,8 +168,8 @@ mod tests {
     #[rstest]
     #[case::ok(
         syn::parse_quote! {
-            #[derive(Construction)]
-            #[construction(annotated)]
+            #[derive(Op)]
+            #[op(annotated)]
             pub struct Coalesce<T>(pub Option<T>);
         },
         Ok(ContainerAttr {
@@ -179,21 +179,21 @@ mod tests {
     )]
     #[case::invalid_annotated_attr(
         syn::parse_quote! {
-            #[derive(Construction)]
-            #[construction(unit_annotation = ())]
+            #[derive(Op)]
+            #[op(unit_annotation = ())]
             pub struct Construct<T>(T);
         },
         Err("attribute `unit_annotation` are supported only with `annotated`"),
     )]
     #[case::invalid_monoid_attr(
         syn::parse_quote! {
-            #[derive(Construction)]
-            #[construction(identity = ())]
+            #[derive(Op)]
+            #[op(identity = ())]
             pub struct Construct<T>(T);
         },
         Err("attribute `identity` are supported only with `monoid`"),
     )]
-    fn test_construction_container_attr(
+    fn test_op_container_attr(
         #[case] input: DeriveInput,
         #[case] expected: Result<ContainerAttr, &str>,
     ) {

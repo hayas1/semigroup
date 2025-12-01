@@ -1,8 +1,8 @@
-use semigroup_derive::{ConstructionPriv, properties_priv};
+use semigroup_derive::{OpPriv, properties_priv};
 
-use crate::{Annotated, AnnotatedSemigroup};
+use crate::{Annotate, Annotated, AnnotatedOp};
 
-/// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that concatenates two values.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that concatenates two values.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -15,58 +15,52 @@ use crate::{Annotated, AnnotatedSemigroup};
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), vec![1, 2, 3, 4]);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionPriv)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[construction(
+#[op(
     annotated,
     monoid,
-    identity = Self(std::iter::empty().collect()),
-    annotation_type_param = "A: IntoIterator + FromIterator<A::Item>",
+    identity = Self(Default::default()),
+    annotation_type_param = "A: Default + Extend<A::Item> + IntoIterator",
     annotation_where = "A::Item: Clone",
     unit_annotation = "vec![(); 0]",
-    without_annotate_impl
+    manual_annotate_impl
 )]
 #[properties_priv(annotated, monoid, annotation_where = "A::Item: Clone")]
-pub struct Concat<T: IntoIterator + FromIterator<T::Item>>(pub T);
-impl<T: IntoIterator + FromIterator<T::Item>, A: IntoIterator + FromIterator<A::Item>>
-    AnnotatedSemigroup<A> for Concat<T>
+pub struct Concat<T: Default + Extend<T::Item> + IntoIterator>(pub T);
+impl<T: Default + Extend<T::Item> + IntoIterator, A: Default + Extend<A::Item> + IntoIterator>
+    AnnotatedOp<T, A> for Concat<T>
+where
+    A::Item: Clone,
 {
-    fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
-        let (base_value, base_annotation) = base.into_parts();
+    fn lift_annotated_op_assign(mut base: Annotated<&mut T, &mut A>, other: Annotated<T, A>) {
         let (other_value, other_annotation) = other.into_parts();
-
-        Annotated::new(
-            Concat(base_value.0.into_iter().chain(other_value.0).collect()),
-            base_annotation
-                .into_iter()
-                .chain(other_annotation)
-                .collect(),
-        )
+        base.value_mut().extend(other_value);
+        base.annotation_mut().extend(other_annotation);
     }
 }
-impl<T: IntoIterator + FromIterator<T::Item>, A: IntoIterator + FromIterator<A::Item>>
-    crate::annotate::Annotate<A> for Concat<T>
+impl<T: Default + Extend<T::Item> + IntoIterator, A: Default + Extend<A::Item> + IntoIterator>
+    Annotate<A> for Concat<T>
 where
     A::Item: Clone,
 {
     type Annotation = A::Item;
     fn annotated(self, annotation: Self::Annotation) -> Annotated<Self, A> {
         let iter = self.0.into_iter();
+        let (mut values, mut annotations) = (T::default(), A::default());
         let (lower, upper) = iter.size_hint();
         match upper.filter(|&u| u == lower) {
-            Some(len) => Annotated::new(
-                Self(iter.collect()),
-                std::iter::repeat_n(annotation, len).collect(),
-            ),
+            Some(len) => {
+                values.extend(iter);
+                annotations.extend(std::iter::repeat_n(annotation, len));
+            }
             None => {
-                let (value, annotation): (Vec<_>, Vec<_>) =
-                    iter.map(|v| (v, annotation.clone())).collect();
-                Annotated::new(
-                    Self(value.into_iter().collect()),
-                    annotation.into_iter().collect(),
-                )
+                let (val, ann): (Vec<_>, Vec<_>) = iter.map(|v| (v, annotation.clone())).collect();
+                values.extend(val);
+                annotations.extend(ann);
             }
         }
+        Annotated::new(Self(values), annotations)
     }
 }
 

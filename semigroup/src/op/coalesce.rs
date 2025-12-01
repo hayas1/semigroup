@@ -1,8 +1,8 @@
-use semigroup_derive::{ConstructionPriv, properties_priv};
+use semigroup_derive::{OpPriv, properties_priv};
 
-use crate::{Annotated, AnnotatedSemigroup};
+use crate::{Annotated, AnnotatedOp};
 
-/// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that returns the first non-`None` value.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns the first non-`None` value.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -15,16 +15,21 @@ use crate::{Annotated, AnnotatedSemigroup};
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), Some(2));
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionPriv)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[construction(annotated, monoid, identity = Self(None))]
+#[op(annotated, monoid, identity = Self(None))]
 #[properties_priv(annotated, monoid)]
 pub struct Coalesce<T>(pub Option<T>);
-impl<T, A> AnnotatedSemigroup<A> for Coalesce<T> {
-    fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
-        match (&base.value().0, &other.value().0) {
-            (Some(_), _) | (None, None) => base,
-            (None, Some(_)) => other,
+impl<T, A> AnnotatedOp<Option<T>, A> for Coalesce<T> {
+    fn lift_annotated_op_assign(
+        mut base: Annotated<&mut Option<T>, &mut A>,
+        other: Annotated<Option<T>, A>,
+    ) {
+        match (&base.value(), &other.value()) {
+            (Some(_), _) | (None, None) => {}
+            (None, Some(_)) => {
+                base.replace(other);
+            }
         }
     }
 }

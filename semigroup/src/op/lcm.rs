@@ -1,9 +1,9 @@
 use num::{Integer, Unsigned};
-use semigroup_derive::{ConstructionPriv, properties_priv};
+use semigroup_derive::{OpPriv, properties_priv};
 
-use crate::Semigroup;
+use crate::Op;
 
-/// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that returns the least common multiple.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns the least common multiple.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -16,14 +16,14 @@ use crate::Semigroup;
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), 36);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionPriv)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[construction(monoid, commutative, identity = Self(T::one()))]
+#[op(monoid, commutative, identity = Self(T::one()))]
 #[properties_priv(monoid, commutative)]
 pub struct Lcm<T: Unsigned + Integer + Clone>(pub T);
-impl<T: Unsigned + Integer + Clone> Semigroup for Lcm<T> {
-    fn op(base: Self, other: Self) -> Self {
-        Self(num::integer::lcm(base.0, other.0))
+impl<T: Unsigned + Integer + Clone> Op<T> for Lcm<T> {
+    fn lift_op_assign(base: &mut T, other: T) {
+        *base = num::integer::lcm(base.clone(), other);
     }
 }
 

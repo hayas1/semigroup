@@ -1,10 +1,10 @@
-use std::ops::Mul;
+use std::ops::MulAssign;
 
-use semigroup_derive::{ConstructionPriv, properties_priv};
+use semigroup_derive::{OpPriv, properties_priv};
 
-use crate::Semigroup;
+use crate::Op;
 
-/// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that returns the product.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns the product.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -17,14 +17,14 @@ use crate::Semigroup;
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), 2);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionPriv)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[construction(monoid, commutative, identity = Self(T::one()), monoid_where = "T: num::One")]
+#[op(monoid, commutative, identity = Self(T::one()), monoid_where = "T: num::One")]
 #[properties_priv(monoid, commutative, monoid_where = "T: num::One")]
-pub struct Prod<T: Mul<Output = T>>(pub T);
-impl<T: Mul<Output = T>> Semigroup for Prod<T> {
-    fn op(base: Self, other: Self) -> Self {
-        Self(base.0 * other.0)
+pub struct Prod<T: MulAssign>(pub T);
+impl<T: MulAssign> Op<T> for Prod<T> {
+    fn lift_op_assign(base: &mut T, other: T) {
+        *base *= other;
     }
 }
 

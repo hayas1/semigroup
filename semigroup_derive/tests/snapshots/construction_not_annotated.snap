@@ -1,17 +1,8 @@
 ---
-source: semigroup_derive/src/construction.rs
+source: semigroup_derive/src/op.rs
 assertion_line: 70
 expression: formatted
 ---
-#[automatically_derived]
-#[cfg(feature = "monoid")]
-impl<T: std::ops::Add> crate::Monoid for Sum<T> {
-    fn identity() -> Self {
-        Default::default()
-    }
-}
-#[automatically_derived]
-impl<T: std::ops::Add> crate::Commutative for Sum<T> {}
 #[automatically_derived]
 impl<T: std::ops::Add> From<T> for Sum<T> {
     fn from(value: T) -> Self {
@@ -39,7 +30,22 @@ impl<T: std::ops::Add> crate::Construction<T> for Sum<T> {
 }
 #[automatically_derived]
 #[cfg(feature = "monoid")]
-impl<T: std::ops::Add> crate::ConstructionMonoid<T> for Sum<T>
+impl<T: std::ops::Add> crate::MonoidOp<T> for Sum<T>
 where
     Self: crate::Monoid,
 {}
+#[automatically_derived]
+impl<T: std::ops::Add> crate::Semigroup for Sum<T> {
+    fn op_assign(base: &mut Self, other: Self) {
+        <Self as crate::Op<_>>::lift_op_assign(&mut base.0, other.0);
+    }
+}
+#[automatically_derived]
+#[cfg(feature = "monoid")]
+impl<T: std::ops::Add> crate::Monoid for Sum<T> {
+    fn identity() -> Self {
+        Default::default()
+    }
+}
+#[automatically_derived]
+impl<T: std::ops::Add> crate::Commutative for Sum<T> {}

@@ -1,39 +1,8 @@
 ---
-source: semigroup_derive/src/construction.rs
+source: semigroup_derive/src/op.rs
 assertion_line: 70
 expression: formatted
 ---
-#[automatically_derived]
-impl<T: IntoIterator + FromIterator<T::Item>> ::semigroup::Monoid for Concat<T>
-where
-    Self: Default,
-{
-    fn identity() -> Self {
-        Default::default()
-    }
-}
-#[automatically_derived]
-impl<T: IntoIterator + FromIterator<T::Item>> ::semigroup::Semigroup for Concat<T> {
-    fn op(base: Self, other: Self) -> Self {
-        ::semigroup::Annotated::lift_unit_annotated_op(
-            (base, vec![(); 0]),
-            (other, vec![(); 0]),
-        )
-    }
-}
-#[automatically_derived]
-impl<
-    T: IntoIterator + FromIterator<T::Item>,
-    X: IntoIterator + FromIterator<X::Item>,
-> ::semigroup::Annotate<X> for Concat<T>
-where
-    X::Item: Clone,
-{
-    type Annotation = X;
-    fn annotated(self, annotation: Self::Annotation) -> ::semigroup::Annotated<Self, X> {
-        ::semigroup::Annotated::new(self, annotation)
-    }
-}
 #[automatically_derived]
 impl<T: IntoIterator + FromIterator<T::Item>> From<T> for Concat<T> {
     fn from(value: T) -> Self {
@@ -61,16 +30,64 @@ for Concat<T> {
     }
 }
 #[automatically_derived]
-impl<
-    T: IntoIterator + FromIterator<T::Item>,
-    X: IntoIterator + FromIterator<X::Item>,
-> ::semigroup::ConstructionAnnotated<T, X> for Concat<T>
-where
-    X::Item: Clone,
-{}
+impl<T: IntoIterator + FromIterator<T::Item>> ::semigroup::Op<T> for Concat<T> {
+    fn lift_op_assign(base: &mut T, other: T) {
+        let (mut base_unit, other_unit) = (vec![(); 0], vec![(); 0]);
+        let (b, o) = (
+            ::semigroup::Annotated::new(base, &mut base_unit),
+            ::semigroup::Annotated::new(other, other_unit),
+        );
+        <Self as ::semigroup::AnnotatedOp<_, _>>::lift_annotated_op_assign(b, o);
+    }
+}
 #[automatically_derived]
-impl<T: IntoIterator + FromIterator<T::Item>> ::semigroup::ConstructionMonoid<T>
-for Concat<T>
+impl<T: IntoIterator + FromIterator<T::Item>> ::semigroup::MonoidOp<T> for Concat<T>
 where
     Self: ::semigroup::Monoid,
 {}
+#[automatically_derived]
+impl<T: IntoIterator + FromIterator<T::Item>> ::semigroup::Semigroup for Concat<T> {
+    fn op_assign(base: &mut Self, other: Self) {
+        <Self as ::semigroup::Op<_>>::lift_op_assign(&mut base.0, other.0);
+    }
+}
+#[automatically_derived]
+impl<
+    T: IntoIterator + FromIterator<T::Item>,
+    X: IntoIterator + FromIterator<X::Item>,
+> ::semigroup::AnnotatedSemigroup<X> for Concat<T>
+where
+    X::Item: Clone,
+{
+    fn annotated_op_assign(
+        base: ::semigroup::Annotated<&mut Self, &mut X>,
+        other: ::semigroup::Annotated<Self, X>,
+    ) {
+        <Self as ::semigroup::AnnotatedOp<
+            _,
+            X,
+        >>::lift_annotated_op_assign(base.map(|v| &mut v.0), other.map(|v| v.0));
+    }
+}
+#[automatically_derived]
+impl<
+    T: IntoIterator + FromIterator<T::Item>,
+    X: IntoIterator + FromIterator<X::Item>,
+> ::semigroup::Annotate<X> for Concat<T>
+where
+    X::Item: Clone,
+{
+    type Annotation = X;
+    fn annotated(self, annotation: Self::Annotation) -> ::semigroup::Annotated<Self, X> {
+        ::semigroup::Annotated::new(self, annotation)
+    }
+}
+#[automatically_derived]
+impl<T: IntoIterator + FromIterator<T::Item>> ::semigroup::Monoid for Concat<T>
+where
+    Self: Default,
+{
+    fn identity() -> Self {
+        Default::default()
+    }
+}

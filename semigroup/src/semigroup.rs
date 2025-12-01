@@ -29,17 +29,17 @@ use crate::Annotated;
 /// ```
 ///
 /// ## Construction
-/// [`Semigroup`] can be constructed by [`crate::Construction`].
+/// [`Semigroup`] can be constructed as [`crate::Op`] by [`crate::Construction`].
 ///
 /// Some operations are already provided by [`crate::op`].
 /// ```
-/// use semigroup::{Construction, Semigroup};
+/// use semigroup::{Construction, Op, Semigroup};
 ///
-/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction)]
+/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Op)]
 /// pub struct Sum(u64);
-/// impl Semigroup for Sum {
-///     fn op(base: Self, other: Self) -> Self {
-///         Self(base.0 + other.0)
+/// impl Op<u64> for Sum {
+///     fn lift_op_assign(base: &mut u64, other: u64) {
+///         *base += other;
 ///     }
 /// }
 ///
@@ -54,19 +54,27 @@ use crate::Annotated;
 ///
 /// The *closure* property is guaranteed by Rust’s type system,
 /// but *associativity* must be verified manually using [`crate::assert_semigroup!`].
-pub trait Semigroup {
-    fn op(base: Self, other: Self) -> Self;
-    fn semigroup(self, other: Self) -> Self
-    where
-        Self: Sized,
-    {
+pub trait Semigroup: Sized {
+    fn op_assign(base: &mut Self, other: Self);
+    fn op(mut base: Self, other: Self) -> Self {
+        Self::op_assign(&mut base, other);
+        base
+    }
+    fn semigroup_assign(&mut self, other: Self) {
+        Semigroup::op_assign(self, other);
+    }
+    fn semigroup(self, other: Self) -> Self {
         Semigroup::op(self, other)
     }
 }
 
 /// [`AnnotatedSemigroup`] is a [`Semigroup`] that has an annotation, such as [`crate::Annotate`].
 pub trait AnnotatedSemigroup<A>: Sized + Semigroup {
-    fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A>;
+    fn annotated_op_assign(base: Annotated<&mut Self, &mut A>, other: Annotated<Self, A>);
+    fn annotated_op(mut base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
+        AnnotatedSemigroup::annotated_op_assign(base.as_mut(), other);
+        base
+    }
 }
 
 #[cfg(feature = "test")]
@@ -108,12 +116,12 @@ pub mod test_semigroup {
     /// # Panics
     /// - If the given function does not satisfy the *semigroup* property.
     /// ```should_panic
-    /// use semigroup::{assert_semigroup, Construction, Semigroup};
-    /// #[derive(Debug, Clone, PartialEq, Construction)]
+    /// use semigroup::{assert_semigroup, Construction, Op, Semigroup};
+    /// #[derive(Debug, Clone, PartialEq, Op)]
     /// pub struct Sub(i32);
-    /// impl Semigroup for Sub {
-    ///     fn op(base: Self, other: Self) -> Self {
-    ///         Self(base.0 - other.0)
+    /// impl Op<i32> for Sub {
+    ///     fn lift_op_assign(base: &mut i32, other: i32) {
+    ///         *base -= other;
     ///     }
     /// }
     /// let a = Sub(1);
