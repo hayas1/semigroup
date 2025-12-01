@@ -1,8 +1,8 @@
-use semigroup_derive::{ConstructionPriv, properties_priv};
+use semigroup_derive::{OpPriv, properties_priv};
 
-use crate::{Annotated, AnnotatedSemigroup};
+use crate::{Annotated, AnnotatedOp};
 
-/// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that returns `true` if either value is `true`.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns `true` if either value is `true`.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -15,14 +15,19 @@ use crate::{Annotated, AnnotatedSemigroup};
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), true);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionPriv)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[construction(annotated, monoid, commutative, identity = Self(false))]
+#[op(annotated, monoid, commutative, identity = Self(false))]
 #[properties_priv(annotated, monoid, commutative)]
 pub struct Any(pub bool);
-impl<A> AnnotatedSemigroup<A> for Any {
-    fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
-        std::cmp::max_by(base, other, |a, b| a.value().cmp(b.value()))
+impl<A> AnnotatedOp<bool, A> for Any {
+    fn lift_annotated_op_assign(
+        mut base: Annotated<&mut bool, &mut A>,
+        mut other: Annotated<bool, A>,
+    ) {
+        if base.value() < &other.value_mut() {
+            base.replace(other);
+        }
     }
 }
 
@@ -87,9 +92,9 @@ mod tests {
         let b = Any(true).annotated(1);
         let c = Any(false).annotated(2);
         let d = Any(true).annotated(3);
-        assert_eq!(a.semigroup(b).semigroup(c).semigroup(d), d);
-        assert_eq!(d.semigroup(c).semigroup(b).semigroup(a), b);
-        assert_eq!(a.semigroup(c), c);
-        assert_eq!(b.semigroup(d), d);
+        assert_eq!(a.semigroup(b).semigroup(c).semigroup(d), b);
+        assert_eq!(d.semigroup(c).semigroup(b).semigroup(a), d);
+        assert_eq!(a.semigroup(c), a);
+        assert_eq!(b.semigroup(d), b);
     }
 }
