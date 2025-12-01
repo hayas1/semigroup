@@ -55,10 +55,13 @@ use crate::Annotated;
 /// The *closure* property is guaranteed by Rust’s type system,
 /// but *associativity* must be verified manually using [`crate::assert_semigroup!`].
 pub trait Semigroup: Sized {
-    fn op_assign(&mut self, other: Self);
+    fn op_assign(base: &mut Self, other: Self);
     fn op(mut base: Self, other: Self) -> Self {
-        base.op_assign(other);
+        Self::op_assign(&mut base, other);
         base
+    }
+    fn semigroup_assign(&mut self, other: Self) {
+        Semigroup::op_assign(self, other);
     }
     fn semigroup(self, other: Self) -> Self {
         Semigroup::op(self, other)
