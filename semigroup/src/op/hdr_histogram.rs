@@ -90,6 +90,38 @@ use crate::Semigroup;
 /// assert_eq!(request_aggregate.p99_latency(), Duration::from_millis(9904127));
 /// # });
 /// ```
+///
+/// ## Aggregation as side-effect
+/// ```
+/// # #[cfg(feature = "async")]
+/// # futures::executor::block_on(async {
+/// use futures::StreamExt;
+/// use semigroup::{Monoid, OptionMonoid, Semigroup, op::HdrHistogram};
+/// use std::{
+///     sync::{Arc, Mutex},
+///     time::Duration,
+/// };
+///
+/// let latencies = OptionMonoid::<HdrHistogram<u64>>::identity();
+/// let agg = Arc::new(Mutex::new(latencies));
+///
+/// let stream = futures::stream::iter(0..10000000).map(|i| {
+///     let duration = Duration::from_millis(i);
+///     let mut g = agg.lock().unwrap();
+///     g.op_assign(HdrHistogram::from(duration.as_millis() as u64).into());
+///     "ok"
+/// });
+///
+/// let count = stream.count().await;
+/// assert_eq!(count, 10000000);
+///
+/// let g = agg.lock().unwrap();
+/// assert_eq!(
+///     g.as_ref().unwrap().histogram().value_at_quantile(0.99),
+///     9904127
+/// );
+/// # });
+/// ```
 #[derive(Debug, Clone, PartialEq, SemigroupPriv)]
 #[semigroup(monoid, commutative)]
 #[properties_priv(monoid, commutative)]
@@ -110,7 +142,7 @@ impl<C: Counter> From<HdrHistogram<C>> for Histogram<C> {
     }
 }
 impl<C: Counter> HdrHistogram<C> {
-    pub fn histogram(&self) -> Cow<Histogram<C>> {
+    pub fn histogram(&self) -> Cow<'_, Histogram<C>> {
         self.0.histogram()
     }
     pub fn into_histogram(self) -> Histogram<C> {
@@ -125,20 +157,18 @@ enum HdrHistogramInner<C: Counter> {
     Histogram(Histogram<C>),
 }
 impl<C: Counter> Semigroup for HdrHistogramInner<C> {
-    fn op(base: Self, other: Self) -> Self {
-        match (base, other) {
-            (Self::Value(a), Self::Value(b)) => vec![a, b].into_iter().collect(),
+    fn op_assign(&mut self, other: Self) {
+        match (&mut *self, other) {
+            (Self::Value(a), Self::Value(b)) => *self = vec![*a, b].into_iter().collect(),
             (Self::Value(a), Self::Histogram(mut b)) => {
-                b += a;
-                Self::Histogram(b)
+                b += *a;
+                *self = Self::Histogram(b);
             }
-            (Self::Histogram(mut a), Self::Value(b)) => {
-                a += b;
-                Self::Histogram(a)
+            (Self::Histogram(a), Self::Value(b)) => {
+                *a += b;
             }
-            (Self::Histogram(mut a), Self::Histogram(b)) => {
-                a += b;
-                Self::Histogram(a)
+            (Self::Histogram(a), Self::Histogram(b)) => {
+                *a += b;
             }
         }
     }
@@ -180,7 +210,7 @@ impl<C: Counter> HdrHistogramInner<C> {
     fn value_histogram(value: u64) -> Histogram<C> {
         Some(value).into_iter().collect::<Self>().into()
     }
-    fn histogram(&self) -> Cow<Histogram<C>> {
+    fn histogram(&self) -> Cow<'_, Histogram<C>> {
         match self {
             Self::Value(v) => Cow::Owned(Self::value_histogram(*v)),
             Self::Histogram(h) => Cow::Borrowed(h),

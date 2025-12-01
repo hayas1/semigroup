@@ -1,6 +1,6 @@
 use semigroup_derive::{ConstructionPriv, properties_priv};
 
-use crate::Semigroup;
+use crate::{Op, Semigroup};
 
 /// [`Monoid`] represents a binary operation that satisfies the following properties
 /// 1. *Closure*: `op: T × T → T`
@@ -30,18 +30,18 @@ use crate::Semigroup;
 /// ```
 ///
 /// ## Construction
-/// [`Monoid`] can be constructed by [`crate::ConstructionMonoid`] like [`Semigroup`], use `monoid` attribute.
+/// [`Monoid`] can be constructed by [`crate::MonoidOp`] like [`Semigroup`], use `monoid` attribute.
 ///
 /// Some operations are already provided by [`crate::op`].
 /// ```
-/// use semigroup::{Construction, Semigroup, Monoid};
+/// use semigroup::{Construction, Semigroup, Op, Monoid};
 ///
 /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction)]
 /// #[construction(monoid, identity = Self(0))]
 /// pub struct Sum(u64);
-/// impl Semigroup for Sum {
-///     fn op(base: Self, other: Self) -> Self {
-///         Self(base.0 + other.0)
+/// impl Op<u64> for Sum {
+///     fn lift_op_assign(base: &mut u64, other: u64) {
+///         *base += other;
 ///     }
 /// }
 /// let (a, b, c) = (Sum::identity(), Sum(2), Sum(3));
@@ -127,12 +127,12 @@ impl<T: Semigroup> From<T> for OptionMonoid<T> {
         Self(Some(value))
     }
 }
-impl<T: Semigroup> Semigroup for OptionMonoid<T> {
-    fn op(base: Self, other: Self) -> Self {
+impl<T: Semigroup> Op<Option<T>> for OptionMonoid<T> {
+    fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {
         match (base, other) {
-            (Self(Some(b)), Self(Some(o))) => Self(Some(Semigroup::op(b, o))),
-            (b, Self(None)) => b,
-            (Self(None), o) => o,
+            (Some(b), Some(o)) => b.op_assign(o),
+            (_, None) => {}
+            (b @ None, o @ Some(_)) => *b = o,
         }
     }
 }
@@ -169,13 +169,13 @@ pub mod test_monoid {
     /// # Panics
     /// - If the given function does not satisfy the *monoid* property.
     /// ```should_panic
-    /// use semigroup::{assert_monoid, Construction, Semigroup};
+    /// use semigroup::{assert_monoid, Construction, Op, Semigroup};
     /// #[derive(Debug, Clone, PartialEq, Construction)]
     /// #[construction(monoid, identity = Self(0))]
     /// pub struct Sub(i32);
-    /// impl Semigroup for Sub {
-    ///     fn op(base: Self, other: Self) -> Self {
-    ///         Self(base.0 - other.0)
+    /// impl Op<i32> for Sub {
+    ///     fn lift_op_assign(base: &mut i32, other: i32) {
+    ///         *base -= other;
     ///     }
     /// }
     /// let a = Sub(1);

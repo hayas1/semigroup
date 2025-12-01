@@ -1,7 +1,7 @@
 use num::{Integer, Unsigned};
 use semigroup_derive::{ConstructionPriv, properties_priv};
 
-use crate::Semigroup;
+use crate::Op;
 
 /// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that returns the greatest common divisor.
 /// # Properties
@@ -21,9 +21,9 @@ use crate::Semigroup;
 #[construction(monoid, commutative, identity = Self(T::zero()))]
 #[properties_priv(monoid, commutative)]
 pub struct Gcd<T: Unsigned + Integer + Clone>(pub T);
-impl<T: Unsigned + Integer + Clone> Semigroup for Gcd<T> {
-    fn op(base: Self, other: Self) -> Self {
-        Self(num::integer::gcd(base.0, other.0))
+impl<T: Unsigned + Integer + Clone> Op<T> for Gcd<T> {
+    fn lift_op_assign(base: &mut T, other: T) {
+        *base = num::integer::gcd(base.clone(), other);
     }
 }
 

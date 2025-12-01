@@ -49,21 +49,23 @@ use crate::{AnnotatedSemigroup, Semigroup};
 /// ```
 ///
 /// ## Construction
-/// [`Annotate`] can be constructed by [`crate::ConstructionAnnotated`] like [`Semigroup`], use `annotated` attribute.
+/// [`Annotate`] can be constructed by [`crate::AnnotatedOp`] like [`Semigroup`], use `annotated` attribute.
 /// In this case, the [`Semigroup`] annotated operation is represented by [`AnnotatedSemigroup`].
 ///
 /// Some operations are already provided by [`crate::op`].
 /// ```
-/// use semigroup::{AnnotatedSemigroup, Annotate, Annotated, Construction, ConstructionAnnotated, Semigroup};
+/// use semigroup::{Annotate, Annotated, AnnotatedOp, Construction, Op, Semigroup};
 ///
 /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction)]
 /// #[construction(annotated)]
 /// struct Coalesce<T>(Option<T>);
-/// impl<A, T> AnnotatedSemigroup<A> for Coalesce<T> {
-///     fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
-///         match (&base.value().0, &other.value().0) {
-///             (Some(_), _) | (None, None) => base,
-///             (None, Some(_)) => other,
+/// impl<A, T> AnnotatedOp<Option<T>, A> for Coalesce<T> {
+///     fn lift_annotated_op_assign(
+///         mut base: Annotated<&mut Option<T>, &mut A>,
+///         other: Annotated<Option<T>, A>,
+///     ) {
+///         if base.value().is_none() && other.value().is_some() {
+///             base.replace(other);
 ///         }
 ///     }
 /// }
@@ -120,14 +122,18 @@ pub struct Annotated<T, A> {
     annotation: A,
 }
 impl<T: AnnotatedSemigroup<A>, A> Semigroup for Annotated<T, A> {
-    fn op(base: Self, other: Self) -> Self {
-        AnnotatedSemigroup::annotated_op(base, other)
+    fn op_assign(&mut self, other: Self) {
+        AnnotatedSemigroup::annotated_op_assign(self.as_mut(), other);
     }
 }
 impl<T: AnnotatedSemigroup<A>, A> Annotated<T, A> {
+    pub fn lift_unit_annotated_op_assign((base, unit1): (&mut T, &mut A), (other, unit2): (T, A)) {
+        let (b, o) = (Annotated::new(base, unit1), Self::new(other, unit2));
+        AnnotatedSemigroup::annotated_op_assign(b, o);
+    }
     pub fn lift_unit_annotated_op((base, unit1): (T, A), (other, unit2): (T, A)) -> T {
-        let (b, o) = (Self::new(base, unit1), Self::new(other, unit2));
-        AnnotatedSemigroup::annotated_op(b, o).into_value()
+        AnnotatedSemigroup::annotated_op(Self::new(base, unit1), Self::new(other, unit2))
+            .into_value()
     }
 }
 
@@ -156,6 +162,9 @@ impl<T, A> Annotated<T, A> {
     }
     pub fn annotation(&self) -> &A {
         &self.annotation
+    }
+    pub fn annotation_mut(&mut self) -> &mut A {
+        &mut self.annotation
     }
 
     pub fn map<U>(self, f: impl FnOnce(T) -> U) -> Annotated<U, A> {
@@ -205,6 +214,12 @@ impl<T, A> Annotated<T, A> {
     {
         self.as_ref_mut().map(|v| v.deref_mut())
     }
+    pub fn as_mut(&mut self) -> Annotated<&mut T, &mut A> {
+        Annotated {
+            value: &mut self.value,
+            annotation: &mut self.annotation,
+        }
+    }
 }
 impl<T, A> Annotated<&T, &A> {
     pub fn cloned(self) -> Annotated<T, A>
@@ -240,6 +255,12 @@ impl<T, A> Annotated<&mut T, &mut A> {
         A: Clone,
     {
         self.map_parts(|v| v.clone(), |a| a.clone())
+    }
+    pub fn replace(&mut self, other: Annotated<T, A>) -> Annotated<T, A> {
+        Annotated {
+            value: std::mem::replace(self.value, other.value),
+            annotation: std::mem::replace(self.annotation, other.annotation),
+        }
     }
 }
 impl<T, A> Annotated<&T, A> {

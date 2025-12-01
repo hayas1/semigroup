@@ -9,14 +9,12 @@ where
     Option<u32>: ::semigroup::Semigroup,
     semigroup::op::Overwrite<bool>: ::semigroup::Semigroup,
 {
-    fn op(base: Self, other: Self) -> Self {
-        Self {
-            foo: <semigroup::op::Overwrite<
-                _,
-            > as ::semigroup::Construction<_>>::lift_op(base.foo, other.foo),
-            bar: ::semigroup::Semigroup::op(base.bar, other.bar),
-            baz: ::semigroup::Semigroup::op(base.baz, other.baz),
-        }
+    fn op_assign(&mut self, other: Self) {
+        <semigroup::op::Overwrite<
+            _,
+        > as ::semigroup::Op<_>>::lift_op_assign(&mut self.foo, other.foo);
+        self.bar.op_assign(other.bar);
+        self.baz.op_assign(other.baz);
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
@@ -33,44 +31,29 @@ where
         bool,
     >: ::semigroup::AnnotatedSemigroup<NamedStructAnnotation<A>>,
 {
-    fn annotated_op(
-        base: ::semigroup::Annotated<Self, NamedStructAnnotation<A>>,
+    fn annotated_op_assign(
+        mut base: ::semigroup::Annotated<&mut Self, &mut NamedStructAnnotation<A>>,
         other: ::semigroup::Annotated<Self, NamedStructAnnotation<A>>,
-    ) -> ::semigroup::Annotated<Self, NamedStructAnnotation<A>> {
+    ) {
         let (base_value, base_annotation) = base.into_parts();
         let (other_value, other_annotation) = other.into_parts();
-        let (foo_value, foo_annotation) = <semigroup::op::Overwrite<
+        <semigroup::op::Overwrite<
             _,
-        > as ::semigroup::ConstructionAnnotated<
+        > as ::semigroup::AnnotatedOp<
             _,
             _,
-        >>::lift_annotated_op(
-                ::semigroup::Annotated::new(base_value.foo, base_annotation.foo),
-                ::semigroup::Annotated::new(other_value.foo, other_annotation.foo),
-            )
-            .into_parts();
-        let (bar_value, bar_annotation) = ::semigroup::AnnotatedSemigroup::annotated_op(
-                ::semigroup::Annotated::new(base_value.bar, base_annotation.bar),
-                ::semigroup::Annotated::new(other_value.bar, other_annotation.bar),
-            )
-            .into_parts();
-        let (baz_value, baz_annotation) = ::semigroup::AnnotatedSemigroup::annotated_op(
-                ::semigroup::Annotated::new(base_value.baz, base_annotation.baz),
-                ::semigroup::Annotated::new(other_value.baz, other_annotation.baz),
-            )
-            .into_parts();
-        ::semigroup::Annotated::new(
-            NamedStruct {
-                foo: foo_value,
-                bar: bar_value,
-                baz: baz_value,
-            },
-            NamedStructAnnotation {
-                foo: foo_annotation,
-                bar: bar_annotation,
-                baz: baz_annotation,
-            },
-        )
+        >>::lift_annotated_op_assign(
+            ::semigroup::Annotated::new(&mut base_value.foo, &mut base_annotation.foo),
+            ::semigroup::Annotated::new(other_value.foo, other_annotation.foo),
+        );
+        ::semigroup::AnnotatedSemigroup::annotated_op_assign(
+            ::semigroup::Annotated::new(&mut base_value.bar, &mut base_annotation.bar),
+            ::semigroup::Annotated::new(other_value.bar, other_annotation.bar),
+        );
+        ::semigroup::AnnotatedSemigroup::annotated_op_assign(
+            ::semigroup::Annotated::new(&mut base_value.baz, &mut base_annotation.baz),
+            ::semigroup::Annotated::new(other_value.baz, other_annotation.baz),
+        );
     }
 }
 #[automatically_derived]

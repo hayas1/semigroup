@@ -1,6 +1,6 @@
 use semigroup_derive::{ConstructionPriv, properties_priv};
 
-use crate::{Annotated, AnnotatedSemigroup};
+use crate::{Annotated, AnnotatedOp};
 
 /// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that returns the second value.
 /// # Properties
@@ -20,9 +20,9 @@ use crate::{Annotated, AnnotatedSemigroup};
 #[construction(annotated)]
 #[properties_priv(annotated)]
 pub struct Overwrite<T>(pub T);
-impl<T, A> AnnotatedSemigroup<A> for Overwrite<T> {
-    fn annotated_op(_base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
-        other
+impl<T, A> AnnotatedOp<T, A> for Overwrite<T> {
+    fn lift_annotated_op_assign(mut base: Annotated<&mut T, &mut A>, other: Annotated<T, A>) {
+        base.replace(other);
     }
 }
 

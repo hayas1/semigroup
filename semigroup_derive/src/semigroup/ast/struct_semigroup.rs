@@ -1,8 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::{ToTokens, format_ident};
-use syn::{
-    DataStruct, DeriveInput, FieldValue, Fields, Ident, ItemImpl, ItemStruct, Stmt, parse_quote,
-};
+use syn::{DataStruct, DeriveInput, FieldValue, Fields, Ident, ItemImpl, ItemStruct, parse_quote};
 
 use crate::{
     annotation::Annotation,
@@ -63,14 +61,14 @@ impl<'a> StructSemigroup<'a> {
             })
             .for_each(|w| where_clause.predicates.push(w));
         let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
-        let fields_op = field_ops.iter().map(|op| op.impl_field_semigroup_op());
+        let fields_op_assign = field_ops
+            .iter()
+            .map(|op| op.impl_field_semigroup_op_assign());
         parse_quote! {
             #[automatically_derived]
             impl #impl_generics #path_semigroup for #ident #ty_generics #where_clause {
-                fn op(base: Self, other: Self) -> Self {
-                    Self {
-                        #(#fields_op),*
-                    }
+                fn op_assign(&mut self, other: Self) {
+                    #(#fields_op_assign)*
                 }
             }
         }
@@ -239,23 +237,10 @@ impl<'a> StructAnnotate<'a> {
         }
     }
 
-    pub fn impl_annotated_semigroup_fields(&self) -> (Vec<Stmt>, Vec<FieldValue>, Vec<FieldValue>) {
-        self.field_ops
-            .iter()
-            .map(|f| {
-                (
-                    f.impl_field_annotated_op(),
-                    f.impl_field_value(),
-                    f.impl_field_annotation(),
-                )
-            })
-            .collect()
-    }
     pub fn impl_annotated_semigroup(&self) -> ItemImpl {
         let Self {
             constant,
             derive,
-            annotation_ident,
             annotation,
             field_ops,
             ..
@@ -268,7 +253,10 @@ impl<'a> StructAnnotate<'a> {
         let DeriveInput {
             ident, generics, ..
         } = derive;
-        let (local, value, field_annotation) = self.impl_annotated_semigroup_fields();
+        let field_assign = self
+            .field_ops
+            .iter()
+            .map(|f| f.impl_field_annotated_op_assign());
         let mut g = generics.clone();
         let where_clause = g.make_where_clause();
         field_ops
@@ -286,18 +274,10 @@ impl<'a> StructAnnotate<'a> {
         parse_quote! {
             #[automatically_derived]
             impl #impl_generics #path_annotated_semigroup<#annotation_type> for #ident #ty_generics #where_clause {
-                fn annotated_op(base: #path_annotated<Self, #annotation_type>, other: #path_annotated<Self, #annotation_type>) -> #path_annotated<Self, #annotation_type> {
+                fn annotated_op_assign(mut base: #path_annotated<&mut Self, &mut #annotation_type>, other: #path_annotated<Self, #annotation_type>) {
                     let (base_value, base_annotation) = base.into_parts();
                     let (other_value, other_annotation) = other.into_parts();
-                    #( #local )*
-                    #path_annotated::new(
-                        #ident {
-                            #( #value ),*
-                        },
-                        #annotation_ident {
-                            #( #field_annotation ),*
-                        },
-                    )
+                    #( #field_assign )*
                 }
             }
         }
