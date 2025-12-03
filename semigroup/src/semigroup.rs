@@ -80,10 +80,10 @@ pub trait AnnotatedSemigroup<A>: Sized + Semigroup {
 macro_rules! impl_tuple_semigroup {
     ($($idx:tt: $t:tt),+) => {
         impl<$($t: $crate::Semigroup),+> $crate::Semigroup for ($($t,)+) {
-            fn op(base: Self, other: Self) -> Self {
-                ($(
-                    $t::op(base.$idx, other.$idx),
-                )+)
+            fn op_assign(base: &mut Self, other: Self) {
+                $(
+                    $t::op_assign(&mut base.$idx, other.$idx)
+                );+
             }
         }
     };
