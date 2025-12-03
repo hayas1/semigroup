@@ -1,6 +1,6 @@
 use std::{ops::Index, slice::SliceIndex};
 
-use semigroup_derive::{ConstructionPriv, properties_priv};
+use semigroup_derive::{OpPriv, properties_priv};
 
 use crate::{Annotated, Semigroup};
 
@@ -23,18 +23,13 @@ use crate::{Annotated, Semigroup};
 /// assert_eq!(lazy.last(), &Coalesce(Some(3)));
 /// assert_eq!(lazy.combine(), Coalesce(Some(1)));
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, ConstructionPriv)]
-#[construction(
-    commutative,
-    commutative_where = "T: crate::Commutative",
-    without_construction
-)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, OpPriv)]
+#[op(commutative, commutative_where = "T: crate::Commutative", hidden_inner)]
 #[properties_priv(commutative, commutative_where = "T: crate::Commutative")]
 pub struct Lazy<T>(Vec<T>);
 impl<T> Semigroup for Lazy<T> {
-    fn op(mut base: Self, other: Self) -> Self {
+    fn op_assign(base: &mut Self, other: Self) {
         base.extend(other);
-        base
     }
 }
 impl<T: Semigroup> Lazy<T> {

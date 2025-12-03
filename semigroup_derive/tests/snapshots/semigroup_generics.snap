@@ -1,0 +1,17 @@
+---
+source: semigroup_derive/src/semigroup.rs
+assertion_line: 100
+expression: formatted
+---
+#[automatically_derived]
+impl<T, U> crate::Semigroup for UnnamedStruct<T, U>
+where
+    T: crate::Semigroup,
+    Vec<U>: crate::Semigroup,
+{
+    fn op_assign(base: &mut Self, other: Self) {
+        use crate::Op;
+        crate::Semigroup::op_assign(&mut base.0, other.0);
+        crate::Semigroup::op_assign(&mut base.1, other.1);
+    }
+}

@@ -1,8 +1,8 @@
-use semigroup_derive::{ConstructionPriv, properties_priv};
+use semigroup_derive::{OpPriv, properties_priv};
 
-use crate::{Annotated, AnnotatedSemigroup};
+use crate::{Annotated, AnnotatedOp};
 
-/// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that returns `true` if both values are `true`.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns `true` if both values are `true`.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -15,14 +15,19 @@ use crate::{Annotated, AnnotatedSemigroup};
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), false);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionPriv)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[construction(annotated, monoid, commutative, identity = Self(true))]
+#[op(annotated, monoid, commutative, identity = Self(true))]
 #[properties_priv(annotated, monoid, commutative)]
 pub struct All(pub bool);
-impl<A> AnnotatedSemigroup<A> for All {
-    fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
-        std::cmp::min_by(base, other, |a, b| a.value().cmp(b.value()))
+impl<A> AnnotatedOp<bool, A> for All {
+    fn lift_annotated_op_assign(
+        mut base: Annotated<&mut bool, &mut A>,
+        mut other: Annotated<bool, A>,
+    ) {
+        if base.value() > &other.value_mut() {
+            base.replace(other);
+        }
     }
 }
 

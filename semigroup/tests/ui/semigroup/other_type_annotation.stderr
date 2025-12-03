@@ -18,5 +18,5 @@ help: the return type of this call is `Annotated<Coalesce<{integer}>, String>` d
 note: method defined here
  --> src/semigroup.rs
   |
-  |     fn semigroup(self, other: Self) -> Self
+  |     fn semigroup(self, other: Self) -> Self {
   |        ^^^^^^^^^

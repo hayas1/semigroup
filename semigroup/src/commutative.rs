@@ -35,14 +35,14 @@ use crate::Semigroup;
 /// ## Construction
 /// [`Commutative`] can be constructed like [`Semigroup`], use `commutative` attribute.
 /// ```
-/// use semigroup::{Construction, Semigroup};
+/// use semigroup::{Op, Semigroup};
 ///
-/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Construction)]
-/// #[construction(commutative)]
+/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Op)]
+/// #[op(commutative)]
 /// pub struct Sum(u64);
-/// impl Semigroup for Sum {
-///     fn op(base: Self, other: Self) -> Self {
-///         Self(base.0 + other.0)
+/// impl Op<u64> for Sum {
+///     fn lift_op_assign(base: &mut u64, other: u64) {
+///         *base += other;
 ///     }
 /// }
 ///
@@ -63,7 +63,7 @@ pub trait Commutative: Semigroup {}
 pub mod test_commutative {
     use std::fmt::Debug;
 
-    use crate::Reverse;
+    use crate::Reversible;
 
     use super::*;
 
@@ -88,13 +88,13 @@ pub mod test_commutative {
     /// # Panics
     /// - If the given function does not satisfy the *commutative* property.
     /// ```should_panic
-    /// use semigroup::{assert_commutative, Construction, Semigroup};
-    /// #[derive(Debug, Clone, PartialEq, Construction)]
-    /// #[construction(commutative)]
+    /// use semigroup::{assert_commutative, Op, Semigroup};
+    /// #[derive(Debug, Clone, PartialEq, Op)]
+    /// #[op(commutative)]
     /// pub struct Sub(i32);
-    /// impl Semigroup for Sub {
-    ///     fn op(base: Self, other: Self) -> Self {
-    ///         Self(base.0 - other.0)
+    /// impl Op<i32> for Sub {
+    ///     fn lift_op_assign(base: &mut i32, other: i32) {
+    ///         *base -= other;
     ///     }
     /// }
     /// let a = Sub(1);
@@ -158,18 +158,17 @@ pub mod test_commutative {
         b: T,
         c: T,
     ) {
-        let (ra, rb, rc) = (Reverse(a.clone()), Reverse(b.clone()), Reverse(c.clone()));
         assert_eq!(
             Semigroup::op(a.clone(), b.clone()),
-            Semigroup::op(ra.clone(), rb.clone()).0
+            Reversible::rev_op(a.clone(), b.clone())
         );
         assert_eq!(
             Semigroup::op(b.clone(), c.clone()),
-            Semigroup::op(rb.clone(), rc.clone()).0
+            Reversible::rev_op(b.clone(), c.clone())
         );
         assert_eq!(
             Semigroup::op(c.clone(), a.clone()),
-            Semigroup::op(rc.clone(), ra.clone()).0
+            Reversible::rev_op(c.clone(), a.clone())
         );
     }
 }

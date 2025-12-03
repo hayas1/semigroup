@@ -2,7 +2,7 @@ error[E0432]: unresolved import `semigroup`
  --> tests/ui/semigroup/derive_monoid_without_monoid.rs:3:35
   |
 3 | #[derive(Debug, Clone, PartialEq, Semigroup)]
-  |                                   ^^^^^^^^^ no `ConstructionMonoid` in the root
+  |                                   ^^^^^^^^^ no `MonoidOp` in the root
   |
   = note: this error originates in the derive macro `Semigroup` (in Nightly builds, run with -Z macro-backtrace for more info)
 

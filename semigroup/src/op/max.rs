@@ -1,8 +1,8 @@
-use semigroup_derive::{ConstructionPriv, properties_priv};
+use semigroup_derive::{OpPriv, properties_priv};
 
-use crate::{Annotated, AnnotatedSemigroup};
+use crate::{Annotated, AnnotatedOp};
 
-/// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that returns the maximum value.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns the maximum value.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -15,14 +15,16 @@ use crate::{Annotated, AnnotatedSemigroup};
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), 2);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionPriv)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[construction(annotated, monoid, commutative, identity = Self(T::min_value()), monoid_where = "T: num::Bounded")]
+#[op(annotated, monoid, commutative, identity = Self(T::min_value()), monoid_where = "T: num::Bounded")]
 #[properties_priv(annotated, monoid, commutative, monoid_where = "T: num::Bounded")]
 pub struct Max<T: Ord>(pub T);
-impl<A, T: Ord> AnnotatedSemigroup<A> for Max<T> {
-    fn annotated_op(base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
-        std::cmp::max_by(base, other, |a, b| a.value().cmp(b.value()))
+impl<T: Ord, A> AnnotatedOp<T, A> for Max<T> {
+    fn lift_annotated_op_assign(mut base: Annotated<&mut T, &mut A>, mut other: Annotated<T, A>) {
+        if base.value() < &other.value_mut() {
+            base.replace(other);
+        }
     }
 }
 

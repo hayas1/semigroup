@@ -1,21 +1,19 @@
 ---
 source: semigroup_derive/src/semigroup.rs
-assertion_line: 89
+assertion_line: 100
 expression: formatted
 ---
 #[automatically_derived]
 impl ::semigroup::Semigroup for MonoidStruct {
-    fn op(base: Self, other: Self) -> Self {
-        use ::semigroup::Construction;
-        Self {
-            sum: semigroup::op::Sum::lift_op(base.sum, other.sum),
-        }
+    fn op_assign(base: &mut Self, other: Self) {
+        use ::semigroup::Op;
+        semigroup::op::Sum::lift_op_assign(&mut base.sum, other.sum);
     }
 }
 #[automatically_derived]
 impl ::semigroup::Monoid for MonoidStruct {
     fn identity() -> Self {
-        use ::semigroup::ConstructionMonoid;
+        use ::semigroup::MonoidOp;
         Self {
             sum: semigroup::op::Sum::lift_identity(),
         }
