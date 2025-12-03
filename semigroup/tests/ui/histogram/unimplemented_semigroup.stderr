@@ -10,9 +10,9 @@ error[E0277]: the trait bound `u32: Semigroup` is not satisfied
             Coalesce<T>
             Gcd<T>
             HdrHistogram<C>
+            IntersectionMap<K, V>
             Lazy<T>
             Lcm<T>
-            Max<T>
           and $N others
   = help: see issue #48214
   = note: this error originates in the derive macro `Semigroup` (in Nightly builds, run with -Z macro-backtrace for more info)
