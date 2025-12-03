@@ -44,12 +44,7 @@ impl<'a> FieldSemigroupOp<'a> {
 
     pub fn impl_field_semigroup_op_assign(&self) -> Stmt {
         let Self {
-            constant:
-                Constant {
-                    path_semigroup,
-                    path_semigroup_op,
-                    ..
-                },
+            constant: Constant { path_semigroup, .. },
             container_attr,
             member,
             field_attr,
@@ -58,7 +53,7 @@ impl<'a> FieldSemigroupOp<'a> {
         let with = field_attr.with(container_attr);
         with.map(|path| {
             parse_quote! {
-                <#path<_> as #path_semigroup_op<_>>::lift_op_assign(&mut base.#member, other.#member);
+                #path::lift_op_assign(&mut base.#member, other.#member);
             }
         })
         .unwrap_or_else(|| {
@@ -69,12 +64,7 @@ impl<'a> FieldSemigroupOp<'a> {
     }
     pub fn impl_field_monoid_identity(&self) -> FieldValue {
         let Self {
-            constant:
-                Constant {
-                    path_monoid,
-                    path_monoid_op,
-                    ..
-                },
+            constant: Constant { path_monoid, .. },
             container_attr,
             member,
             field_attr,
@@ -83,7 +73,7 @@ impl<'a> FieldSemigroupOp<'a> {
         let with = field_attr.with(container_attr);
         with.map(|path| {
             parse_quote! {
-                #member: <#path<_> as #path_monoid_op<_>>::lift_identity()
+                #member: #path::lift_identity()
             }
         })
         .unwrap_or_else(|| {
@@ -153,14 +143,13 @@ impl<'a> FieldAnnotatedOp<'a> {
         let Constant {
             path_annotated_semigroup,
             path_annotated,
-            path_annotated_op,
             ..
         } = constant;
         let with = field_attr.with(container_attr);
 
         with.map(|path| {
             parse_quote! {
-                <#path::<_> as #path_annotated_op<_, _>>::lift_annotated_op_assign(
+                #path::lift_annotated_op_assign(
                     #path_annotated::new(&mut base_value.#member, &mut base_annotation.#member),
                     #path_annotated::new(other_value.#member, other_annotation.#member),
                 );
