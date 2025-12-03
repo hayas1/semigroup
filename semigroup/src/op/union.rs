@@ -3,11 +3,11 @@ use std::{
     hash::Hash,
 };
 
-use semigroup_derive::{ConstructionPriv, properties_priv};
+use semigroup_derive::{OpPriv, properties_priv};
 
-use crate::Semigroup;
+use crate::Op;
 
-/// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that union two sets.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that union two sets.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -20,20 +20,20 @@ use crate::Semigroup;
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), vec![1, 2, 3, 4].into_iter().collect());
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Default, ConstructionPriv)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, OpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[construction(monoid, commutative, identity = Self(HashSet::new()))]
-#[properties_priv(monoid, commutative)]
+#[op(monoid, identity = Self(HashSet::new()))]
+#[properties_priv(monoid)]
 pub struct Union<T: Eq + Hash>(pub HashSet<T>);
-impl<T: Eq + Hash> Semigroup for Union<T> {
-    fn op(base: Self, other: Self) -> Self {
-        let (Self(mut b), Self(o)) = (base, other);
-        b.extend(o);
-        Self(b)
+impl<T: Eq + Hash> Op<HashSet<T>> for Union<T> {
+    fn lift_op_assign(base: &mut HashSet<T>, other: HashSet<T>) {
+        other.into_iter().for_each(|v| {
+            base.insert(v);
+        });
     }
 }
 
-/// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that union two maps.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that union two maps.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -46,16 +46,16 @@ impl<T: Eq + Hash> Semigroup for Union<T> {
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), vec![("one", 1), ("two",2), ("three", 3), ("four", 4)].into_iter().collect());
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Default, ConstructionPriv)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, OpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[construction(monoid, commutative, identity = Self(HashMap::new()))]
-#[properties_priv(monoid, commutative)]
+#[op(monoid, identity = Self(HashMap::new()))]
+#[properties_priv(monoid)]
 pub struct UnionMap<K: Eq + Hash, V>(pub HashMap<K, V>);
-impl<K: Eq + Hash, V> Semigroup for UnionMap<K, V> {
-    fn op(base: Self, other: Self) -> Self {
-        let (Self(mut b), Self(o)) = (base, other);
-        b.extend(o);
-        Self(b)
+impl<K: Eq + Hash, V> Op<HashMap<K, V>> for UnionMap<K, V> {
+    fn lift_op_assign(base: &mut HashMap<K, V>, other: HashMap<K, V>) {
+        other.into_iter().for_each(|(k, v)| {
+            base.entry(k).or_insert(v);
+        });
     }
 }
 
@@ -107,24 +107,29 @@ mod tests {
 
     #[test]
     fn test_union() {
-        let (a, b) = (
+        let (a, b, aa) = (
             Union(vec![1].into_iter().collect()),
             Union(vec![2].into_iter().collect()),
+            Union(vec![1].into_iter().collect()),
         );
         assert_eq!(
             a.clone().semigroup(b.clone()).into_inner(),
             vec![1, 2].into_iter().collect()
         );
         assert_eq!(
-            b.semigroup(a).into_inner(),
+            a.clone()
+                .semigroup(b.clone())
+                .semigroup(aa.clone())
+                .into_inner(),
             vec![1, 2].into_iter().collect()
         );
     }
     #[test]
     fn test_union_map() {
-        let (a, b) = (
+        let (a, b, aa) = (
             UnionMap(vec![("one", 1), ("two", 2)].into_iter().collect()),
             UnionMap(vec![("three", 3), ("four", 4)].into_iter().collect()),
+            UnionMap(vec![("one", 11), ("two", 22)].into_iter().collect()),
         );
         assert_eq!(
             a.clone().semigroup(b.clone()).into_inner(),
@@ -133,7 +138,10 @@ mod tests {
                 .collect()
         );
         assert_eq!(
-            b.semigroup(a).into_inner(),
+            a.clone()
+                .semigroup(b.clone())
+                .semigroup(aa.clone())
+                .into_inner(),
             vec![("one", 1), ("two", 2), ("three", 3), ("four", 4)]
                 .into_iter()
                 .collect()
