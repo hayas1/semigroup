@@ -8,11 +8,11 @@ error[E0277]: the trait bound `u32: Semigroup` is not satisfied
             All
             Annotated<T, A>
             Coalesce<T>
+            IntersectionMap<K, V>
             Lazy<T>
             Max<T>
             Min<T>
             NamedStruct<'a>
-            Overwrite<T>
           and $N others
   = help: see issue #48214
   = note: this error originates in the derive macro `Semigroup` (in Nightly builds, run with -Z macro-backtrace for more info)

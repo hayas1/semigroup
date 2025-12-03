@@ -7,14 +7,16 @@ mod all;
 mod any;
 #[cfg(feature = "monoid")]
 mod gcd;
+mod intersection;
 #[cfg(feature = "monoid")]
 mod lcm;
 mod max;
 mod min;
 mod prod;
 mod sum;
+mod union;
 mod xor;
-pub use {all::*, any::*, max::*, min::*, prod::*, sum::*, xor::*};
+pub use {all::*, any::*, intersection::*, max::*, min::*, prod::*, sum::*, union::*, xor::*};
 #[cfg(feature = "monoid")]
 pub use {gcd::*, lcm::*};
 

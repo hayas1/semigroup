@@ -26,7 +26,11 @@ use crate::{Annotate, Annotated, AnnotatedOp};
     unit_annotation = "vec![(); 0]",
     manual_annotate_impl
 )]
-#[properties_priv(annotated, monoid, annotation_where = "A::Item: Clone")]
+#[properties_priv(
+    annotated,
+    monoid,
+    annotation_where = "A: IntoIterator + FromIterator<A::Item>, A::Item: Clone"
+)]
 pub struct Concat<T: Default + Extend<T::Item> + IntoIterator>(pub T);
 impl<T: Default + Extend<T::Item> + IntoIterator, A: Default + Extend<A::Item> + IntoIterator>
     AnnotatedOp<T, A> for Concat<T>
