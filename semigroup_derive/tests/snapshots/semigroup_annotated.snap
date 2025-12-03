@@ -10,9 +10,8 @@ where
     semigroup::op::Overwrite<bool>: ::semigroup::Semigroup,
 {
     fn op_assign(base: &mut Self, other: Self) {
-        <semigroup::op::Overwrite<
-            _,
-        > as ::semigroup::Op<_>>::lift_op_assign(&mut base.foo, other.foo);
+        use ::semigroup::Op;
+        semigroup::op::Overwrite::lift_op_assign(&mut base.foo, other.foo);
         ::semigroup::Semigroup::op_assign(&mut base.bar, other.bar);
         ::semigroup::Semigroup::op_assign(&mut base.baz, other.baz);
     }
@@ -35,14 +34,10 @@ where
         mut base: ::semigroup::Annotated<&mut Self, &mut NamedStructAnnotation<A>>,
         other: ::semigroup::Annotated<Self, NamedStructAnnotation<A>>,
     ) {
+        use ::semigroup::AnnotatedOp;
         let (base_value, base_annotation) = base.into_parts();
         let (other_value, other_annotation) = other.into_parts();
-        <semigroup::op::Overwrite<
-            _,
-        > as ::semigroup::AnnotatedOp<
-            _,
-            _,
-        >>::lift_annotated_op_assign(
+        semigroup::op::Overwrite::lift_annotated_op_assign(
             ::semigroup::Annotated::new(&mut base_value.foo, &mut base_annotation.foo),
             ::semigroup::Annotated::new(other_value.foo, other_annotation.foo),
         );

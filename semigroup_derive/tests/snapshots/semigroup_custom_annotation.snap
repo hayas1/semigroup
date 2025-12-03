@@ -6,15 +6,10 @@ expression: formatted
 #[automatically_derived]
 impl ::semigroup::Semigroup for NamedStruct {
     fn op_assign(base: &mut Self, other: Self) {
-        <semigroup::op::Overwrite<
-            _,
-        > as ::semigroup::Op<_>>::lift_op_assign(&mut base.foo, other.foo);
-        <semigroup::op::Overwrite<
-            _,
-        > as ::semigroup::Op<_>>::lift_op_assign(&mut base.bar, other.bar);
-        <semigroup::op::Overwrite<
-            _,
-        > as ::semigroup::Op<_>>::lift_op_assign(&mut base.baz, other.baz);
+        use ::semigroup::Op;
+        semigroup::op::Overwrite::lift_op_assign(&mut base.foo, other.foo);
+        semigroup::op::Overwrite::lift_op_assign(&mut base.bar, other.bar);
+        semigroup::op::Overwrite::lift_op_assign(&mut base.baz, other.baz);
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
@@ -30,32 +25,18 @@ for NamedStruct {
         mut base: ::semigroup::Annotated<&mut Self, &mut NamedStructAnnotation<X>>,
         other: ::semigroup::Annotated<Self, NamedStructAnnotation<X>>,
     ) {
+        use ::semigroup::AnnotatedOp;
         let (base_value, base_annotation) = base.into_parts();
         let (other_value, other_annotation) = other.into_parts();
-        <semigroup::op::Overwrite<
-            _,
-        > as ::semigroup::AnnotatedOp<
-            _,
-            _,
-        >>::lift_annotated_op_assign(
+        semigroup::op::Overwrite::lift_annotated_op_assign(
             ::semigroup::Annotated::new(&mut base_value.foo, &mut base_annotation.foo),
             ::semigroup::Annotated::new(other_value.foo, other_annotation.foo),
         );
-        <semigroup::op::Overwrite<
-            _,
-        > as ::semigroup::AnnotatedOp<
-            _,
-            _,
-        >>::lift_annotated_op_assign(
+        semigroup::op::Overwrite::lift_annotated_op_assign(
             ::semigroup::Annotated::new(&mut base_value.bar, &mut base_annotation.bar),
             ::semigroup::Annotated::new(other_value.bar, other_annotation.bar),
         );
-        <semigroup::op::Overwrite<
-            _,
-        > as ::semigroup::AnnotatedOp<
-            _,
-            _,
-        >>::lift_annotated_op_assign(
+        semigroup::op::Overwrite::lift_annotated_op_assign(
             ::semigroup::Annotated::new(&mut base_value.baz, &mut base_annotation.baz),
             ::semigroup::Annotated::new(other_value.baz, other_annotation.baz),
         );
