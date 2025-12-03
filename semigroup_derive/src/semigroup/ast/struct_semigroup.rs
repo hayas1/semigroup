@@ -47,7 +47,11 @@ impl<'a> StructSemigroup<'a> {
             field_ops,
             ..
         } = self;
-        let Constant { path_semigroup, .. } = constant;
+        let Constant {
+            path_semigroup,
+            path_semigroup_op,
+            ..
+        } = constant;
         let DeriveInput {
             ident, generics, ..
         } = derive;
@@ -68,6 +72,7 @@ impl<'a> StructSemigroup<'a> {
             #[automatically_derived]
             impl #impl_generics #path_semigroup for #ident #ty_generics #where_clause {
                 fn op_assign(base: &mut Self, other: Self) {
+                    use #path_semigroup_op;
                     #(#fields_op_assign)*
                 }
             }
@@ -83,6 +88,7 @@ impl<'a> StructSemigroup<'a> {
         } = self;
         let Constant {
             path_monoid,
+            path_monoid_op,
             attr_feature_monoid,
             ..
         } = constant;
@@ -121,6 +127,7 @@ impl<'a> StructSemigroup<'a> {
                         #attr_feature_monoid
                         impl #impl_generics #path_monoid for #ident #ty_generics #where_clause {
                             fn identity() -> Self {
+                                use #path_monoid_op;
                                 Self {
                                     #(#fields_op),*
                                 }
@@ -248,6 +255,7 @@ impl<'a> StructAnnotate<'a> {
         let Constant {
             path_annotated_semigroup,
             path_annotated,
+            path_annotated_op,
             ..
         } = constant;
         let DeriveInput {
@@ -275,6 +283,7 @@ impl<'a> StructAnnotate<'a> {
             #[automatically_derived]
             impl #impl_generics #path_annotated_semigroup<#annotation_type> for #ident #ty_generics #where_clause {
                 fn annotated_op_assign(mut base: #path_annotated<&mut Self, &mut #annotation_type>, other: #path_annotated<Self, #annotation_type>) {
+                    use #path_annotated_op;
                     let (base_value, base_annotation) = base.into_parts();
                     let (other_value, other_annotation) = other.into_parts();
                     #( #field_assign )*

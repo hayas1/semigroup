@@ -6,16 +6,16 @@ expression: formatted
 #[automatically_derived]
 impl ::semigroup::Semigroup for MonoidStruct {
     fn op_assign(base: &mut Self, other: Self) {
-        <semigroup::op::Sum<
-            _,
-        > as ::semigroup::Op<_>>::lift_op_assign(&mut base.sum, other.sum);
+        use ::semigroup::Op;
+        semigroup::op::Sum::lift_op_assign(&mut base.sum, other.sum);
     }
 }
 #[automatically_derived]
 impl ::semigroup::Monoid for MonoidStruct {
     fn identity() -> Self {
+        use ::semigroup::MonoidOp;
         Self {
-            sum: <semigroup::op::Sum<_> as ::semigroup::MonoidOp<_>>::lift_identity(),
+            sum: semigroup::op::Sum::lift_identity(),
         }
     }
 }
