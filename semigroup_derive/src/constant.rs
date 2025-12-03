@@ -1,6 +1,6 @@
 use syn::{Attribute, Path, TypeParam, parse_quote};
 
-pub const DERIVE_CONSTRUCTION: &str = "Construction";
+pub const DERIVE_OP: &str = "Op";
 pub const DERIVE_SEMIGROUP: &str = "Semigroup";
 
 #[derive(Debug, Clone)]
@@ -12,8 +12,9 @@ pub struct Constant {
     pub path_monoid: Path,
     pub path_commutative: Path,
     pub path_construction_trait: Path,
-    pub path_construction_annotated: Path,
-    pub path_construction_monoid: Path,
+    pub path_semigroup_op: Path,
+    pub path_annotated_op: Path,
+    pub path_monoid_op: Path,
     pub default_type_param: TypeParam,
     pub attr_feature_monoid: Option<Attribute>,
 }
@@ -31,8 +32,9 @@ impl ConstantExt for External {
             path_monoid: parse_quote! {::semigroup::Monoid},
             path_commutative: parse_quote! {::semigroup::Commutative},
             path_construction_trait: parse_quote! {::semigroup::Construction},
-            path_construction_annotated: parse_quote! {::semigroup::ConstructionAnnotated},
-            path_construction_monoid: parse_quote! {::semigroup::ConstructionMonoid},
+            path_semigroup_op: parse_quote! {::semigroup::Op},
+            path_annotated_op: parse_quote! {::semigroup::AnnotatedOp},
+            path_monoid_op: parse_quote! {::semigroup::MonoidOp},
             default_type_param: parse_quote! { A },
             attr_feature_monoid: None,
         }
@@ -49,8 +51,9 @@ impl ConstantExt for Internal {
             path_monoid: parse_quote! {crate::Monoid},
             path_commutative: parse_quote! {crate::Commutative},
             path_construction_trait: parse_quote! {crate::Construction},
-            path_construction_annotated: parse_quote! {crate::ConstructionAnnotated},
-            path_construction_monoid: parse_quote! {crate::ConstructionMonoid},
+            path_semigroup_op: parse_quote! {crate::Op},
+            path_annotated_op: parse_quote! {crate::AnnotatedOp},
+            path_monoid_op: parse_quote! {crate::MonoidOp},
             default_type_param: parse_quote! { A },
             attr_feature_monoid: Some(parse_quote! {#[cfg(feature = "monoid")]}),
         }

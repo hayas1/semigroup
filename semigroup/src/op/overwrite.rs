@@ -1,8 +1,8 @@
-use semigroup_derive::{ConstructionPriv, properties_priv};
+use semigroup_derive::{OpPriv, properties_priv};
 
-use crate::{Annotated, AnnotatedSemigroup};
+use crate::{Annotated, AnnotatedOp};
 
-/// A [`Semigroup`](crate::Semigroup) [construction](crate::Construction) that returns the second value.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns the second value.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -15,14 +15,14 @@ use crate::{Annotated, AnnotatedSemigroup};
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), 2);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, ConstructionPriv)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[construction(annotated)]
+#[op(annotated)]
 #[properties_priv(annotated)]
 pub struct Overwrite<T>(pub T);
-impl<T, A> AnnotatedSemigroup<A> for Overwrite<T> {
-    fn annotated_op(_base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
-        other
+impl<T, A> AnnotatedOp<T, A> for Overwrite<T> {
+    fn lift_annotated_op_assign(mut base: Annotated<&mut T, &mut A>, other: Annotated<T, A>) {
+        base.replace(other);
     }
 }
 

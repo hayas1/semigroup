@@ -1,5 +1,4 @@
-use quote::format_ident;
-use syn::{DeriveInput, FieldValue, Fields, Ident, Member, Stmt, parse_quote};
+use syn::{DeriveInput, Field, FieldValue, Fields, Member, Stmt, Type, parse_quote};
 
 use crate::{
     constant::Constant,
@@ -11,6 +10,7 @@ pub struct FieldSemigroupOp<'a> {
     constant: &'a Constant,
     container_attr: &'a ContainerAttr,
     member: Member,
+    ty: &'a Type,
     field_attr: FieldAttr,
 }
 impl<'a> FieldSemigroupOp<'a> {
@@ -19,14 +19,15 @@ impl<'a> FieldSemigroupOp<'a> {
         _derive: &'a DeriveInput,
         container_attr: &'a ContainerAttr,
         member: Member,
-        field_attr: FieldAttr,
-    ) -> Self {
-        Self {
+        field: &'a Field,
+    ) -> syn::Result<Self> {
+        Ok(Self {
             constant,
             container_attr,
             member,
-            field_attr,
-        }
+            ty: &field.ty,
+            field_attr: FieldAttr::new(field)?,
+        })
     }
     pub fn new_fields(
         constant: &'a Constant,
@@ -37,26 +38,13 @@ impl<'a> FieldSemigroupOp<'a> {
         fields
             .iter()
             .zip(fields.members())
-            .map(|(field, member)| {
-                Ok(Self::new(
-                    constant,
-                    derive,
-                    container_attr,
-                    member,
-                    FieldAttr::new(field)?,
-                ))
-            })
+            .map(|(field, member)| Self::new(constant, derive, container_attr, member, field))
             .collect()
     }
 
-    pub fn impl_field_semigroup_op(&self) -> FieldValue {
+    pub fn impl_field_semigroup_op_assign(&self) -> Stmt {
         let Self {
-            constant:
-                Constant {
-                    path_semigroup,
-                    path_construction_trait,
-                    ..
-                },
+            constant: Constant { path_semigroup, .. },
             container_attr,
             member,
             field_attr,
@@ -65,23 +53,18 @@ impl<'a> FieldSemigroupOp<'a> {
         let with = field_attr.with(container_attr);
         with.map(|path| {
             parse_quote! {
-                #member: <#path<_> as #path_construction_trait<_>>::lift_op(base.#member, other.#member)
+                #path::lift_op_assign(&mut base.#member, other.#member);
             }
         })
         .unwrap_or_else(|| {
             parse_quote! {
-                #member: #path_semigroup::op(base.#member, other.#member)
+               #path_semigroup::op_assign(&mut base.#member, other.#member);
             }
         })
     }
     pub fn impl_field_monoid_identity(&self) -> FieldValue {
         let Self {
-            constant:
-                Constant {
-                    path_monoid,
-                    path_construction_monoid,
-                    ..
-                },
+            constant: Constant { path_monoid, .. },
             container_attr,
             member,
             field_attr,
@@ -90,7 +73,7 @@ impl<'a> FieldSemigroupOp<'a> {
         let with = field_attr.with(container_attr);
         with.map(|path| {
             parse_quote! {
-                #member: <#path<_> as #path_construction_monoid<_>>::lift_identity()
+                #member: #path::lift_identity()
             }
         })
         .unwrap_or_else(|| {
@@ -99,6 +82,17 @@ impl<'a> FieldSemigroupOp<'a> {
             }
         })
     }
+
+    pub fn where_ty(&self) -> Option<&Type> {
+        let Self {
+            container_attr,
+            ty,
+            field_attr,
+            ..
+        } = self;
+        let with = field_attr.with(container_attr);
+        with.is_none().then_some(*ty)
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -106,6 +100,7 @@ pub struct FieldAnnotatedOp<'a> {
     constant: &'a Constant,
     container_attr: &'a ContainerAttr,
     member: Member,
+    ty: &'a Type,
     field_attr: FieldAttr,
 }
 impl<'a> FieldAnnotatedOp<'a> {
@@ -114,14 +109,15 @@ impl<'a> FieldAnnotatedOp<'a> {
         _derive: &'a DeriveInput,
         container_attr: &'a ContainerAttr,
         member: Member,
-        field_attr: FieldAttr,
-    ) -> Self {
-        Self {
+        field: &'a Field,
+    ) -> syn::Result<Self> {
+        Ok(Self {
             constant,
             container_attr,
             member,
-            field_attr,
-        }
+            ty: &field.ty,
+            field_attr: FieldAttr::new(field)?,
+        })
     }
     pub fn new_fields(
         constant: &'a Constant,
@@ -132,76 +128,52 @@ impl<'a> FieldAnnotatedOp<'a> {
         fields
             .iter()
             .zip(fields.members())
-            .map(|(field, member)| {
-                Ok(Self::new(
-                    constant,
-                    derive,
-                    container_attr,
-                    member,
-                    FieldAttr::new(field)?,
-                ))
-            })
+            .map(|(field, member)| Self::new(constant, derive, container_attr, member, field))
             .collect()
     }
 
-    pub fn ident_variable(&self) -> Ident {
-        match &self.member {
-            Member::Named(ident) => ident.clone(),
-            Member::Unnamed(index) => format_ident!("_{}", index.index),
-        }
-    }
-    pub fn ident_parts(&self) -> (Ident, Ident) {
-        let ident = self.ident_variable();
-        (
-            format_ident!("{}_value", ident),
-            format_ident!("{}_annotation", ident),
-        )
-    }
-    pub fn impl_field_annotated_op(&self) -> Stmt {
+    pub fn impl_field_annotated_op_assign(&self) -> Stmt {
         let Self {
             constant,
             container_attr,
             member,
             field_attr,
+            ..
         } = self;
         let Constant {
             path_annotated_semigroup,
             path_annotated,
-            path_construction_annotated,
             ..
         } = constant;
-        let (ident_value, ident_annotation) = self.ident_parts();
         let with = field_attr.with(container_attr);
 
         with.map(|path| {
             parse_quote! {
-                let (#ident_value, #ident_annotation) = <#path::<_> as #path_construction_annotated<_, _>>::lift_annotated_op(
-                    #path_annotated::new(base_value.#member, base_annotation.#member),
+                #path::lift_annotated_op_assign(
+                    #path_annotated::new(&mut base_value.#member, &mut base_annotation.#member),
                     #path_annotated::new(other_value.#member, other_annotation.#member),
-                ).into_parts();
+                );
+
             }
         })
         .unwrap_or_else(|| {
             parse_quote! {
-                let (#ident_value, #ident_annotation) = #path_annotated_semigroup::annotated_op(
-                    #path_annotated::new(base_value.#member, base_annotation.#member),
+                #path_annotated_semigroup::annotated_op_assign(
+                    #path_annotated::new(&mut base_value.#member, &mut base_annotation.#member),
                     #path_annotated::new(other_value.#member, other_annotation.#member),
-                ).into_parts();
+                );
             }
         })
     }
-    pub fn impl_field_value(&self) -> FieldValue {
-        let Self { member, .. } = self;
-        let (ident_value, _ident_annotation) = self.ident_parts();
-        parse_quote! {
-            #member: #ident_value
-        }
-    }
-    pub fn impl_field_annotation(&self) -> FieldValue {
-        let Self { member, .. } = self;
-        let (_ident_value, ident_annotation) = self.ident_parts();
-        parse_quote! {
-            #member: #ident_annotation
-        }
+
+    pub fn where_ty(&self) -> Option<&Type> {
+        let Self {
+            container_attr,
+            ty,
+            field_attr,
+            ..
+        } = self;
+        let with = field_attr.with(container_attr);
+        with.is_none().then_some(*ty)
     }
 }

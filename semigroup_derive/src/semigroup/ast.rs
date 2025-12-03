@@ -15,23 +15,14 @@ pub mod field_semigroup;
 pub mod struct_semigroup;
 
 #[derive(Debug, Clone)]
-pub enum Semigroup<'a> {
-    Struct {
-        struct_semigroup: StructSemigroup<'a>,
-        struct_annotate: Option<StructAnnotate<'a>>,
-    },
+pub struct Semigroup<'a> {
+    semigroup: StructSemigroup<'a>,
+    annotate: Option<StructAnnotate<'a>>,
 }
 impl ToTokens for Semigroup<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        match self {
-            Self::Struct {
-                struct_semigroup,
-                struct_annotate,
-            } => {
-                struct_semigroup.to_tokens(tokens);
-                struct_annotate.iter().for_each(|s| s.to_tokens(tokens));
-            }
-        }
+        self.semigroup.to_tokens(tokens);
+        self.annotate.to_tokens(tokens);
     }
 }
 impl<'a> Semigroup<'a> {
@@ -46,14 +37,14 @@ impl<'a> Semigroup<'a> {
                 SemigroupError::UnsupportedEnum,
             )),
             Data::Struct(data_struct) => {
-                let struct_semigroup = StructSemigroup::new(constant, derive, attr, data_struct)?;
-                let struct_annotate = attr
+                let semigroup = StructSemigroup::new(constant, derive, attr, data_struct)?;
+                let annotate = attr
                     .is_annotated()
                     .then(|| StructAnnotate::new(constant, derive, attr, data_struct))
                     .transpose()?;
-                Ok(Self::Struct {
-                    struct_semigroup,
-                    struct_annotate,
+                Ok(Self {
+                    semigroup,
+                    annotate,
                 })
             }
             Data::Union(DataUnion { union_token, .. }) => Err(syn::Error::new_spanned(
