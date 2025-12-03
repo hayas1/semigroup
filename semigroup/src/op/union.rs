@@ -15,8 +15,8 @@ use crate::Op;
 /// ```
 /// use semigroup::{op::Union, Construction, Semigroup};
 ///
-/// let a = Union(vec![1, 2].into_iter().collect());
-/// let b = Union(vec![3, 4].into_iter().collect());
+/// let a = Union(vec![1, 2, 3].into_iter().collect());
+/// let b = Union(vec![2, 3, 4].into_iter().collect());
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), vec![1, 2, 3, 4].into_iter().collect());
 /// ```
@@ -41,10 +41,10 @@ impl<T: Eq + Hash> Op<HashSet<T>> for Union<T> {
 /// ```
 /// use semigroup::{op::UnionMap, Construction, Semigroup};
 ///
-/// let a = UnionMap(vec![("one", 1), ("two",2)].into_iter().collect());
-/// let b = UnionMap(vec![("three", 3), ("four", 4)].into_iter().collect());
+/// let a = UnionMap(vec![("one", 1), ("two",2), ("three", 3)].into_iter().collect());
+/// let b = UnionMap(vec![("two", 22), ("three", 33), ("four", 44)].into_iter().collect());
 ///
-/// assert_eq!(a.semigroup(b).into_inner(), vec![("one", 1), ("two",2), ("three", 3), ("four", 4)].into_iter().collect());
+/// assert_eq!(a.semigroup(b).into_inner(), vec![("one", 1), ("two",2), ("three", 3), ("four", 44)].into_iter().collect());
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Default, OpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
