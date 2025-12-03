@@ -1,17 +1,7 @@
-error[E0277]: the trait bound `Overwrite<_>: MonoidOp<_>` is not satisfied
+error[E0599]: no function or associated item named `lift_identity` found for struct `Overwrite<_>` in the current scope
  --> tests/ui/histogram/derive_monoid_without_monoid.rs:3:35
   |
 3 | #[derive(Debug, Clone, PartialEq, Semigroup)]
-  |                                   ^^^^^^^^^ the trait `MonoidOp<_>` is not implemented for `Overwrite<_>`
+  |                                   ^^^^^^^^^ function or associated item not found in `Overwrite<_>`
   |
-  = help: the following other types implement trait `MonoidOp<T>`:
-            `Coalesce<T>` implements `MonoidOp<Option<T>>`
-            `Gcd<T>` implements `MonoidOp<T>`
-            `Lcm<T>` implements `MonoidOp<T>`
-            `Max<T>` implements `MonoidOp<T>`
-            `Min<T>` implements `MonoidOp<T>`
-            `OptionMonoid<T>` implements `MonoidOp<Option<T>>`
-            `Prod<T>` implements `MonoidOp<T>`
-            `Xor<T>` implements `MonoidOp<T>`
-          and $N others
   = note: this error originates in the derive macro `Semigroup` (in Nightly builds, run with -Z macro-backtrace for more info)
