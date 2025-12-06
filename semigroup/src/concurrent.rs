@@ -307,7 +307,7 @@ pub mod test_async_semigroup {
 
     use super::*;
 
-    /// Assert that the given type satisfies the *async semigroup(commutative)* property.
+    /// Assert that the given type satisfies the *async semigroup* property.
     ///
     /// # Usage
     /// Same to [`crate::assert_semigroup!`].
@@ -330,7 +330,7 @@ pub mod test_async_semigroup {
     /// ```
     ///
     /// # Panics
-    /// - If the given function does not satisfy the *async semigroup(commutative)* property.
+    /// - If the given function does not satisfy the *async semigroup* property.
     /// ```should_panic
     /// use semigroup::{assert_async_semigroup, Op, Semigroup};
     /// #[derive(Debug, Clone, PartialEq, Op)]
@@ -388,6 +388,88 @@ pub mod test_async_semigroup {
         c: T,
     ) {
         assert_async_associative_law(a.clone(), b.clone(), c.clone()).await;
+    }
+
+    /// Assert that the given type satisfies the *async commutative* property.
+    ///
+    /// # Usage
+    /// Same to [`crate::assert_semigroup!`].
+    ///
+    /// # Examples
+    /// ```
+    /// use semigroup::{assert_async_commutative, op::Sum};
+    ///
+    /// let a = Sum(1);
+    /// let b = Sum(2);
+    /// let c = Sum(3);
+    /// futures::executor::block_on(async {
+    ///     assert_async_commutative!(a, b, c);
+    /// });
+    ///
+    /// let v = vec![a, b, c];
+    /// futures::executor::block_on(async {
+    ///     assert_async_commutative!(&v);
+    /// });
+    /// ```
+    ///
+    /// # Panics
+    /// - If the given function does not satisfy the *async commutative* property.
+    /// ```should_panic
+    /// use semigroup::{assert_async_commutative, Op, Semigroup};
+    /// #[derive(Debug, Clone, PartialEq, Op)]
+    /// #[op(commutative)]
+    /// pub struct Sub(i32);
+    /// impl Op<i32> for Sub {
+    ///     fn lift_op_assign(base: &mut i32, other: i32) {
+    ///         *base -= other;
+    ///     }
+    /// }
+    /// let a = Sub(1);
+    /// let b = Sub(2);
+    /// let c = Sub(3);
+    /// futures::executor::block_on(async {
+    ///     assert_async_commutative!(a, b, c);
+    /// });
+    /// ```
+    ///
+    /// - The input iterator has less than 3 items.
+    /// ```compile_fail
+    /// use semigroup::{assert_async_commutative, op::Sum};
+    /// let a = Sum(1);
+    /// let b = Sum(2);
+    /// futures::executor::block_on(async {
+    ///     assert_async_commutative!(a, b);
+    /// });
+    /// ```
+    /// ```should_panic
+    /// use semigroup::{assert_async_commutative, op::Sum};
+    /// let a = Sum(1);
+    /// let b = Sum(2);
+    /// futures::executor::block_on(async {
+    ///     assert_async_commutative!(&vec![a, b]);
+    /// });
+    /// ```
+    #[macro_export]
+    macro_rules! assert_async_commutative {
+        ($a:expr, $b: expr, $($tail: expr),*) => {
+            {
+                let v = vec![$a, $b, $($tail),*];
+                $crate::assert_async_commutative!(&v)
+            }
+        };
+        ($v:expr) => {
+            {
+                let (a, b, c) = $crate::test_semigroup::pick3($v);
+                $crate::test_async_semigroup::assert_async_commutative_impl(a.clone(), b.clone(), c.clone()).await;
+            }
+        };
+    }
+
+    pub async fn assert_async_commutative_impl<T: AsyncCommutative + Clone + PartialEq + Debug>(
+        a: T,
+        b: T,
+        c: T,
+    ) {
         assert_async_commutative_law(a.clone(), b.clone(), c.clone()).await;
     }
 
