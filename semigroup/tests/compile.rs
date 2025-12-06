@@ -3,25 +3,27 @@ use std::path::Path;
 #[test]
 fn test_ui() {
     let t = trybuild::TestCases::new();
-    #[cfg(not(feature = "histogram"))]
+    #[cfg(not(feature = "monoid"))]
     {
-        prepare_rs_file("tests/ui/compile_fail", "tests/ui/semigroup").unwrap();
+        cp_rs_file("tests/ui/compile_fail", "tests/ui/semigroup").unwrap();
         t.compile_fail("tests/ui/semigroup/**/*.rs");
     }
-    #[cfg(feature = "histogram")]
+    #[cfg(feature = "monoid")]
     {
-        prepare_rs_file("tests/ui/compile_fail", "tests/ui/histogram").unwrap();
-        t.compile_fail("tests/ui/histogram/**/*.rs");
+        cp_rs_file("tests/ui/compile_fail", "tests/ui/monoid").unwrap();
+        t.compile_fail("tests/ui/monoid/**/*.rs");
     }
 }
 
-fn prepare_rs_file<P: AsRef<Path>>(source: P, target: P) -> Result<(), std::io::Error> {
-    let files = std::fs::read_dir(source.as_ref())?;
-    files
-        .filter_map(Result::ok)
+fn cp_rs_file<P: AsRef<Path>>(source: P, target: P) -> Result<(), std::io::Error> {
+    let rd = std::fs::read_dir(source.as_ref())?;
+    let files: Result<Vec<_>, _> = rd.collect();
+    files?
+        .into_iter()
         .filter(|f| f.path().extension().map(|e| e == "rs").unwrap_or(false))
         .try_for_each(|f| {
             let t = target.as_ref().join(f.file_name());
-            std::fs::copy(f.path(), &t).map(|_| ())
+            std::fs::copy(f.path(), &t)?;
+            Ok(())
         })
 }

@@ -77,6 +77,31 @@ pub trait AnnotatedSemigroup<A>: Sized + Semigroup {
     }
 }
 
+macro_rules! impl_tuple_semigroup {
+    ($($idx:tt: $t:tt),+) => {
+        impl<$($t: $crate::Semigroup),+> $crate::Semigroup for ($($t,)+) {
+            fn op_assign(base: &mut Self, other: Self) {
+                $(
+                    $t::op_assign(&mut base.$idx, other.$idx)
+                );+
+            }
+        }
+    };
+}
+impl_tuple_semigroup!(0: A);
+impl_tuple_semigroup!(0: A, 1: B);
+impl_tuple_semigroup!(0: A, 1: B, 2: C);
+impl_tuple_semigroup!(0: A, 1: B, 2: C, 3: D);
+impl_tuple_semigroup!(0: A, 1: B, 2: C, 3: D, 4: E);
+impl_tuple_semigroup!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F);
+impl_tuple_semigroup!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G);
+impl_tuple_semigroup!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H);
+impl_tuple_semigroup!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I);
+impl_tuple_semigroup!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I, 9: J);
+impl_tuple_semigroup!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I, 9: J, 10: K);
+impl_tuple_semigroup!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I, 9: J, 10: K, 11: L);
+impl_tuple_semigroup!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I, 9: J, 10: K, 11: L, 12: M);
+
 #[cfg(feature = "test")]
 pub mod test_semigroup {
     use std::fmt::Debug;
@@ -170,6 +195,7 @@ pub mod test_semigroup {
         assert_semigroup_reverse(a.clone(), b.clone(), c.clone());
         assert_combine_iter(a.clone(), b.clone(), c.clone());
         assert_lazy(a.clone(), b.clone(), c.clone());
+        assert_semigroup_tuple(a.clone(), b.clone(), c.clone());
         #[cfg(feature = "monoid")]
         crate::test_monoid::assert_option_monoid(a.clone(), b.clone(), c.clone());
     }
@@ -178,5 +204,16 @@ pub mod test_semigroup {
         let ab_c = Semigroup::op(Semigroup::op(a.clone(), b.clone()), c.clone());
         let a_bc = Semigroup::op(a.clone(), Semigroup::op(b.clone(), c.clone()));
         assert_eq!(ab_c, a_bc);
+    }
+
+    pub fn assert_semigroup_tuple<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
+        let abc = (a.clone(), b.clone(), c.clone());
+        let bca = (b.clone(), c.clone(), a.clone());
+        let cab = (c.clone(), a.clone(), b.clone());
+
+        let (a_b_c, b_c_a, c_a_b) = abc.semigroup(bca).semigroup(cab);
+        assert_eq!(a_b_c, a.clone().semigroup(b.clone()).semigroup(c.clone()));
+        assert_eq!(b_c_a, b.clone().semigroup(c.clone()).semigroup(a.clone()));
+        assert_eq!(c_a_b, c.clone().semigroup(a.clone()).semigroup(b.clone()));
     }
 }

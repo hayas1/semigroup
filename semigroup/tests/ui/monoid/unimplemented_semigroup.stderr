@@ -1,24 +1,24 @@
 error[E0277]: the trait bound `u32: Semigroup` is not satisfied
- --> tests/ui/histogram/unimplemented_semigroup.rs:3:35
+ --> tests/ui/monoid/unimplemented_semigroup.rs:3:35
   |
 3 | #[derive(Debug, Clone, PartialEq, Semigroup)]
   |                                   ^^^^^^^^^ the trait `Semigroup` is not implemented for `u32`
   |
   = help: the following other types implement trait `Semigroup`:
-            All
-            Annotated<T, A>
-            Coalesce<T>
-            Gcd<T>
-            HdrHistogram<C>
-            IntersectionMap<K, V>
-            Lazy<T>
-            Lcm<T>
+            (A, B)
+            (A, B, C)
+            (A, B, C, D)
+            (A, B, C, D, E)
+            (A, B, C, D, E, F)
+            (A, B, C, D, E, F, G)
+            (A, B, C, D, E, F, G, H)
+            (A, B, C, D, E, F, G, H, I)
           and $N others
   = help: see issue #48214
   = note: this error originates in the derive macro `Semigroup` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: the method `semigroup` exists for struct `NamedStruct<'_>`, but its trait bounds were not satisfied
-  --> tests/ui/histogram/unimplemented_semigroup.rs:17:15
+  --> tests/ui/monoid/unimplemented_semigroup.rs:17:15
    |
  4 | pub struct NamedStruct<'a> {
    | -------------------------- method `semigroup` not found for this struct because it doesn't satisfy `NamedStruct<'_>: Semigroup`

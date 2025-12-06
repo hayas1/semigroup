@@ -1,5 +1,5 @@
 error[E0599]: no function or associated item named `lift_identity` found for struct `Overwrite<_>` in the current scope
- --> tests/ui/histogram/derive_monoid_without_monoid.rs:3:35
+ --> tests/ui/monoid/derive_monoid_without_monoid.rs:3:35
   |
 3 | #[derive(Debug, Clone, PartialEq, Semigroup)]
   |                                   ^^^^^^^^^ function or associated item not found in `Overwrite<_>`
