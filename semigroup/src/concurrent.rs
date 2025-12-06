@@ -6,11 +6,17 @@ use crate::{Commutative, Semigroup};
 
 /// Async version of [`Semigroup`].
 pub trait AsyncSemigroup: Semigroup {
-    fn async_op(base: Self, other: Self) -> impl Future<Output = Self>
-    where
-        Self: Sized + Send,
-    {
+    fn async_op_assign(base: &mut Self, other: Self) -> impl Future<Output = ()> {
+        async { Semigroup::op_assign(base, other) }
+    }
+    fn async_op(base: Self, other: Self) -> impl Future<Output = Self> {
         async { Semigroup::op(base, other) }
+    }
+    fn async_semigroup_assign(base: &mut Self, other: Self) -> impl Future<Output = ()> {
+        async { base.semigroup_assign(other) }
+    }
+    fn async_semigroup(base: Self, other: Self) -> impl Future<Output = Self> {
+        async { base.semigroup(other) }
     }
 }
 impl<T: Semigroup> AsyncSemigroup for T {}
@@ -18,19 +24,13 @@ impl<T: Semigroup> AsyncSemigroup for T {}
 /// Async version of [`Commutative`].
 pub trait AsyncCommutative: AsyncSemigroup + Commutative {
     /// Used by [`CombineStream::fold_semigroup`].
-    fn fold_stream(stream: impl Stream<Item = Self>, init: Self) -> impl Future<Output = Self>
-    where
-        Self: Sized + Send,
-    {
+    fn fold_stream(stream: impl Stream<Item = Self>, init: Self) -> impl Future<Output = Self> {
         async { stream.fold(init, AsyncSemigroup::async_op).await }
     }
     /// Used by [`CombineStream::reduce_semigroup`].
     fn reduce_stream(
         mut stream: impl Stream<Item = Self> + Unpin,
-    ) -> impl Future<Output = Option<Self>>
-    where
-        Self: Sized + Send,
-    {
+    ) -> impl Future<Output = Option<Self>> {
         async {
             let init = stream.next().await?;
             Some(stream.fold(init, AsyncSemigroup::async_op).await)
@@ -40,7 +40,7 @@ pub trait AsyncCommutative: AsyncSemigroup + Commutative {
     #[cfg(feature = "monoid")]
     fn combine_stream(stream: impl Stream<Item = Self>) -> impl Future<Output = Self>
     where
-        Self: Sized + Send + crate::Monoid,
+        Self: crate::Monoid,
     {
         async {
             stream
@@ -82,7 +82,7 @@ pub trait CombineStream: Sized + Stream {
     /// ```
     fn fold_semigroup(self, init: Self::Item) -> impl Future<Output = Self::Item>
     where
-        Self::Item: AsyncCommutative + Send,
+        Self::Item: AsyncCommutative,
     {
         Self::Item::fold_stream(self, init)
     }
@@ -117,7 +117,7 @@ pub trait CombineStream: Sized + Stream {
     fn reduce_semigroup(self) -> impl Future<Output = Option<Self::Item>>
     where
         Self: Unpin,
-        Self::Item: AsyncCommutative + Send,
+        Self::Item: AsyncCommutative,
     {
         Self::Item::reduce_stream(self)
     }
@@ -152,7 +152,7 @@ pub trait CombineStream: Sized + Stream {
     #[cfg(feature = "monoid")]
     fn combine_monoid(self) -> impl Future<Output = Self::Item>
     where
-        Self::Item: AsyncCommutative + crate::Monoid + Send,
+        Self::Item: AsyncCommutative + crate::Monoid,
     {
         Self::Item::combine_stream(self)
     }
