@@ -4,11 +4,9 @@ use futures::{Stream, StreamExt, TryStream, TryStreamExt};
 
 use crate::{Commutative, Semigroup};
 
-/// Async version of [`Semigroup`].
-pub trait AsyncSemigroup: Semigroup {
-    fn async_op_assign(base: &mut Self, other: Self) -> impl Future<Output = ()> {
-        async { Semigroup::op_assign(base, other) }
-    }
+/// EXPERIMENTAL: Async version of [`Semigroup`].
+pub trait AsyncSemigroup: Sized {
+    fn async_op_assign(base: &mut Self, other: Self) -> impl Future<Output = ()>;
     fn async_op(mut base: Self, other: Self) -> impl Future<Output = Self> {
         async {
             Self::async_op_assign(&mut base, other).await;
@@ -22,7 +20,11 @@ pub trait AsyncSemigroup: Semigroup {
         async { Self::async_op(self, other).await }
     }
 }
-impl<T: Semigroup> AsyncSemigroup for T {}
+impl<T: Semigroup> AsyncSemigroup for T {
+    async fn async_op_assign(base: &mut Self, other: Self) {
+        Semigroup::op_assign(base, other)
+    }
+}
 
 /// Async version of [`Commutative`].
 pub trait AsyncCommutative: AsyncSemigroup + Commutative {
