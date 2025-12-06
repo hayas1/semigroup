@@ -14,10 +14,10 @@ pub trait AsyncSemigroup: Sized {
         }
     }
     fn async_semigroup_assign(&mut self, other: Self) -> impl Future<Output = ()> {
-        async { Self::async_op_assign(self, other).await }
+        Self::async_op_assign(self, other)
     }
     fn async_semigroup(self, other: Self) -> impl Future<Output = Self> {
-        async { Self::async_op(self, other).await }
+        Self::async_op(self, other)
     }
 }
 impl<T: Semigroup> AsyncSemigroup for T {
