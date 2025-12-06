@@ -388,6 +388,7 @@ pub mod test_async_semigroup {
         c: T,
     ) {
         assert_async_associative_law(a.clone(), b.clone(), c.clone()).await;
+        assert_async_commutative_law(a.clone(), b.clone(), c.clone()).await;
     }
 
     pub async fn assert_async_associative_law<T: AsyncSemigroup + Clone + PartialEq + Debug>(
@@ -406,5 +407,49 @@ pub mod test_async_semigroup {
         )
         .await;
         assert_eq!(ab_c, a_bc);
+    }
+
+    pub async fn assert_async_commutative_law<T: AsyncCommutative + Clone + PartialEq + Debug>(
+        a: T,
+        b: T,
+        c: T,
+    ) {
+        let abc = AsyncSemigroup::async_op(
+            AsyncSemigroup::async_op(a.clone(), b.clone()).await,
+            c.clone(),
+        )
+        .await;
+        let bca = AsyncSemigroup::async_op(
+            AsyncSemigroup::async_op(b.clone(), c.clone()).await,
+            a.clone(),
+        )
+        .await;
+        let cba = AsyncSemigroup::async_op(
+            AsyncSemigroup::async_op(c.clone(), b.clone()).await,
+            a.clone(),
+        )
+        .await;
+        let acb = AsyncSemigroup::async_op(
+            AsyncSemigroup::async_op(a.clone(), c.clone()).await,
+            b.clone(),
+        )
+        .await;
+        let bac = AsyncSemigroup::async_op(
+            AsyncSemigroup::async_op(b.clone(), a.clone()).await,
+            c.clone(),
+        )
+        .await;
+        let cab = AsyncSemigroup::async_op(
+            AsyncSemigroup::async_op(c.clone(), a.clone()).await,
+            b.clone(),
+        )
+        .await;
+
+        assert_eq!(abc, bca);
+        assert_eq!(bca, cba);
+        assert_eq!(cba, acb);
+        assert_eq!(acb, bac);
+        assert_eq!(bac, cab);
+        assert_eq!(cab, abc);
     }
 }
