@@ -24,7 +24,7 @@ impl<T: Semigroup> AsyncSemigroup for T {}
 /// Async version of [`Commutative`].
 pub trait AsyncCommutative: AsyncSemigroup + Commutative {
     /// Used by [`CombineStream::fold_semigroup`].
-    fn fold_stream(stream: impl Stream<Item = Self>, init: Self) -> impl Future<Output = Self> {
+    fn fold_stream(init: Self, stream: impl Stream<Item = Self>) -> impl Future<Output = Self> {
         async { stream.fold(init, Self::async_op).await }
     }
     /// Used by [`CombineStream::reduce_semigroup`].
@@ -33,7 +33,7 @@ pub trait AsyncCommutative: AsyncSemigroup + Commutative {
     ) -> impl Future<Output = Option<Self>> {
         async {
             let init = stream.next().await?;
-            Some(stream.fold(init, Self::async_op).await)
+            Some(Self::fold_stream(init, stream).await)
         }
     }
     /// Used by [`CombineStream::combine_monoid`].
@@ -42,7 +42,7 @@ pub trait AsyncCommutative: AsyncSemigroup + Commutative {
     where
         Self: crate::Monoid,
     {
-        async { stream.fold(Self::identity(), Self::async_op).await }
+        async { Self::fold_stream(Self::identity(), stream).await }
     }
 }
 impl<T: Commutative> AsyncCommutative for T {}
@@ -80,7 +80,7 @@ pub trait CombineStream: Sized + Stream {
     where
         Self::Item: AsyncCommutative,
     {
-        Self::Item::fold_stream(self, init)
+        Self::Item::fold_stream(init, self)
     }
 
     /// This method like [`crate::CombineIterator::lreduce`], but stream.
@@ -157,17 +157,13 @@ impl<T: Stream> CombineStream for T {}
 
 /// Async try version of [`Commutative`].
 pub trait TryAsyncCommutative: AsyncCommutative {
-    /// Op can return always [`Ok`].
-    fn ok_async_op<E>(base: Self, other: Self) -> impl Future<Output = Result<Self, E>> {
-        async move { Ok(Self::async_op(base, other).await) }
-    }
-
     /// Used by [`TryCombineStream::try_fold_semigroup`].
     fn try_fold_stream<S: TryStream<Ok = Self>>(
-        stream: S,
         init: Self,
+        stream: S,
     ) -> impl Future<Output = Result<Self, S::Error>> {
-        async { stream.try_fold(init, Self::ok_async_op).await }
+        let ok_async_op = |b, o| async { Ok(Self::async_op(b, o).await) };
+        async move { stream.try_fold(init, ok_async_op).await }
     }
     /// Used by [`TryCombineStream::try_reduce_semigroup`].
     fn try_reduce_stream<S: TryStream<Item = Result<Self, E>, Ok = Self, Error = E> + Unpin, E>(
@@ -176,7 +172,7 @@ pub trait TryAsyncCommutative: AsyncCommutative {
         async {
             let init = stream.next().await?;
             match init {
-                Ok(init) => Some(stream.try_fold(init, Self::ok_async_op).await),
+                Ok(init) => Some(Self::try_fold_stream(init, stream).await),
                 Err(err) => Some(Err(err)),
             }
         }
@@ -189,7 +185,7 @@ pub trait TryAsyncCommutative: AsyncCommutative {
     where
         Self: crate::Monoid,
     {
-        async { stream.try_fold(Self::identity(), Self::ok_async_op).await }
+        async { Self::try_fold_stream(Self::identity(), stream).await }
     }
 }
 impl<T: Commutative> TryAsyncCommutative for T {}
@@ -228,7 +224,7 @@ pub trait TryCombineStream: Sized + TryStream {
     where
         Self::Ok: TryAsyncCommutative,
     {
-        Self::Ok::try_fold_stream(self, init)
+        Self::Ok::try_fold_stream(init, self)
     }
 
     /// This method like [`crate::CombineIterator::lreduce`], but stream.
