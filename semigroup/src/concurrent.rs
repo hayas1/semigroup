@@ -9,14 +9,17 @@ pub trait AsyncSemigroup: Semigroup {
     fn async_op_assign(base: &mut Self, other: Self) -> impl Future<Output = ()> {
         async { Semigroup::op_assign(base, other) }
     }
-    fn async_op(base: Self, other: Self) -> impl Future<Output = Self> {
-        async { Semigroup::op(base, other) }
+    fn async_op(mut base: Self, other: Self) -> impl Future<Output = Self> {
+        async {
+            Self::async_op_assign(&mut base, other).await;
+            base
+        }
     }
-    fn async_semigroup_assign(base: &mut Self, other: Self) -> impl Future<Output = ()> {
-        async { base.semigroup_assign(other) }
+    fn async_semigroup_assign(&mut self, other: Self) -> impl Future<Output = ()> {
+        async { Self::async_op_assign(self, other).await }
     }
-    fn async_semigroup(base: Self, other: Self) -> impl Future<Output = Self> {
-        async { base.semigroup(other) }
+    fn async_semigroup(self, other: Self) -> impl Future<Output = Self> {
+        async { Self::async_op(self, other).await }
     }
 }
 impl<T: Semigroup> AsyncSemigroup for T {}
