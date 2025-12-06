@@ -1,6 +1,10 @@
 use crate::{Lazy, Semigroup};
 
 /// Extensions for [`Iterator`]s that items implement [`Semigroup`].
+/// Composed of a variety of the 3 main methods
+/// - `fold`: requires an initial value, but return non-optional value
+/// - `reduce`: does not require an initial value, but return optional value
+/// - `combine`: does not require an initial value, and return non-optional value. (but, requires [`Monoid`](crate::Monoid))
 pub trait CombineIterator: Sized + Iterator {
     /// Folds every [`Semigroup`] element. Given argument is the final value.
     ///
