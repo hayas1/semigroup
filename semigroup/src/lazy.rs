@@ -59,9 +59,9 @@ impl<T: Semigroup> Lazy<T> {
     /// let c = Coalesce(Some(3));
     ///
     /// let lazy = Lazy::from(a).semigroup(b.into()).semigroup(c.into());
-    /// assert_eq!(lazy.combine_cloned(), Coalesce(Some(1)));
+    /// assert_eq!(lazy.combine_clone(), Coalesce(Some(1)));
     /// ```
-    pub fn combine_cloned(&self) -> T
+    pub fn combine_clone(&self) -> T
     where
         T: Clone,
     {
@@ -96,14 +96,30 @@ impl<T: Semigroup> Lazy<T> {
     /// let c = Coalesce(Some(3));
     ///
     /// let lazy = Lazy::from(a).semigroup(b.into()).semigroup(c.into());
-    /// assert_eq!(lazy.combine_rev_cloned(), Coalesce(Some(3)));
+    /// assert_eq!(lazy.combine_rev_clone(), Coalesce(Some(3)));
     /// ```
-    pub fn combine_rev_cloned(&self) -> T
+    pub fn combine_rev_clone(&self) -> T
     where
         T: Clone,
     {
         let (last, head) = self.split_last();
         head.iter().cloned().rfold(last.clone(), Semigroup::op)
+    }
+}
+impl<T: Semigroup + Clone> Lazy<&T> {
+    /// TODO
+    pub fn combine_cloned(&self) -> T {
+        let (&first, tail) = self.split_first();
+        tail.iter()
+            .map(|&t| t.clone())
+            .fold(first.clone(), Semigroup::op)
+    }
+    /// TODO
+    pub fn combine_rev_cloned(&self) -> T {
+        let (&last, head) = self.split_last();
+        head.iter()
+            .map(|&t| t.clone())
+            .rfold(last.clone(), Semigroup::op)
     }
 }
 impl<T> From<T> for Lazy<T> {
@@ -348,9 +364,13 @@ pub mod test_lazy {
     use super::*;
 
     pub fn assert_lazy<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
+        assert_lazy_owned(a.clone(), b.clone(), c.clone());
+        assert_lazy_ref(&a, &b, &c);
+    }
+    pub fn assert_lazy_owned<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
         let lazy = Lazy::from(a.clone());
-        assert_eq!(lazy.combine_cloned(), a.clone());
-        assert_eq!(lazy.combine_rev_cloned(), a.clone());
+        assert_eq!(lazy.combine_clone(), a.clone());
+        assert_eq!(lazy.combine_rev_clone(), a.clone());
 
         let lazy = lazy.semigroup(b.clone().into()).semigroup(c.clone().into());
         assert_eq!(
@@ -358,12 +378,27 @@ pub mod test_lazy {
             Semigroup::op(Semigroup::op(a.clone(), b.clone()), c.clone())
         );
         assert_eq!(
-            lazy.combine_cloned(),
+            lazy.combine_clone(),
             Semigroup::op(Semigroup::op(a.clone(), b.clone()), c.clone())
         );
         assert_eq!(
             lazy.clone().combine_rev(),
             Semigroup::op(Semigroup::op(c.clone(), b.clone()), a.clone())
+        );
+        assert_eq!(
+            lazy.combine_rev_clone(),
+            Semigroup::op(Semigroup::op(c.clone(), b.clone()), a.clone())
+        );
+    }
+    pub fn assert_lazy_ref<T: Semigroup + Clone + PartialEq + Debug>(a: &T, b: &T, c: &T) {
+        let lazy = Lazy::from(a);
+        assert_eq!(&lazy.combine_cloned(), a);
+        assert_eq!(&lazy.combine_rev_cloned(), a);
+
+        let lazy = lazy.semigroup(b.into()).semigroup(c.into());
+        assert_eq!(
+            lazy.combine_cloned(),
+            Semigroup::op(Semigroup::op(a.clone(), b.clone()), c.clone())
         );
         assert_eq!(
             lazy.combine_rev_cloned(),
