@@ -15,7 +15,7 @@ proc-macro = true
 
 [dependencies]
 comfy-table = { version = "7", default-features = false }
-darling = "0.21"
+darling = "0.23"
 heck = "0.5"
 proc-macro2 = "1"
 quote = "1"
