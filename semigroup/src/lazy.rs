@@ -188,8 +188,16 @@ impl<T> Lazy<T> {
         self.0.iter()
     }
     /// Maps each element of the [`Lazy`] buffer with a function, and returns a new [`Lazy`] buffer.
-    pub fn map<U, F: Fn(T) -> U>(self, f: F) -> Lazy<U> {
+    pub fn map<U, F: FnMut(T) -> U>(self, f: F) -> Lazy<U> {
         Lazy(self.0.into_iter().map(f).collect())
+    }
+    /// Maps each element of the [`Lazy`] buffer with a function, and returns the combined value.
+    pub fn map_combine<U: Semigroup, F: FnMut(T) -> U>(self, f: F) -> U {
+        self.map(f).combine() // TODO memory allocation
+    }
+    /// Maps each element of the [`Lazy`] buffer with a function, and returns the reversed combined value.
+    pub fn map_combine_rev<U: Semigroup, F: FnMut(T) -> U>(self, f: F) -> U {
+        self.map(f).combine_rev() // TODO memory allocation
     }
 }
 impl<T, A: PartialEq> Lazy<Annotated<T, A>> {
