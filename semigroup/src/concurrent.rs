@@ -257,7 +257,6 @@ pub trait TryCombineStream: Sized + TryStream {
     /// # Type safety
     /// This method is only available when item implements [`Commutative`].
     /// Same to [`CombineStream::reduce_semigroup`].
-    /// ```
     fn try_reduce_semigroup<T, E>(
         self,
     ) -> impl Future<Output = Option<Result<Self::Ok, Self::Error>>>
