@@ -387,6 +387,29 @@ impl<T, I: SliceIndex<[T]>> Index<I> for Lazy<T> {
         &self.0[index]
     }
 }
+#[cfg(feature = "serde")]
+pub mod serde_lazy {
+    use serde::{Deserialize, Serialize, Serializer};
+
+    use crate::Semigroup;
+
+    impl<T: Clone + Semigroup + Serialize> Serialize for super::Lazy<T> {
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: Serializer,
+        {
+            self.combine_clone().serialize(serializer)
+        }
+    }
+    impl<'de, T: Deserialize<'de>> Deserialize<'de> for super::Lazy<T> {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: serde::Deserializer<'de>,
+        {
+            T::deserialize(deserializer).map(super::Lazy::from)
+        }
+    }
+}
 
 #[cfg(feature = "test")]
 pub mod test_lazy {
@@ -520,5 +543,22 @@ mod tests {
             ll.clone().into_iter().collect::<Vec<_>>(),
             (0..100000).collect::<Vec<_>>()
         );
+    }
+
+    #[test]
+    #[cfg(feature = "serde")]
+    fn test_lazy_serde() {
+        let json0 = r#"0"#;
+        let mut lazy: Lazy<_> = serde_json::from_str(json0).unwrap();
+        assert_eq!(lazy, Lazy::from(crate::op::Sum(0)));
+
+        lazy.semigroup_assign(crate::op::Sum(1).into());
+        lazy.semigroup_assign(crate::op::Sum(2).into());
+        lazy.semigroup_assign(crate::op::Sum(3).into());
+
+        let json6 = serde_json::to_string(&lazy).unwrap();
+        assert_eq!(json6, r#"6"#);
+        assert_eq!(lazy.first(), &0.into());
+        assert_eq!(lazy.last(), &3.into());
     }
 }
