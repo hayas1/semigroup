@@ -10,6 +10,7 @@ use crate::{Annotated, Semigroup};
 /// <!-- properties -->
 ///
 /// # Examples
+/// ## Usage
 /// ```
 /// use semigroup::{op::Coalesce, Lazy, Semigroup};
 ///
@@ -22,6 +23,28 @@ use crate::{Annotated, Semigroup};
 /// assert_eq!(lazy.first(), &Coalesce(Some(1)));
 /// assert_eq!(lazy.last(), &Coalesce(Some(3)));
 /// assert_eq!(lazy.combine(), Coalesce(Some(1)));
+/// ```
+///
+/// ## Derive
+/// ```
+/// use semigroup::{op::Coalesce, Lazy, Semigroup};
+///
+/// #[derive(Debug, Clone, Copy, PartialEq, Semigroup)]
+/// #[semigroup(annotated, with = "semigroup::op::Coalesce")]
+/// struct ExampleStruct<'a> {
+///     num: Option<u32>,
+///     str: Option<&'a str>,
+///     #[semigroup(with = "semigroup::op::Overwrite")]
+///     boolean: bool,
+/// }
+///
+/// let a = ExampleStruct { num: Some(1), str: None, boolean: true };
+/// let b = ExampleStruct { num: None, str: Some("ten"), boolean: false };
+/// let c = ExampleStruct { num: Some(100), str: None, boolean: false };
+///
+/// let lazy = Lazy::from(a).semigroup(b.into()).semigroup(c.into());
+/// assert_eq!(lazy.map_combine(|x| Coalesce(x.num)), Coalesce(Some(1)));
+/// assert_eq!(lazy.map_combine_rev(|x| Coalesce(x.str)), Coalesce(Some("ten")));
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, OpPriv)]
 #[op(commutative, commutative_where = "T: crate::Commutative", hidden_inner)]
@@ -191,11 +214,11 @@ impl<T> Lazy<T> {
     pub fn map<U, F: FnMut(T) -> U>(self, f: F) -> Lazy<U> {
         Lazy(self.0.into_iter().map(f).collect())
     }
-    /// Maps each element of the [`Lazy`] buffer with a function, and returns the combined value.
+    /// Maps each element of the [`Lazy`] buffer with a function, and returns the combined value. Examples in [`Lazy`].
     pub fn map_combine<U: Semigroup, F: FnMut(T) -> U>(self, f: F) -> U {
         self.map(f).combine() // TODO memory allocation
     }
-    /// Maps each element of the [`Lazy`] buffer with a function, and returns the reversed combined value.
+    /// Maps each element of the [`Lazy`] buffer with a function, and returns the reversed combined value. Examples in [`Lazy`].
     pub fn map_combine_rev<U: Semigroup, F: FnMut(T) -> U>(self, f: F) -> U {
         self.map(f).combine_rev() // TODO memory allocation
     }
