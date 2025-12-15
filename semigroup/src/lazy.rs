@@ -43,7 +43,7 @@ use crate::{Annotated, Semigroup};
 /// let c = ExampleStruct { num: Some(100), str: None, boolean: false };
 ///
 /// let lazy = Lazy::from(a).semigroup(b.into()).semigroup(c.into());
-/// assert_eq!(lazy.map_combine(|x| Coalesce(x.num)), Coalesce(Some(1)));
+/// assert_eq!(lazy.clone().map_combine(|x| Coalesce(x.num)), Coalesce(Some(1)));
 /// assert_eq!(lazy.map_combine_rev(|x| Coalesce(x.str)), Coalesce(Some("ten")));
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, OpPriv)]
