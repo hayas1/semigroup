@@ -216,10 +216,12 @@ impl<T> Lazy<T> {
     }
     /// Maps each element of the [`Lazy`] buffer with a function, and returns the combined value. Examples in [`Lazy`].
     pub fn map_combine<U: Semigroup, F: FnMut(T) -> U>(self, f: F) -> U {
+        // TODO implement `WithSemigroup` trait? to avoid from `Coalesce` of `lazy.map_combine(|x| Coalesce(x.num))`
         self.map(f).combine() // TODO memory allocation
     }
     /// Maps each element of the [`Lazy`] buffer with a function, and returns the reversed combined value. Examples in [`Lazy`].
     pub fn map_combine_rev<U: Semigroup, F: FnMut(T) -> U>(self, f: F) -> U {
+        // TODO implement `WithSemigroup` trait? to avoid from `Coalesce` of `lazy.map_combine(|x| Coalesce(x.num))`
         self.map(f).combine_rev() // TODO memory allocation
     }
 }
