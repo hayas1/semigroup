@@ -10,6 +10,7 @@ use crate::{Annotated, Semigroup};
 /// <!-- properties -->
 ///
 /// # Examples
+/// ## Usage
 /// ```
 /// use semigroup::{op::Coalesce, Lazy, Semigroup};
 ///
@@ -22,6 +23,28 @@ use crate::{Annotated, Semigroup};
 /// assert_eq!(lazy.first(), &Coalesce(Some(1)));
 /// assert_eq!(lazy.last(), &Coalesce(Some(3)));
 /// assert_eq!(lazy.combine(), Coalesce(Some(1)));
+/// ```
+///
+/// ## Derive
+/// ```
+/// use semigroup::{op::Coalesce, Lazy, Semigroup};
+///
+/// #[derive(Debug, Clone, Copy, PartialEq, Semigroup)]
+/// #[semigroup(annotated, with = "semigroup::op::Coalesce")]
+/// struct ExampleStruct<'a> {
+///     num: Option<u32>,
+///     str: Option<&'a str>,
+///     #[semigroup(with = "semigroup::op::Overwrite")]
+///     boolean: bool,
+/// }
+///
+/// let a = ExampleStruct { num: Some(1), str: None, boolean: true };
+/// let b = ExampleStruct { num: None, str: Some("ten"), boolean: false };
+/// let c = ExampleStruct { num: Some(100), str: None, boolean: false };
+///
+/// let lazy = Lazy::from(a).semigroup(b.into()).semigroup(c.into());
+/// assert_eq!(lazy.clone().map_combine(|x| Coalesce(x.num)), Coalesce(Some(1)));
+/// assert_eq!(lazy.map_combine_rev(|x| Coalesce(x.str)), Coalesce(Some("ten")));
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, OpPriv)]
 #[op(commutative, commutative_where = "T: crate::Commutative", hidden_inner)]
@@ -59,9 +82,9 @@ impl<T: Semigroup> Lazy<T> {
     /// let c = Coalesce(Some(3));
     ///
     /// let lazy = Lazy::from(a).semigroup(b.into()).semigroup(c.into());
-    /// assert_eq!(lazy.combine_cloned(), Coalesce(Some(1)));
+    /// assert_eq!(lazy.combine_clone(), Coalesce(Some(1)));
     /// ```
-    pub fn combine_cloned(&self) -> T
+    pub fn combine_clone(&self) -> T
     where
         T: Clone,
     {
@@ -96,14 +119,30 @@ impl<T: Semigroup> Lazy<T> {
     /// let c = Coalesce(Some(3));
     ///
     /// let lazy = Lazy::from(a).semigroup(b.into()).semigroup(c.into());
-    /// assert_eq!(lazy.combine_rev_cloned(), Coalesce(Some(3)));
+    /// assert_eq!(lazy.combine_rev_clone(), Coalesce(Some(3)));
     /// ```
-    pub fn combine_rev_cloned(&self) -> T
+    pub fn combine_rev_clone(&self) -> T
     where
         T: Clone,
     {
         let (last, head) = self.split_last();
         head.iter().cloned().rfold(last.clone(), Semigroup::op)
+    }
+}
+impl<T: Semigroup + Clone> Lazy<&T> {
+    /// TODO
+    pub fn combine_cloned(&self) -> T {
+        let (&first, tail) = self.split_first();
+        tail.iter()
+            .map(|&t| t.clone())
+            .fold(first.clone(), Semigroup::op)
+    }
+    /// TODO
+    pub fn combine_rev_cloned(&self) -> T {
+        let (&last, head) = self.split_last();
+        head.iter()
+            .map(|&t| t.clone())
+            .rfold(last.clone(), Semigroup::op)
     }
 }
 impl<T> From<T> for Lazy<T> {
@@ -172,8 +211,18 @@ impl<T> Lazy<T> {
         self.0.iter()
     }
     /// Maps each element of the [`Lazy`] buffer with a function, and returns a new [`Lazy`] buffer.
-    pub fn map<U, F: Fn(T) -> U>(self, f: F) -> Lazy<U> {
+    pub fn map<U, F: FnMut(T) -> U>(self, f: F) -> Lazy<U> {
         Lazy(self.0.into_iter().map(f).collect())
+    }
+    /// Maps each element of the [`Lazy`] buffer with a function, and returns the combined value. Examples in [`Lazy`].
+    pub fn map_combine<U: Semigroup, F: FnMut(T) -> U>(self, f: F) -> U {
+        // TODO implement `WithSemigroup` trait? to avoid from `Coalesce` of `lazy.map_combine(|x| Coalesce(x.num))`
+        self.map(f).combine() // TODO memory allocation
+    }
+    /// Maps each element of the [`Lazy`] buffer with a function, and returns the reversed combined value. Examples in [`Lazy`].
+    pub fn map_combine_rev<U: Semigroup, F: FnMut(T) -> U>(self, f: F) -> U {
+        // TODO implement `WithSemigroup` trait? to avoid from `Coalesce` of `lazy.map_combine(|x| Coalesce(x.num))`
+        self.map(f).combine_rev() // TODO memory allocation
     }
 }
 impl<T, A: PartialEq> Lazy<Annotated<T, A>> {
@@ -340,6 +389,29 @@ impl<T, I: SliceIndex<[T]>> Index<I> for Lazy<T> {
         &self.0[index]
     }
 }
+#[cfg(feature = "serde")]
+pub mod serde_lazy {
+    use serde::{Deserialize, Serialize, Serializer};
+
+    use crate::Semigroup;
+
+    impl<T: Clone + Semigroup + Serialize> Serialize for super::Lazy<T> {
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: Serializer,
+        {
+            self.combine_clone().serialize(serializer)
+        }
+    }
+    impl<'de, T: Deserialize<'de>> Deserialize<'de> for super::Lazy<T> {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: serde::Deserializer<'de>,
+        {
+            T::deserialize(deserializer).map(super::Lazy::from)
+        }
+    }
+}
 
 #[cfg(feature = "test")]
 pub mod test_lazy {
@@ -348,9 +420,13 @@ pub mod test_lazy {
     use super::*;
 
     pub fn assert_lazy<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
+        assert_lazy_owned(a.clone(), b.clone(), c.clone());
+        assert_lazy_ref(&a, &b, &c);
+    }
+    pub fn assert_lazy_owned<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
         let lazy = Lazy::from(a.clone());
-        assert_eq!(lazy.combine_cloned(), a.clone());
-        assert_eq!(lazy.combine_rev_cloned(), a.clone());
+        assert_eq!(lazy.combine_clone(), a.clone());
+        assert_eq!(lazy.combine_rev_clone(), a.clone());
 
         let lazy = lazy.semigroup(b.clone().into()).semigroup(c.clone().into());
         assert_eq!(
@@ -358,12 +434,27 @@ pub mod test_lazy {
             Semigroup::op(Semigroup::op(a.clone(), b.clone()), c.clone())
         );
         assert_eq!(
-            lazy.combine_cloned(),
+            lazy.combine_clone(),
             Semigroup::op(Semigroup::op(a.clone(), b.clone()), c.clone())
         );
         assert_eq!(
             lazy.clone().combine_rev(),
             Semigroup::op(Semigroup::op(c.clone(), b.clone()), a.clone())
+        );
+        assert_eq!(
+            lazy.combine_rev_clone(),
+            Semigroup::op(Semigroup::op(c.clone(), b.clone()), a.clone())
+        );
+    }
+    pub fn assert_lazy_ref<T: Semigroup + Clone + PartialEq + Debug>(a: &T, b: &T, c: &T) {
+        let lazy = Lazy::from(a);
+        assert_eq!(&lazy.combine_cloned(), a);
+        assert_eq!(&lazy.combine_rev_cloned(), a);
+
+        let lazy = lazy.semigroup(b.into()).semigroup(c.into());
+        assert_eq!(
+            lazy.combine_cloned(),
+            Semigroup::op(Semigroup::op(a.clone(), b.clone()), c.clone())
         );
         assert_eq!(
             lazy.combine_rev_cloned(),
@@ -454,5 +545,22 @@ mod tests {
             ll.clone().into_iter().collect::<Vec<_>>(),
             (0..100000).collect::<Vec<_>>()
         );
+    }
+
+    #[test]
+    #[cfg(feature = "serde")]
+    fn test_lazy_serde() {
+        let json0 = r#"0"#;
+        let mut lazy: Lazy<_> = serde_json::from_str(json0).unwrap();
+        assert_eq!(lazy, Lazy::from(crate::op::Sum(0)));
+
+        lazy.semigroup_assign(crate::op::Sum(1).into());
+        lazy.semigroup_assign(crate::op::Sum(2).into());
+        lazy.semigroup_assign(crate::op::Sum(3).into());
+
+        let json6 = serde_json::to_string(&lazy).unwrap();
+        assert_eq!(json6, r#"6"#);
+        assert_eq!(lazy.first(), &0.into());
+        assert_eq!(lazy.last(), &3.into());
     }
 }
