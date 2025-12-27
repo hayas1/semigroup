@@ -137,6 +137,29 @@ impl<T: Semigroup> Op<Option<T>> for OptionMonoid<T> {
     }
 }
 
+macro_rules! impl_tuple_monoid {
+    ($($idx:tt: $t:tt),+) => {
+        impl<$($t: $crate::Monoid),+> $crate::Monoid for ($($t,)+) {
+            fn identity() -> Self {
+                ($($t::identity(),)+)
+            }
+        }
+    };
+}
+impl_tuple_monoid!(0: A);
+impl_tuple_monoid!(0: A, 1: B);
+impl_tuple_monoid!(0: A, 1: B, 2: C);
+impl_tuple_monoid!(0: A, 1: B, 2: C, 3: D);
+impl_tuple_monoid!(0: A, 1: B, 2: C, 3: D, 4: E);
+impl_tuple_monoid!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F);
+impl_tuple_monoid!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G);
+impl_tuple_monoid!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H);
+impl_tuple_monoid!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I);
+impl_tuple_monoid!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I, 9: J);
+impl_tuple_monoid!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I, 9: J, 10: K);
+impl_tuple_monoid!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I, 9: J, 10: K, 11: L);
+impl_tuple_monoid!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I, 9: J, 10: K, 11: L, 12: M);
+
 #[cfg(feature = "test")]
 pub mod test_monoid {
     use std::fmt::Debug;
