@@ -59,6 +59,25 @@ use crate::Semigroup;
 /// so it must be verified manually using [`crate::assert_commutative!`].
 pub trait Commutative: Semigroup {}
 
+macro_rules! impl_tuple_commutative {
+    ($($idx:tt: $t:tt),+) => {
+        impl<$($t: $crate::Commutative),+> $crate::Commutative for ($($t,)+) {}
+    };
+}
+impl_tuple_commutative!(0: A);
+impl_tuple_commutative!(0: A, 1: B);
+impl_tuple_commutative!(0: A, 1: B, 2: C);
+impl_tuple_commutative!(0: A, 1: B, 2: C, 3: D);
+impl_tuple_commutative!(0: A, 1: B, 2: C, 3: D, 4: E);
+impl_tuple_commutative!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F);
+impl_tuple_commutative!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G);
+impl_tuple_commutative!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H);
+impl_tuple_commutative!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I);
+impl_tuple_commutative!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I, 9: J);
+impl_tuple_commutative!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I, 9: J, 10: K);
+impl_tuple_commutative!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I, 9: J, 10: K, 11: L);
+impl_tuple_commutative!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I, 9: J, 10: K, 11: L, 12: M);
+
 #[cfg(feature = "test")]
 pub mod test_commutative {
     use std::fmt::Debug;
@@ -135,6 +154,7 @@ pub mod test_commutative {
     pub fn assert_commutative_impl<T: Commutative + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
         assert_commutative_law(a.clone(), b.clone(), c.clone());
         assert_commutative_reverse(a.clone(), b.clone(), c.clone());
+        assert_commutative_tuple(a.clone(), b.clone(), c.clone());
     }
 
     pub fn assert_commutative_law<T: Commutative + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
@@ -170,5 +190,16 @@ pub mod test_commutative {
             Semigroup::op(c.clone(), a.clone()),
             Reversible::rev_op(c.clone(), a.clone())
         );
+    }
+
+    pub fn assert_commutative_tuple<T: Commutative + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
+        let abc = (a.clone(), b.clone(), c.clone());
+        let bca = (b.clone(), c.clone(), a.clone());
+        let cab = (c.clone(), a.clone(), b.clone());
+
+        let (a_b_c, b_c_a, c_a_b) = abc.semigroup(bca).semigroup(cab);
+        assert_eq!(a_b_c, b_c_a);
+        assert_eq!(b_c_a, c_a_b);
+        assert_eq!(c_a_b, a_b_c);
     }
 }

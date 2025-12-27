@@ -137,6 +137,29 @@ impl<T: Semigroup> Op<Option<T>> for OptionMonoid<T> {
     }
 }
 
+macro_rules! impl_tuple_monoid {
+    ($($idx:tt: $t:tt),+) => {
+        impl<$($t: $crate::Monoid),+> $crate::Monoid for ($($t,)+) {
+            fn identity() -> Self {
+                ($($t::identity(),)+)
+            }
+        }
+    };
+}
+impl_tuple_monoid!(0: A);
+impl_tuple_monoid!(0: A, 1: B);
+impl_tuple_monoid!(0: A, 1: B, 2: C);
+impl_tuple_monoid!(0: A, 1: B, 2: C, 3: D);
+impl_tuple_monoid!(0: A, 1: B, 2: C, 3: D, 4: E);
+impl_tuple_monoid!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F);
+impl_tuple_monoid!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G);
+impl_tuple_monoid!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H);
+impl_tuple_monoid!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I);
+impl_tuple_monoid!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I, 9: J);
+impl_tuple_monoid!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I, 9: J, 10: K);
+impl_tuple_monoid!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I, 9: J, 10: K, 11: L);
+impl_tuple_monoid!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I, 9: J, 10: K, 11: L, 12: M);
+
 #[cfg(feature = "test")]
 pub mod test_monoid {
     use std::fmt::Debug;
@@ -216,6 +239,7 @@ pub mod test_monoid {
     pub fn assert_monoid_impl<T: Monoid + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
         assert_monoid_identity_associative_law(a.clone(), b.clone(), c.clone());
         assert_combine_iter_monoid(a.clone(), b.clone(), c.clone());
+        assert_monoid_tuple(a.clone(), b.clone(), c.clone());
     }
 
     pub fn assert_option_monoid<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
@@ -242,5 +266,15 @@ pub mod test_monoid {
         assert_associative_law(Monoid::identity(), b.clone(), c.clone());
         assert_associative_law(a.clone(), Monoid::identity(), c.clone());
         assert_associative_law(a.clone(), b.clone(), Monoid::identity());
+    }
+    pub fn assert_monoid_tuple<T: Monoid + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
+        let abi = (a.clone(), b.clone(), Monoid::identity());
+        let cib = (c.clone(), Monoid::identity(), b.clone());
+        let ica = (Monoid::identity(), c.clone(), a.clone());
+
+        let (a_c_i, b_i_c, i_b_a) = abi.semigroup(cib).semigroup(ica);
+        assert_eq!(a_c_i, a.clone().semigroup(c.clone()));
+        assert_eq!(b_i_c, b.clone().semigroup(c.clone()));
+        assert_eq!(i_b_a, b.clone().semigroup(a.clone()));
     }
 }
