@@ -154,6 +154,7 @@ pub mod test_commutative {
     pub fn assert_commutative_impl<T: Commutative + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
         assert_commutative_law(a.clone(), b.clone(), c.clone());
         assert_commutative_reverse(a.clone(), b.clone(), c.clone());
+        assert_commutative_tuple(a.clone(), b.clone(), c.clone());
     }
 
     pub fn assert_commutative_law<T: Commutative + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
@@ -189,5 +190,16 @@ pub mod test_commutative {
             Semigroup::op(c.clone(), a.clone()),
             Reversible::rev_op(c.clone(), a.clone())
         );
+    }
+
+    pub fn assert_commutative_tuple<T: Commutative + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
+        let abc = (a.clone(), b.clone(), c.clone());
+        let bca = (b.clone(), c.clone(), a.clone());
+        let cab = (c.clone(), a.clone(), b.clone());
+
+        let (a_b_c, b_c_a, c_a_b) = abc.semigroup(bca).semigroup(cab);
+        assert_eq!(a_b_c, b_c_a);
+        assert_eq!(b_c_a, c_a_b);
+        assert_eq!(c_a_b, a_b_c);
     }
 }
