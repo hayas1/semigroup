@@ -239,6 +239,7 @@ pub mod test_monoid {
     pub fn assert_monoid_impl<T: Monoid + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
         assert_monoid_identity_associative_law(a.clone(), b.clone(), c.clone());
         assert_combine_iter_monoid(a.clone(), b.clone(), c.clone());
+        assert_monoid_tuple(a.clone(), b.clone(), c.clone());
     }
 
     pub fn assert_option_monoid<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
@@ -265,5 +266,15 @@ pub mod test_monoid {
         assert_associative_law(Monoid::identity(), b.clone(), c.clone());
         assert_associative_law(a.clone(), Monoid::identity(), c.clone());
         assert_associative_law(a.clone(), b.clone(), Monoid::identity());
+    }
+    pub fn assert_monoid_tuple<T: Monoid + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
+        let abi = (a.clone(), b.clone(), Monoid::identity());
+        let cib = (c.clone(), Monoid::identity(), b.clone());
+        let ica = (Monoid::identity(), c.clone(), a.clone());
+
+        let (a_c_i, b_i_c, i_b_a) = abi.semigroup(cib).semigroup(ica);
+        assert_eq!(a_c_i, a.clone().semigroup(c.clone()));
+        assert_eq!(b_i_c, b.clone().semigroup(c.clone()));
+        assert_eq!(i_b_a, b.clone().semigroup(a.clone()));
     }
 }
