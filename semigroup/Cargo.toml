@@ -17,7 +17,7 @@ histogram = ["dep:hdrhistogram"]
 async = ["dep:futures"]
 
 [dependencies]
-semigroup_derive = { version = "0.4", path = "../semigroup_derive" }
+semigroup_derive = { version = "0.5", path = "../semigroup_derive" }
 serde = { version = "1", features = ["derive"], optional = true }
 num = { version = "0.4", optional = true }
 rand = { version = "0.9", optional = true }
