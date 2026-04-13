@@ -458,5 +458,5 @@ mod tests {
         assert_eq!(result2.value(), &Dual(Coalesce(Some(1))));
         assert_eq!(result2.annotation(), &"first");
     }
-
 }
+
