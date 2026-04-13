@@ -458,4 +458,31 @@ mod tests {
         assert_eq!(result2.value(), &Dual(Coalesce(Some(1))));
         assert_eq!(result2.annotation(), &"first");
     }
+
+    #[test]
+    fn test_dual_with_derive() {
+        use semigroup_derive::SemigroupPriv;
+
+        #[derive(Debug, Clone, PartialEq, SemigroupPriv)]
+        struct Config {
+            // Normal Coalesce: first non-None wins
+            pub normal: Coalesce<u32>,
+            // Reversed via Dual: last non-None wins
+            #[semigroup(with = "crate::Dual")]
+            pub reversed: Coalesce<u32>,
+        }
+
+        let a = Config {
+            normal: Coalesce(Some(1)),
+            reversed: Coalesce(Some(1)),
+        };
+        let b = Config {
+            normal: Coalesce(Some(2)),
+            reversed: Coalesce(Some(2)),
+        };
+
+        let result = Semigroup::op(a, b);
+        assert_eq!(result.normal, Coalesce(Some(1))); // first wins
+        assert_eq!(result.reversed, Coalesce(Some(2))); // last wins (reversed)
+    }
 }
