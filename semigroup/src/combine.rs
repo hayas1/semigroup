@@ -32,6 +32,14 @@ pub trait CombineIterator: Sized + Iterator {
 
     /// Folds every [`Semigroup`] element in reverse order using [`Dual`]. Given argument is the final value.
     ///
+    /// A left fold over [`Dual`]`<T>` elements computes a right fold over `T` elements.
+    /// This works because [`Dual`]`::op(a, b) = T::op(b, a)` reverses the argument order,
+    /// turning left-associativity into right-associativity:
+    ///
+    /// `fold_final([a, b, c], fin)` = `op(op(op(a, b), c), fin)` (left fold)
+    ///
+    /// `rfold_final([a, b, c], fin)` = `T::op(c, T::op(b, T::op(a, fin)))` (right fold)
+    ///
     /// # Examples
     /// ```
     /// use semigroup::{op::Coalesce, CombineIterator, Semigroup};
@@ -71,6 +79,8 @@ pub trait CombineIterator: Sized + Iterator {
     }
 
     /// This method like [`CombineIterator::rfold_final`], but no argument is required and return [`Option`].
+    ///
+    /// See [`CombineIterator::rfold_final`] for why a left fold over [`Dual`] computes a right fold.
     ///
     /// # Example
     /// ```
@@ -112,6 +122,8 @@ pub trait CombineIterator: Sized + Iterator {
     }
 
     /// This method like [`CombineIterator::rfold_final`], but no argument is required.
+    ///
+    /// See [`CombineIterator::rfold_final`] for why a left fold over [`Dual`] computes a right fold.
     ///
     /// # Examples
     /// ```
