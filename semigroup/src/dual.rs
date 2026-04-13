@@ -151,12 +151,19 @@ mod tests {
         assert_eq!(Semigroup::op(a, b), Coalesce(Some(1)));
 
         // Dual<Coalesce>: last non-None wins (reversed)
-        assert_eq!(Semigroup::op(Dual(a), Dual(b)).into_inner(), Coalesce(Some(2)));
+        assert_eq!(
+            Semigroup::op(Dual(a), Dual(b)).into_inner(),
+            Coalesce(Some(2))
+        );
     }
 
     #[test]
     fn test_dual_semigroup() {
-        let (a, b, c) = (Dual(Coalesce(Some(1u32))), Dual(Coalesce(Some(2))), Dual(Coalesce(Some(3))));
+        let (a, b, c) = (
+            Dual(Coalesce(Some(1u32))),
+            Dual(Coalesce(Some(2))),
+            Dual(Coalesce(Some(3))),
+        );
         crate::assert_semigroup!(a, b, c);
     }
 
@@ -167,7 +174,9 @@ mod tests {
 
         // Dual<Dual<T>> should behave the same as T
         assert_eq!(
-            Semigroup::op(Dual(Dual(a)), Dual(Dual(b))).into_inner().into_inner(),
+            Semigroup::op(Dual(Dual(a)), Dual(Dual(b)))
+                .into_inner()
+                .into_inner(),
             Semigroup::op(a, b),
         );
     }
@@ -175,7 +184,11 @@ mod tests {
     #[test]
     #[cfg(feature = "monoid")]
     fn test_dual_monoid() {
-        let (a, b, c) = (Dual(Coalesce(Some(1u32))), Dual(Coalesce(Some(2))), Dual(Coalesce(Some(3))));
+        let (a, b, c) = (
+            Dual(Coalesce(Some(1u32))),
+            Dual(Coalesce(Some(2))),
+            Dual(Coalesce(Some(3))),
+        );
         crate::assert_monoid!(a, b, c);
     }
 

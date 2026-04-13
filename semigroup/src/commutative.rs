@@ -175,11 +175,7 @@ pub mod test_commutative {
 
     /// Verifies that for a [`Commutative`] semigroup, `op(a, b) == Dual::op(Dual(a), Dual(b))`
     /// (i.e. reversing the arguments produces the same result).
-    pub fn assert_commutative_dual<T: Commutative + Clone + PartialEq + Debug>(
-        a: T,
-        b: T,
-        c: T,
-    ) {
+    pub fn assert_commutative_dual<T: Commutative + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
         use crate::Construction;
         assert_eq!(
             Semigroup::op(a.clone(), b.clone()),

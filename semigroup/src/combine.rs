@@ -151,7 +151,6 @@ pub trait CombineIterator: Sized + Iterator {
 }
 impl<I: Iterator> CombineIterator for I {}
 
-
 #[cfg(feature = "test")]
 pub mod test_combine {
     use std::fmt::Debug;
@@ -210,13 +209,15 @@ pub mod test_combine {
         );
     }
 
-    pub fn assert_dual_associative_law<T: Semigroup + Clone + PartialEq + Debug>(
-        a: T,
-        b: T,
-        c: T,
-    ) {
-        let ab_c = Semigroup::op(Semigroup::op(Dual(a.clone()), Dual(b.clone())), Dual(c.clone()));
-        let a_bc = Semigroup::op(Dual(a.clone()), Semigroup::op(Dual(b.clone()), Dual(c.clone())));
+    pub fn assert_dual_associative_law<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
+        let ab_c = Semigroup::op(
+            Semigroup::op(Dual(a.clone()), Dual(b.clone())),
+            Dual(c.clone()),
+        );
+        let a_bc = Semigroup::op(
+            Dual(a.clone()),
+            Semigroup::op(Dual(b.clone()), Dual(c.clone())),
+        );
         assert_eq!(ab_c, a_bc);
     }
 }
