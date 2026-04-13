@@ -72,9 +72,9 @@ assert_eq!(config.annotation().boolean, Source::Env);
 ```
 
 ## Highlights
-- `#[derive(Semigroup)]` and `#[derive(Construction)]`
+- `#[derive(Semigroup)]` and `#[derive(Op)]`
   - derive [`Semigroup`] implements *semigroup* for a struct by field level semantics.
-  - derive [`Construction`] defines a new *semigroup* operation (Some operations are already defined in [`crate::op`]).
+  - derive [`Op`] defines a new *semigroup* operation (Some operations are already defined in [`crate::op`]).
 - Practical *annotation* support
   - Some *semigroup* operations such as [`op::Coalesce`] can have an annotation that is represented by [`Annotate`] trait.
 - Combine multiple elements
@@ -86,7 +86,7 @@ assert_eq!(config.annotation().boolean, Source::Env);
 | :---: | :---: | :---: | :---: | :---: |
 | **property** | *associativity* | *annotation* | *identity element* | *commutativity* |
 | **`#[derive(Semigroup)]`** <br> **`#[semigroup(...)]`** | | `annotated` | `monoid` | `commutative` |
-| **`#[derive(Construction)]`** <br> **`#[construction(...)]`** | | `annotated` | `monoid` | `commutative` |
+| **`#[derive(Op)]`** <br> **`#[op(...)]`** | | `annotated` | `monoid` | `commutative` |
 | **testing** | [`assert_semigroup!`] |  | [`assert_monoid!`] | [`assert_commutative!`] |
 | **typical combiner** | [`CombineIterator`] | [`Lazy`] | [`SegmentTree`](`segment_tree::SegmentTree`) | [`CombineStream`] |
 
