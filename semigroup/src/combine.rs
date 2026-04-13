@@ -1,6 +1,6 @@
 use semigroup_derive::OpPriv;
 
-use crate::{Lazy, Op, Semigroup};
+use crate::{Annotate, Annotated, AnnotatedOp, AnnotatedSemigroup, Lazy, Op, Semigroup};
 
 /// Extensions for [`Iterator`]s that items implement [`Semigroup`].
 /// Composed of a variety of the 3 main methods
@@ -219,6 +219,10 @@ impl<I: Iterator> CombineIterator for I {}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[op(
+    annotated,
+    manual_op_impl,
+    manual_annotate_impl,
+    annotation_where = "T: crate::AnnotatedSemigroup<A>",
     monoid,
     identity = Self(T::identity()),
     monoid_where = "T: crate::Monoid",
@@ -226,6 +230,13 @@ impl<I: Iterator> CombineIterator for I {}
     commutative_where = "T: crate::Commutative"
 )]
 pub struct Dual<T: Semigroup>(pub T);
+
+impl<T: Semigroup, A> Annotate<A> for Dual<T> {
+    type Annotation = A;
+    fn annotated(self, annotation: A) -> Annotated<Self, A> {
+        Annotated::new(self, annotation)
+    }
+}
 
 impl<T: Semigroup> Op<T> for Dual<T> {
     /// Reversed operation: computes `*base = T::op(other, *base)`.
@@ -247,6 +258,34 @@ impl<T: Semigroup> Op<T> for Dual<T> {
         let old = unsafe { std::ptr::read(base) };
         let new_val = T::op(other, old);
         unsafe { std::ptr::write(base, new_val) };
+        std::mem::forget(_guard);
+    }
+}
+
+impl<T: AnnotatedSemigroup<A>, A> AnnotatedOp<T, A> for Dual<T> {
+    /// Reversed annotated operation: computes `*base = T::annotated_op(other, *base)`.
+    ///
+    /// Uses `ptr::read` / `ptr::write` to move both value and annotation out of `&mut`.
+    /// An abort-on-drop guard ensures soundness if `T::annotated_op` panics.
+    fn lift_annotated_op_assign(base: Annotated<&mut T, &mut A>, other: Annotated<T, A>) {
+        struct AbortOnDrop;
+        impl Drop for AbortOnDrop {
+            fn drop(&mut self) {
+                std::process::abort();
+            }
+        }
+        let _guard = AbortOnDrop;
+        let (base_val, base_ann) = base.into_parts();
+        // SAFETY: We immediately overwrite both slots with valid values via `ptr::write`.
+        // If `T::annotated_op` panics, `AbortOnDrop` aborts so neither slot is observed
+        // in its intermediate invalid state.
+        let old_val = unsafe { std::ptr::read(base_val) };
+        let old_ann = unsafe { std::ptr::read(base_ann) };
+        // Reversed: other op old_base (instead of old_base op other)
+        let result = T::annotated_op(other, Annotated::new(old_val, old_ann));
+        let (new_val, new_ann) = result.into_parts();
+        unsafe { std::ptr::write(base_val, new_val) };
+        unsafe { std::ptr::write(base_ann, new_ann) };
         std::mem::forget(_guard);
     }
 }
@@ -324,7 +363,7 @@ pub mod test_combine {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Construction, Semigroup, op::Coalesce};
+    use crate::{Annotate, AnnotatedSemigroup, Construction, Semigroup, op::Coalesce};
 
     use super::*;
 
@@ -386,5 +425,25 @@ mod tests {
         // lift_op_assign reverses the operands
         let result = Dual::<Coalesce<u32>>::lift_op(a, b);
         assert_eq!(result, Coalesce(Some(2)));
+    }
+
+    #[test]
+    fn test_dual_annotated_op() {
+        let a = Dual(Coalesce(Some(1u32))).annotated("first");
+        let b = Dual(Coalesce(Some(2u32))).annotated("second");
+
+        // Normal Dual<Coalesce> op(a, b): reverses Coalesce so last non-None wins → Some(2)
+        // Annotation should follow the winning value → "second"
+        let result = AnnotatedSemigroup::annotated_op(a, b);
+        assert_eq!(result.value(), &Dual(Coalesce(Some(2))));
+        assert_eq!(result.annotation(), &"second");
+
+        // op(b, a): reverses Coalesce so last non-None wins → Some(1)
+        // Annotation should follow the winning value → "first"
+        let b2 = Dual(Coalesce(Some(2u32))).annotated("second");
+        let a2 = Dual(Coalesce(Some(1u32))).annotated("first");
+        let result2 = AnnotatedSemigroup::annotated_op(b2, a2);
+        assert_eq!(result2.value(), &Dual(Coalesce(Some(1))));
+        assert_eq!(result2.annotation(), &"first");
     }
 }

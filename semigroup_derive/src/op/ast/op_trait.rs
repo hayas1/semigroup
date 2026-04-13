@@ -51,7 +51,7 @@ impl<'a> OpTrait<'a> {
             ..
         } = self;
 
-        attr.is_annotated().then(|| {
+        (attr.is_annotated() && attr.gen_op_impl()).then(|| {
             let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
             let unit_annotation = attr.unit_annotation();
             parse_quote! {

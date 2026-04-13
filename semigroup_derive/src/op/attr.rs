@@ -25,6 +25,8 @@ pub struct ContainerAttr {
     annotation_where: Option<String>, // TODO Vec
     #[darling(default)]
     manual_annotate_impl: bool,
+    #[darling(default)]
+    manual_op_impl: bool,
 
     #[darling(default)]
     hidden_inner: bool,
@@ -40,6 +42,7 @@ impl ContainerAttr {
             annotation_type_param,
             annotation_where,
             manual_annotate_impl,
+            manual_op_impl,
             monoid,
             identity,
             monoid_where,
@@ -57,6 +60,8 @@ impl ContainerAttr {
                 Some(var_name!(annotation_where))
             } else if *manual_annotate_impl {
                 Some(var_name!(manual_annotate_impl))
+            } else if *manual_op_impl {
+                Some(var_name!(manual_op_impl))
             } else {
                 None
             };
@@ -144,6 +149,9 @@ impl ContainerAttr {
     }
     pub fn gen_annotate_impl(&self) -> bool {
         !self.manual_annotate_impl
+    }
+    pub fn gen_op_impl(&self) -> bool {
+        !self.manual_op_impl
     }
 
     pub fn open_inner(&self) -> bool {
