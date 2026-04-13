@@ -110,7 +110,6 @@ mod commutative;
 #[cfg(feature = "async")]
 mod concurrent;
 mod construction;
-mod dual;
 mod lazy;
 #[cfg(feature = "monoid")]
 mod monoid;
@@ -123,9 +122,7 @@ mod semigroup;
 pub use self::concurrent::*;
 #[cfg(feature = "monoid")]
 pub use self::monoid::*;
-pub use self::{
-    annotate::*, combine::*, commutative::*, construction::*, dual::*, lazy::*, semigroup::*,
-};
+pub use self::{annotate::*, combine::*, commutative::*, construction::*, lazy::*, semigroup::*};
 
 #[cfg(feature = "derive")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "derive")))]
