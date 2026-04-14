@@ -198,6 +198,31 @@ impl<I: Iterator> CombineIterator for I {}
 /// assert_eq!(a.semigroup(b), Config { value: Coalesce(Some(2)) });
 /// ```
 ///
+/// Use `#[semigroup(with = "Dual(Op(_))")]` to keep the field as a plain inner type while
+/// composing [`Dual`] with an `Op` wrapper inline.  The `_` is a placeholder for the field value.
+///
+/// ```
+/// use semigroup::{Dual, Semigroup};
+/// use semigroup::op::Coalesce;
+///
+/// /// Config whose `value` field is a plain `Option<u32>` (no wrapper type in the struct).
+/// #[derive(Debug, Clone, PartialEq, Semigroup)]
+/// pub struct Config {
+///     /// Use Coalesce semantics reversed by Dual: last `Some` wins.
+///     #[semigroup(with = "Dual(Coalesce(_))")]
+///     pub value: Option<u32>,
+/// }
+///
+/// let a = Config { value: Some(1) };
+/// let b = Config { value: Some(2) };
+/// // Normal Coalesce keeps first Some, Dual reverses it → last Some wins
+/// assert_eq!(a.semigroup(b), Config { value: Some(2) });
+///
+/// let c = Config { value: None };
+/// let d = Config { value: Some(3) };
+/// assert_eq!(c.semigroup(d), Config { value: Some(3) });
+/// ```
+///
 /// # Examples
 /// ## Reversing a non-commutative operation
 /// ```

@@ -1,5 +1,5 @@
 use darling::{FromDeriveInput, FromField};
-use syn::{DeriveInput, Expr, Field, Ident, Path, WherePredicate, parse_quote};
+use syn::{DeriveInput, Expr, Field, Ident, WherePredicate, parse_quote};
 
 use crate::{annotation::Annotation, constant::Constant, error::SemigroupError, name::var_name};
 
@@ -20,7 +20,7 @@ pub struct ContainerAttr {
     commutative: bool,
     commutative_where: Option<String>, // TODO Vec
 
-    with: Option<Path>,
+    with: Option<Expr>,
     annotation_param: Option<Ident>,
 }
 impl ContainerAttr {
@@ -122,13 +122,13 @@ impl ContainerAttr {
 #[derive(Debug, Clone, FromField)]
 #[darling(attributes(semigroup))]
 pub struct FieldAttr {
-    with: Option<Path>,
+    with: Option<Expr>,
 }
 impl FieldAttr {
     pub fn new(field: &Field) -> syn::Result<Self> {
         Ok(Self::from_field(field)?)
     }
-    pub fn with<'a>(&'a self, container: &'a ContainerAttr) -> Option<&'a Path> {
+    pub fn with<'a>(&'a self, container: &'a ContainerAttr) -> Option<&'a Expr> {
         self.with.as_ref().or(container.with.as_ref())
     }
 }
