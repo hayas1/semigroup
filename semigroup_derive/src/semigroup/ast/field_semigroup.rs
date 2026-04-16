@@ -1,8 +1,8 @@
+use syn::punctuated::Punctuated;
 use syn::{
     AngleBracketedGenericArguments, DeriveInput, Expr, Field, FieldValue, Fields, GenericArgument,
     Member, PathArguments, Stmt, Type, TypePath, parse_quote,
 };
-use syn::punctuated::Punctuated;
 
 use crate::{
     constant::Constant,
@@ -73,7 +73,7 @@ fn expr_to_type(expr: &Expr) -> Option<Type> {
 }
 
 /// Build `expr.into_inner().into_inner()...` (`depth` times).
-fn build_unwrap_expr(base: Expr, depth: usize) -> Expr {
+fn build_into_inner_expr(base: Expr, depth: usize) -> Expr {
     (0..depth).fold(base, |acc: Expr, _| parse_quote! { #acc.into_inner() })
 }
 
@@ -138,13 +138,16 @@ impl<'a> FieldSemigroupOp<'a> {
             Some(expr) => {
                 // Constructor expression, e.g. `Dual(Coalesce(_))`:
                 // wrap both values, run Semigroup::op_assign, unwrap the result.
-                let Constant { path_construction_trait, .. } = self.constant;
+                let Constant {
+                    path_construction_trait,
+                    ..
+                } = self.constant;
                 let base_accessor: Expr = parse_quote! { base.#member };
                 let other_accessor: Expr = parse_quote! { other.#member };
                 let base_wrapped = substitute_infer(expr.clone(), &base_accessor);
                 let other_wrapped = substitute_infer(expr.clone(), &other_accessor);
                 let depth = count_wrap_depth(expr);
-                let unwrap_expr = build_unwrap_expr(parse_quote! { __semigroup_base }, depth);
+                let unwrap_expr = build_into_inner_expr(parse_quote! { __semigroup_base }, depth);
                 parse_quote! {
                     {
                         use #path_construction_trait;
@@ -182,11 +185,13 @@ impl<'a> FieldSemigroupOp<'a> {
             Some(expr) => {
                 // Constructor expression: call Monoid::identity() on the wrapped type,
                 // then unwrap back to the field type.
-                let Constant { path_construction_trait, .. } = self.constant;
+                let Constant {
+                    path_construction_trait,
+                    ..
+                } = self.constant;
                 let wrapped_ty = expr_to_type(expr).expect("with expr must be a constructor call");
                 let depth = count_wrap_depth(expr);
-                let unwrap_expr =
-                    build_unwrap_expr(parse_quote! { __monoid_identity }, depth);
+                let unwrap_expr = build_into_inner_expr(parse_quote! { __monoid_identity }, depth);
                 parse_quote! {
                     #member: {
                         use #path_construction_trait;
@@ -282,14 +287,16 @@ impl<'a> FieldAnnotatedOp<'a> {
             }
             Some(expr) => {
                 // Constructor expression: wrap the value, run annotated_op_assign, unwrap.
-                let Constant { path_construction_trait, .. } = constant;
+                let Constant {
+                    path_construction_trait,
+                    ..
+                } = constant;
                 let base_accessor: Expr = parse_quote! { base_value.#member };
                 let other_accessor: Expr = parse_quote! { other_value.#member };
                 let base_wrapped = substitute_infer(expr.clone(), &base_accessor);
                 let other_wrapped = substitute_infer(expr.clone(), &other_accessor);
                 let depth = count_wrap_depth(expr);
-                let unwrap_expr =
-                    build_unwrap_expr(parse_quote! { __annotated_base }, depth);
+                let unwrap_expr = build_into_inner_expr(parse_quote! { __annotated_base }, depth);
                 parse_quote! {
                     {
                         use #path_construction_trait;
