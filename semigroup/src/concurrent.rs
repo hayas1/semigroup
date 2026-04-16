@@ -90,7 +90,7 @@ pub trait CombineStream: Sized + Stream {
 
     /// This method like [`crate::CombineIterator::lreduce`], but stream.
     ///
-    /// # Example
+    /// # Examples
     /// ```
     /// # futures::executor::block_on(async {
     /// use futures::StreamExt;
@@ -125,7 +125,7 @@ pub trait CombineStream: Sized + Stream {
 
     /// This method like [`crate::CombineIterator::combine`], but stream.
     ///
-    /// # Example
+    /// # Examples
     /// ```
     /// # futures::executor::block_on(async {
     /// use futures::StreamExt;
@@ -234,7 +234,7 @@ pub trait TryCombineStream: Sized + TryStream {
 
     /// This method like [`crate::CombineIterator::lreduce`], but stream.
     ///
-    /// # Example
+    /// # Examples
     /// ```
     /// # futures::executor::block_on(async {
     /// use std::convert::Infallible;
@@ -269,7 +269,7 @@ pub trait TryCombineStream: Sized + TryStream {
     }
     /// This method like [`crate::CombineIterator::combine`], but stream.
     ///
-    /// # Example
+    /// # Examples
     /// ```
     /// # futures::executor::block_on(async {
     /// use std::convert::Infallible;

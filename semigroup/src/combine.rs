@@ -1,6 +1,8 @@
-use semigroup_derive::OpPriv;
+use semigroup_derive::{OpPriv, properties_priv};
 
-use crate::{Annotate, Annotated, AnnotatedOp, AnnotatedSemigroup, Lazy, Op, Semigroup};
+use crate::{
+    Annotate, Annotated, AnnotatedOp, AnnotatedSemigroup, Construction, Lazy, Op, Semigroup,
+};
 
 /// Extensions for [`Iterator`]s that items implement [`Semigroup`].
 /// Composed of a variety of the 3 main methods
@@ -32,14 +34,6 @@ pub trait CombineIterator: Sized + Iterator {
 
     /// Folds every [`Semigroup`] element in reverse order using [`Dual`]. Given argument is the final value.
     ///
-    /// A left fold over [`Dual`]`<T>` elements computes a right fold over `T` elements.
-    /// This works because [`Dual`]`::op(a, b) = T::op(b, a)` reverses the argument order,
-    /// turning left-associativity into right-associativity:
-    ///
-    /// `fold_final([a, b, c], fin)` = `op(op(op(a, b), c), fin)` (left fold)
-    ///
-    /// `rfold_final([a, b, c], fin)` = `T::op(c, T::op(b, T::op(a, fin)))` (right fold)
-    ///
     /// # Examples
     /// ```
     /// use semigroup::{op::Coalesce, CombineIterator, Semigroup};
@@ -53,13 +47,12 @@ pub trait CombineIterator: Sized + Iterator {
     where
         Self::Item: Semigroup,
     {
-        use crate::Construction;
         self.map(Dual).fold(Dual(fin), Semigroup::op).into_inner()
     }
 
     /// This method like [`CombineIterator::fold_final`], but no argument is required and return [`Option`].
     ///
-    /// # Example
+    /// # Examples
     /// ```
     /// use semigroup::{op::Coalesce, CombineIterator, Semigroup};
     /// let v1 = vec![Coalesce(None), Coalesce(Some(2)), Coalesce(Some(3))];
@@ -80,9 +73,7 @@ pub trait CombineIterator: Sized + Iterator {
 
     /// This method like [`CombineIterator::rfold_final`], but no argument is required and return [`Option`].
     ///
-    /// See [`CombineIterator::rfold_final`] for why a left fold over [`Dual`] computes a right fold.
-    ///
-    /// # Example
+    /// # Examples
     /// ```
     /// use semigroup::{op::Coalesce, CombineIterator, Semigroup};
     /// let v1 = vec![Coalesce(None), Coalesce(Some(2)), Coalesce(Some(3))];
@@ -98,7 +89,6 @@ pub trait CombineIterator: Sized + Iterator {
     where
         Self::Item: Semigroup,
     {
-        use crate::Construction;
         self.map(Dual).reduce(Semigroup::op).map(Dual::into_inner)
     }
 
@@ -122,8 +112,6 @@ pub trait CombineIterator: Sized + Iterator {
     }
 
     /// This method like [`CombineIterator::rfold_final`], but no argument is required.
-    ///
-    /// See [`CombineIterator::rfold_final`] for why a left fold over [`Dual`] computes a right fold.
     ///
     /// # Examples
     /// ```
@@ -165,39 +153,34 @@ pub trait CombineIterator: Sized + Iterator {
 }
 impl<I: Iterator> CombineIterator for I {}
 
-/// `Dual<T>` is a wrapper type that reverses the [`Semigroup`] operation of `T`.
+/// [`Dual`] provides a reverse operation of [`Semigroup`], `op(Dual(a), Dual(b)) = op(b, a)`.
 ///
-/// If `T: Semigroup` with operation `op(a, b)`, then `Dual<T>` has operation `op(b, a)`.
+/// The [`Dual`] of a [`Commutative`](crate::Commutative) semigroup is the same semigroup, since `op(a, b) = op(b, a)` by definition.
 ///
-/// This is analogous to `Dual` in Haskell's `Data.Monoid`.
+/// [`Dual`] can be used to calculate right fold by left fold algorithm.
+/// This works because `Dual::op(a, b) = T::op(b, a)` reverses the argument order, turning left-associativity into right-associativity:
+/// - `left_fold([a, b, c])` = `op(op(a, b), c)`
+/// - `right_fold([a, b, c])` = `op(c, op(b, a))` = `op(op(Dual(a), Dual(b)), Dual(c))`
 ///
-/// The `Dual` of a [`crate::Monoid`] is also a `Monoid` with the same identity element,
-/// since `op(identity, a) = a = op(a, identity)` implies the same for the reversed operation.
+/// # Properties
+/// <!-- properties -->
 ///
-/// The `Dual` of a [`crate::Commutative`] semigroup is the same semigroup,
-/// since `op(a, b) = op(b, a)` by definition.
-///
-/// # Using with `#[derive(Semigroup)]`
-/// Use `#[semigroup(with = "Dual")]` on a field whose type is already a [`crate::Construction`]
-/// type (e.g. `Coalesce<T>`, `Overwrite<T>`, `Sum<T>`) to reverse its operation.
-///
+/// # Examples
+/// ## Reversing a non-commutative operation
 /// ```
-/// use semigroup::{Dual, Semigroup};
-/// use semigroup::op::{Coalesce, Overwrite};
+/// use semigroup::{op::Coalesce, Dual, Semigroup, Construction};
 ///
-/// #[derive(Debug, Clone, PartialEq, Semigroup)]
-/// pub struct Config {
-///     /// Last writer wins (reversed Coalesce = Overwrite semantics)
-///     #[semigroup(with = "Dual")]
-///     pub value: Coalesce<u32>,
-/// }
+/// let a = Coalesce(Some(1));
+/// let b = Coalesce(Some(2));
 ///
-/// let a = Config { value: Coalesce(Some(1)) };
-/// let b = Config { value: Coalesce(Some(2)) };
-/// // Normal Coalesce would keep Some(1), but Dual reverses it to keep Some(2)
-/// assert_eq!(a.semigroup(b), Config { value: Coalesce(Some(2)) });
+/// // Normal Coalesce: takes first non-None
+/// assert_eq!(Semigroup::op(a, b), Coalesce(Some(1)));
+///
+/// // Dual<Coalesce>: reverses Coalesce, takes last non-None
+/// assert_eq!(Semigroup::op(Dual(a), Dual(b)).into_inner(), Coalesce(Some(2)));
 /// ```
 ///
+/// ## Using with `#[derive(Semigroup)]`
 /// Use `#[semigroup(with = "Dual(Op(_))")]` to keep the field as a plain inner type while
 /// composing [`Dual`] with an `Op` wrapper inline.  The `_` is a placeholder for the field value.
 ///
@@ -222,56 +205,33 @@ impl<I: Iterator> CombineIterator for I {}
 /// let d = Config { value: Some(3) };
 /// assert_eq!(c.semigroup(d), Config { value: Some(3) });
 /// ```
-///
-/// # Examples
-/// ## Reversing a non-commutative operation
-/// ```
-/// use semigroup::{op::Coalesce, Dual, Semigroup, Construction};
-///
-/// let a = Coalesce(Some(1));
-/// let b = Coalesce(Some(2));
-///
-/// // Normal Coalesce: takes first non-None
-/// assert_eq!(Semigroup::op(a, b), Coalesce(Some(1)));
-///
-/// // Dual<Coalesce>: reverses Coalesce, takes last non-None
-/// assert_eq!(Semigroup::op(Dual(a), Dual(b)).into_inner(), Coalesce(Some(2)));
-/// ```
-///
-/// ## Right fold via left fold
-/// ```
-/// # #[cfg(feature = "monoid")]
-/// # {
-/// use semigroup::{op::Coalesce, Dual, CombineIterator, Monoid, Semigroup};
-///
-/// let v = (1..100u32).map(Some).map(Coalesce).collect::<Vec<_>>();
-///
-/// // Left fold: first non-None wins → Some(1)
-/// assert_eq!(v.iter().cloned().combine(), Coalesce(Some(1)));
-///
-/// // Right fold via Dual: last non-None wins → Some(99)
-/// assert_eq!(v.iter().cloned().rcombine(), Coalesce(Some(99)));
-/// # }
-/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[op(
     annotated,
     manual_op_impl,
     manual_annotate_impl,
-    annotation_where = "T: crate::AnnotatedSemigroup<A>",
+    annotation_where = "T: crate::AnnotatedSemigroup<A> + Annotate<A>",
     monoid,
     identity = Self(T::identity()),
     monoid_where = "T: crate::Monoid",
     commutative,
     commutative_where = "T: crate::Commutative"
 )]
+#[properties_priv(
+    annotated,
+    annotation_where = "T: crate::AnnotatedSemigroup<A> + Annotate<A>",
+    monoid,
+    monoid_where = "T: crate::Monoid",
+    commutative,
+    commutative_where = "T: crate::Commutative"
+)]
 pub struct Dual<T: Semigroup>(pub T);
 
-impl<T: Semigroup, A> Annotate<A> for Dual<T> {
-    type Annotation = A;
-    fn annotated(self, annotation: A) -> Annotated<Self, A> {
-        Annotated::new(self, annotation)
+impl<T: Semigroup + Annotate<A>, A> Annotate<A> for Dual<T> {
+    type Annotation = T::Annotation;
+    fn annotated(self, annotation: Self::Annotation) -> Annotated<Self, A> {
+        self.into_inner().annotated(annotation).map(Self)
     }
 }
 
@@ -292,14 +252,14 @@ impl<T: Semigroup> Op<T> for Dual<T> {
         // SAFETY: We immediately overwrite `base` with a valid value via `ptr::write`.
         // If `T::op` panics, `AbortOnDrop` aborts the process so `*base` is never
         // observed in its intermediate invalid state.
-        let old = unsafe { std::ptr::read(base) };
-        let new_val = T::op(other, old);
-        unsafe { std::ptr::write(base, new_val) };
+        let base_owned = unsafe { std::ptr::read(base) };
+        let result = Semigroup::op(other, base_owned);
+        unsafe { std::ptr::write(base, result) };
         std::mem::forget(_guard);
     }
 }
 
-impl<T: AnnotatedSemigroup<A>, A> AnnotatedOp<T, A> for Dual<T> {
+impl<T: AnnotatedSemigroup<A> + Annotate<A>, A> AnnotatedOp<T, A> for Dual<T> {
     /// Reversed annotated operation: computes `*base = T::annotated_op(other, *base)`.
     ///
     /// Uses `ptr::read` / `ptr::write` to move both value and annotation out of `&mut`.
@@ -316,13 +276,15 @@ impl<T: AnnotatedSemigroup<A>, A> AnnotatedOp<T, A> for Dual<T> {
         // SAFETY: We immediately overwrite both slots with valid values via `ptr::write`.
         // If `T::annotated_op` panics, `AbortOnDrop` aborts so neither slot is observed
         // in its intermediate invalid state.
-        let old_val = unsafe { std::ptr::read(base_val) };
-        let old_ann = unsafe { std::ptr::read(base_ann) };
-        // Reversed: other op old_base (instead of old_base op other)
-        let result = T::annotated_op(other, Annotated::new(old_val, old_ann));
+        let (base_val_owned, base_ann_owned) =
+            unsafe { (std::ptr::read(base_val), std::ptr::read(base_ann)) };
+        let base_owned = Annotated::new(base_val_owned, base_ann_owned);
+        let result = Semigroup::op(other, base_owned);
         let (new_val, new_ann) = result.into_parts();
-        unsafe { std::ptr::write(base_val, new_val) };
-        unsafe { std::ptr::write(base_ann, new_ann) };
+        unsafe {
+            std::ptr::write(base_val, new_val);
+            std::ptr::write(base_ann, new_ann);
+        };
         std::mem::forget(_guard);
     }
 }
@@ -366,11 +328,11 @@ pub mod test_combine {
 
     pub fn assert_semigroup_dual<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
         assert_dual_reverse(a.clone(), b.clone(), c.clone());
+        assert_dual_dual_original(a.clone(), b.clone(), c.clone());
         assert_dual_associative_law(a.clone(), b.clone(), c.clone());
     }
 
     pub fn assert_dual_reverse<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
-        use crate::Construction;
         assert_eq!(
             Semigroup::op(a.clone(), b.clone()),
             Semigroup::op(Dual(b.clone()), Dual(a.clone())).into_inner()
@@ -382,6 +344,27 @@ pub mod test_combine {
         assert_eq!(
             Semigroup::op(a.clone(), c.clone()),
             Semigroup::op(Dual(c.clone()), Dual(a.clone())).into_inner()
+        );
+    }
+
+    pub fn assert_dual_dual_original<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
+        assert_eq!(
+            Semigroup::op(a.clone(), b.clone()),
+            Semigroup::op(Dual(Dual(a.clone())), Dual(Dual(b.clone())))
+                .into_inner()
+                .into_inner()
+        );
+        assert_eq!(
+            Semigroup::op(b.clone(), c.clone()),
+            Semigroup::op(Dual(Dual(b.clone())), Dual(Dual(c.clone())))
+                .into_inner()
+                .into_inner()
+        );
+        assert_eq!(
+            Semigroup::op(c.clone(), a.clone()),
+            Semigroup::op(Dual(Dual(c.clone())), Dual(Dual(a.clone())))
+                .into_inner()
+                .into_inner()
         );
     }
 
@@ -397,91 +380,3 @@ pub mod test_combine {
         assert_eq!(ab_c, a_bc);
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use crate::{Annotate, AnnotatedSemigroup, Construction, Semigroup, op::Coalesce};
-
-    use super::*;
-
-    #[test]
-    fn test_dual_reverses_op() {
-        let a = Coalesce(Some(1u32));
-        let b = Coalesce(Some(2u32));
-
-        // Normal Coalesce: first non-None wins
-        assert_eq!(Semigroup::op(a, b), Coalesce(Some(1)));
-
-        // Dual<Coalesce>: last non-None wins (reversed)
-        assert_eq!(
-            Semigroup::op(Dual(a), Dual(b)).into_inner(),
-            Coalesce(Some(2))
-        );
-    }
-
-    #[test]
-    fn test_dual_semigroup() {
-        let (a, b, c) = (
-            Dual(Coalesce(Some(1u32))),
-            Dual(Coalesce(Some(2))),
-            Dual(Coalesce(Some(3))),
-        );
-        crate::assert_semigroup!(a, b, c);
-    }
-
-    #[test]
-    fn test_dual_dual_is_original() {
-        let a = Coalesce(Some(1u32));
-        let b = Coalesce(Some(2u32));
-
-        // Dual<Dual<T>> should behave the same as T
-        assert_eq!(
-            Semigroup::op(Dual(Dual(a)), Dual(Dual(b)))
-                .into_inner()
-                .into_inner(),
-            Semigroup::op(a, b),
-        );
-    }
-
-    #[test]
-    #[cfg(feature = "monoid")]
-    fn test_dual_monoid() {
-        let (a, b, c) = (
-            Dual(Coalesce(Some(1u32))),
-            Dual(Coalesce(Some(2))),
-            Dual(Coalesce(Some(3))),
-        );
-        crate::assert_monoid!(a, b, c);
-    }
-
-    #[test]
-    fn test_dual_lift_op() {
-        let a = Coalesce(Some(1u32));
-        let b = Coalesce(Some(2u32));
-
-        // lift_op_assign reverses the operands
-        let result = Dual::<Coalesce<u32>>::lift_op(a, b);
-        assert_eq!(result, Coalesce(Some(2)));
-    }
-
-    #[test]
-    fn test_dual_annotated_op() {
-        let a = Dual(Coalesce(Some(1u32))).annotated("first");
-        let b = Dual(Coalesce(Some(2u32))).annotated("second");
-
-        // Normal Dual<Coalesce> op(a, b): reverses Coalesce so last non-None wins → Some(2)
-        // Annotation should follow the winning value → "second"
-        let result = AnnotatedSemigroup::annotated_op(a, b);
-        assert_eq!(result.value(), &Dual(Coalesce(Some(2))));
-        assert_eq!(result.annotation(), &"second");
-
-        // op(b, a): reverses Coalesce so last non-None wins → Some(1)
-        // Annotation should follow the winning value → "first"
-        let b2 = Dual(Coalesce(Some(2u32))).annotated("second");
-        let a2 = Dual(Coalesce(Some(1u32))).annotated("first");
-        let result2 = AnnotatedSemigroup::annotated_op(b2, a2);
-        assert_eq!(result2.value(), &Dual(Coalesce(Some(1))));
-        assert_eq!(result2.annotation(), &"first");
-    }
-}
-
