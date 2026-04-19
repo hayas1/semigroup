@@ -26,8 +26,8 @@ mod tests {
     use super::*;
 
     #[rstest]
-    #[case::construction_annotated(
-        "construction_annotated",
+    #[case::op_annotated(
+        "op_annotated",
         impl_op::<External>,
         syn::parse_quote! {
             #[derive(Op)]
@@ -35,8 +35,8 @@ mod tests {
             pub struct Coalesce<T>(pub Option<T>);
         },
     )]
-    #[case::construction_not_annotated(
-        "construction_not_annotated",
+    #[case::op_not_annotated(
+        "op_not_annotated",
         impl_op::<Internal>,
         syn::parse_quote! {
             #[derive(OpPriv)]
@@ -44,8 +44,8 @@ mod tests {
             pub struct Sum<T: std::ops::Add>(pub T);
         },
     )]
-    #[case::construction_custom_annotation(
-        "construction_custom_annotation",
+    #[case::op_custom_annotation(
+        "op_custom_annotation",
         impl_op::<External>,
         syn::parse_quote! {
             #[derive(Op)]
@@ -59,7 +59,7 @@ mod tests {
             pub struct Concat<T: IntoIterator + FromIterator<T::Item>>(pub T);
         },
     )]
-    fn test_derive_construction_snapshot(
+    fn test_derive_op_snapshot(
         #[case] case: &str,
         #[case] f: impl Fn(&DeriveInput) -> syn::Result<TokenStream>,
         #[case] input: DeriveInput,
