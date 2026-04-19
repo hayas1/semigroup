@@ -4,9 +4,6 @@ use crate::{Annotate, Annotated, AnnotatedSemigroup, Semigroup};
 
 /// [`Construction`] represents [`crate::Semigroup`] as a [new type struct](https://doc.rust-lang.org/rust-by-example/generics/new_types.html).
 ///
-/// Use `#[derive(Op)]` to automatically implement this trait alongside [`Op`].
-/// The `#[op(...)]` attribute supports `annotated`, `monoid`, and `commutative` options.
-///
 /// # Examples
 /// Simple example see [`crate::Semigroup#construction`].
 pub trait Construction<T>: Sized + From<T> + Deref<Target = T> + DerefMut {
@@ -33,9 +30,7 @@ pub trait Construction<T>: Sized + From<T> + Deref<Target = T> + DerefMut {
 }
 pub trait Op<T>: Semigroup + Construction<T> {
     /// Assign-based semigroup operation on the inner type `T`.
-    ///
-    /// This is the core method to implement when defining a new [`Op`].
-    /// The result of combining `base` and `other` is stored back into `base`.
+    /// Required method for [`Op::lift_op`].
     fn lift_op_assign(base: &mut T, other: T);
 
     /// Semigroup operation between `base` and `other` with constructed type.
@@ -66,16 +61,9 @@ pub trait Op<T>: Semigroup + Construction<T> {
 }
 
 /// [`AnnotatedOp`] represents [`crate::AnnotatedSemigroup`] as a [new type struct](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) like [`Construction`].
-///
-/// Use `#[derive(Op)]` with `#[op(annotated)]` to automatically implement this trait.
-///
-/// # Examples
-/// Simple example see [`crate::Semigroup#construction`].
 pub trait AnnotatedOp<T, A>: Op<T> + AnnotatedSemigroup<A> + Annotate<A> {
-    /// Assign-based annotated semigroup operation on the inner types `T` and `A`.
-    ///
-    /// This is the core method to implement when defining an annotated [`Op`].
-    /// The result of combining `base` and `other` (including annotations) is stored back into `base`.
+    /// Assign-based annotated semigroup operation on the inner type `T`.
+    /// Required method for [`AnnotatedOp::lift_annotated_op`].
     fn lift_annotated_op_assign(base: Annotated<&mut T, &mut A>, other: Annotated<T, A>);
 
     /// Semigroup operation between `base` and `other` with constructed type.
@@ -110,8 +98,6 @@ pub trait AnnotatedOp<T, A>: Op<T> + AnnotatedSemigroup<A> + Annotate<A> {
 }
 
 /// [`MonoidOp`] represents [`crate::Monoid`] as a [new type struct](https://doc.rust-lang.org/rust-by-example/generics/new_types.html). like [`Construction`].
-///
-/// Use `#[derive(Op)]` with `#[op(monoid, identity = ...)]` to automatically implement this trait.
 ///
 /// # Examples
 /// Simple example see [`crate::Monoid#construction`].
