@@ -24,7 +24,10 @@ use crate::{Annotated, AnnotatedOp};
 pub struct Last<T>(pub T);
 impl<T, A> AnnotatedOp<T, A> for Last<T> {
     fn lift_annotated_op_assign(mut base: Annotated<&mut T, &mut A>, other: Annotated<T, A>) {
-        base.replace(other);
+        // Dual of First: Last::op(a, b) = First::op(b, a)
+        // Swap arguments, then apply First (which keeps its first argument)
+        let swapped = base.replace(other);
+        super::first::First::lift_annotated_op_assign(base, swapped);
     }
 }
 
