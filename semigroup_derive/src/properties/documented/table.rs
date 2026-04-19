@@ -50,7 +50,7 @@ impl<'a> PropertiesTable<'a> {
     }
     pub fn impl_row(&self) -> [&str; 3] {
         let Self { attr, .. } = self;
-        [attr.is_annotated(), attr.is_monoid(), attr.is_commutative()].map(Self::impl_cell)
+        [attr.is_idempotent(), attr.is_monoid(), attr.is_commutative()].map(Self::impl_cell)
     }
     pub fn impl_cell(is: bool) -> &'a str {
         if is { "✅" } else { "❌" }
@@ -59,7 +59,7 @@ impl<'a> PropertiesTable<'a> {
     pub fn where_row(&self) -> [String; 3] {
         let Self { attr, .. } = self;
         [
-            attr.annotation_where(),
+            attr.idempotent_where(),
             attr.monoid_where(),
             attr.commutative_where(),
         ]

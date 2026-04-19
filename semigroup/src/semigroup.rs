@@ -1,4 +1,24 @@
-use crate::Annotated;
+/// [`Selected`] indicates which operand was chosen by an [`Idempotent`] operation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Selected {
+    Base,
+    Other,
+}
+
+/// [`Idempotent`] represents a binary operation where the result always equals one of the
+/// two operands unchanged, i.e. `op(a, b) ∈ {a, b}` for all `a`, `b`.
+///
+/// This is an independent property from [`Semigroup`]: an idempotent operation need not be
+/// associative, and a semigroup need not be idempotent.  When a type is both a [`Semigroup`]
+/// and `Idempotent`, [`Annotated`](crate::Annotated) can track which operand was selected.
+///
+/// The [`Idempotent::select`] method declares which operand wins without performing any
+/// mutation; the [`Semigroup::op_assign`] implementation is responsible for the actual
+/// replacement.
+pub trait Idempotent {
+    /// Determine which operand the operation selects, without mutating either value.
+    fn select(base: &Self, other: &Self) -> Selected;
+}
 
 /// [`Semigroup`] represents a binary operation that satisfies the following properties
 /// 1. *Closure*: `op: T × T → T`
@@ -68,14 +88,6 @@ pub trait Semigroup: Sized {
     }
 }
 
-/// [`AnnotatedSemigroup`] is a [`Semigroup`] that has an annotation, such as [`crate::Annotate`].
-pub trait AnnotatedSemigroup<A>: Sized + Semigroup {
-    fn annotated_op_assign(base: Annotated<&mut Self, &mut A>, other: Annotated<Self, A>);
-    fn annotated_op(mut base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
-        AnnotatedSemigroup::annotated_op_assign(base.as_mut(), other);
-        base
-    }
-}
 
 macro_rules! impl_tuple_semigroup {
     ($($idx:tt: $t:tt),+) => {

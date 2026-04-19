@@ -1,8 +1,6 @@
 use semigroup_derive::{OpPriv, properties_priv};
 
-use crate::{
-    Annotate, Annotated, AnnotatedOp, AnnotatedSemigroup, Construction, Lazy, Op, Semigroup,
-};
+use crate::{Construction, Idempotent, Lazy, Op, Selected, Semigroup};
 
 /// Extensions for [`Iterator`]s that items implement [`Semigroup`].
 /// Composed of a variety of the 3 main methods
@@ -208,10 +206,7 @@ impl<I: Iterator> CombineIterator for I {}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[op(
-    annotated,
     manual_op_impl,
-    manual_annotate_impl,
-    annotation_where = "T: crate::AnnotatedSemigroup<A> + Annotate<A>",
     monoid,
     identity = Self(T::identity()),
     monoid_where = "T: crate::Monoid",
@@ -219,8 +214,8 @@ impl<I: Iterator> CombineIterator for I {}
     commutative_where = "T: crate::Commutative"
 )]
 #[properties_priv(
-    annotated,
-    annotation_where = "T: crate::AnnotatedSemigroup<A> + Annotate<A>",
+    idempotent,
+    idempotent_where = "T: crate::Semigroup + crate::Idempotent",
     monoid,
     monoid_where = "T: crate::Monoid",
     commutative,
@@ -228,10 +223,12 @@ impl<I: Iterator> CombineIterator for I {}
 )]
 pub struct Dual<T: Semigroup>(pub T);
 
-impl<T: Semigroup + Annotate<A>, A> Annotate<A> for Dual<T> {
-    type Annotation = T::Annotation;
-    fn annotated(self, annotation: Self::Annotation) -> Annotated<Self, A> {
-        self.into_inner().annotated(annotation).map(Self)
+impl<T: Semigroup + Idempotent> Idempotent for Dual<T> {
+    fn select(base: &Self, other: &Self) -> Selected {
+        match T::select(&other.0, &base.0) {
+            Selected::Base => Selected::Other,
+            Selected::Other => Selected::Base,
+        }
     }
 }
 
@@ -259,35 +256,6 @@ impl<T: Semigroup> Op<T> for Dual<T> {
     }
 }
 
-impl<T: AnnotatedSemigroup<A> + Annotate<A>, A> AnnotatedOp<T, A> for Dual<T> {
-    /// Reversed annotated operation: computes `*base = T::annotated_op(other, *base)`.
-    ///
-    /// Uses `ptr::read` / `ptr::write` to move both value and annotation out of `&mut`.
-    /// An abort-on-drop guard ensures soundness if `T::annotated_op` panics.
-    fn lift_annotated_op_assign(base: Annotated<&mut T, &mut A>, other: Annotated<T, A>) {
-        struct AbortOnDrop;
-        impl Drop for AbortOnDrop {
-            fn drop(&mut self) {
-                std::process::abort();
-            }
-        }
-        let _guard = AbortOnDrop;
-        let (base_val, base_ann) = base.into_parts();
-        // SAFETY: We immediately overwrite both slots with valid values via `ptr::write`.
-        // If `T::annotated_op` panics, `AbortOnDrop` aborts so neither slot is observed
-        // in its intermediate invalid state.
-        let (base_val_owned, base_ann_owned) =
-            unsafe { (std::ptr::read(base_val), std::ptr::read(base_ann)) };
-        let base_owned = Annotated::new(base_val_owned, base_ann_owned);
-        let result = Semigroup::op(other, base_owned);
-        let (new_val, new_ann) = result.into_parts();
-        unsafe {
-            std::ptr::write(base_val, new_val);
-            std::ptr::write(base_ann, new_ann);
-        };
-        std::mem::forget(_guard);
-    }
-}
 
 #[cfg(feature = "test")]
 pub mod test_combine {

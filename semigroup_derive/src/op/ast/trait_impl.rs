@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{DeriveInput, ItemImpl, parse_quote};
 
-use crate::{annotation::Annotation, constant::Constant, op::attr::ContainerAttr};
+use crate::{constant::Constant, op::attr::ContainerAttr};
 
 #[derive(Debug, Clone)]
 pub struct TraitImpl<'a> {
@@ -10,26 +10,21 @@ pub struct TraitImpl<'a> {
     derive: &'a DeriveInput,
 
     attr: &'a ContainerAttr,
-    annotation: Annotation,
 }
 impl ToTokens for TraitImpl<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.impl_semigroup().to_tokens(tokens);
-        self.impl_annotated_semigroup().to_tokens(tokens);
-        self.impl_annotate().to_tokens(tokens);
+        self.impl_idempotent().to_tokens(tokens);
         self.impl_monoid().to_tokens(tokens);
         self.impl_commutative().to_tokens(tokens);
     }
 }
 impl<'a> TraitImpl<'a> {
     pub fn new(constant: &'a Constant, derive: &'a DeriveInput, attr: &'a ContainerAttr) -> Self {
-        let annotation = attr.annotation(constant);
-
         Self {
             constant,
             derive,
             attr,
-            annotation,
         }
     }
 
@@ -61,68 +56,29 @@ impl<'a> TraitImpl<'a> {
         })
     }
 
-    pub fn impl_annotate(&self) -> Option<ItemImpl> {
+    pub fn impl_idempotent(&self) -> Option<ItemImpl> {
         let Self {
             constant:
                 Constant {
-                    path_annotate,
-                    path_annotated,
+                    path_idempotent,
+                    path_idempotent_op,
+                    path_selected,
                     ..
                 },
             derive: DeriveInput {
                 ident, generics, ..
             },
             attr,
-            annotation,
             ..
         } = self;
 
-        (attr.is_annotated() && attr.gen_annotate_impl()).then(|| {
-            let (_, ty_generics, _) = generics.split_for_impl();
-            let (impl_generics, annotated_type, where_clause) = annotation.split_for_impl(generics);
+        attr.is_idempotent().then(|| {
+            let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
             parse_quote! {
                 #[automatically_derived]
-                impl #impl_generics #path_annotate<#annotated_type> for #ident #ty_generics #where_clause {
-                    type Annotation = #annotated_type;
-                    fn annotated(self, annotation: Self::Annotation) -> #path_annotated<Self, #annotated_type> {
-                        #path_annotated::new(
-                            self,
-                            annotation,
-                        )
-                    }
-                }
-            }
-        })
-    }
-
-    pub fn impl_annotated_semigroup(&self) -> Option<ItemImpl> {
-        let Self {
-            constant:
-                Constant {
-                    path_annotated_op,
-                    path_annotated_semigroup,
-                    path_annotated,
-                    ..
-                },
-            derive: DeriveInput {
-                ident, generics, ..
-            },
-            attr,
-            annotation,
-            ..
-        } = self;
-
-        attr.is_annotated().then(|| {
-            let (_, ty_generics, _) = generics.split_for_impl();
-            let (impl_generics, annotated_type, where_clause) = annotation.split_for_impl(generics);
-            parse_quote! {
-                #[automatically_derived]
-                impl #impl_generics #path_annotated_semigroup<#annotated_type> for #ident #ty_generics #where_clause {
-                    fn annotated_op_assign(base: #path_annotated<&mut Self, &mut #annotated_type>, other: #path_annotated<Self, #annotated_type>) {
-                        <Self as #path_annotated_op<_, #annotated_type>>::lift_annotated_op_assign(
-                            base.map(|v| &mut v.0),
-                            other.map(|v| v.0),
-                        );
+                impl #impl_generics #path_idempotent for #ident #ty_generics #where_clause {
+                    fn select(base: &Self, other: &Self) -> #path_selected {
+                        <Self as #path_idempotent_op<_>>::lift_select(&base.0, &other.0)
                     }
                 }
             }

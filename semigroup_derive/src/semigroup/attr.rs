@@ -6,7 +6,7 @@ use syn::{
     PathArguments, Type, TypePath, WherePredicate, parse_quote,
 };
 
-use crate::{annotation::Annotation, constant::Constant, error::SemigroupError, name::var_name};
+use crate::{error::SemigroupError, name::var_name};
 
 #[derive(Debug, Clone, PartialEq, FromDeriveInput)]
 #[darling(attributes(semigroup), and_then = Self::validate)]
@@ -111,17 +111,6 @@ impl ContainerAttr {
             .map(|p| p.unwrap_or_else(|e| todo!("{e}")))
     }
 
-    pub fn annotation(&self, constant: &Constant, annotation_ident: &Ident) -> Annotation {
-        let a = self
-            .annotation_param
-            .as_ref()
-            .unwrap_or(&constant.default_type_param.ident);
-        Annotation::new(
-            parse_quote! { #a: Clone },
-            Some(parse_quote! { #annotation_ident<#a> }),
-            None,
-        )
-    }
 }
 
 #[derive(Debug, Clone, FromField)]
@@ -232,6 +221,7 @@ impl With<'_> {
     pub fn chain_into_inner(&self, base: Expr) -> Expr {
         (0..self.depth()).fold(base, |acc: Expr, _| parse_quote! { #acc.into_inner() })
     }
+
 }
 
 /// Replace every [`Expr::Infer`] (`_`) placeholder inside `expr` with `replacement`.
@@ -275,14 +265,6 @@ mod tests {
             annotated: true,
             ..default_container_attr()
         }),
-    )]
-    #[case::invalid_annotated_attr(
-        syn::parse_quote! {
-            #[derive(Semigroup)]
-            #[semigroup(annotation_param = "X")]
-            pub struct UnnamedStruct();
-        },
-        Err("attribute `annotation_param` are supported only with `annotated`"),
     )]
     #[case::invalid_monoid_attr(
         syn::parse_quote! {

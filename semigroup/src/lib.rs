@@ -60,14 +60,16 @@
 //! let env = Config { num: Some(100), str: None, boolean: true }.annotated(Source::Env);
 //!
 //! let lazy = Lazy::from(cli).semigroup(file.into()).semigroup(env.into());
-//! assert_eq!(lazy.first().value(), &Config { num: Some(1), str: None, boolean: false });
-//! assert_eq!(lazy.last().value(), &Config { num: Some(100), str: None, boolean: true });
+//! assert_eq!(lazy.first().num.value(), &Some(1u32));
+//! assert_eq!(lazy.last().boolean.value(), &true);
 //!
 //! let config = lazy.combine();
-//! assert_eq!(config.value(), &Config { num: Some(1), str: Some("ten"), boolean: true });
-//! assert_eq!(config.annotation().num, Source::Cli);
-//! assert_eq!(config.annotation().str, Source::File);
-//! assert_eq!(config.annotation().boolean, Source::Env);
+//! assert_eq!(config.num.value(), &Some(1u32));
+//! assert_eq!(config.num.annotation(), &Source::Cli);
+//! assert_eq!(config.str.value(), &Some("ten"));
+//! assert_eq!(config.str.annotation(), &Source::File);
+//! assert_eq!(config.boolean.value(), &true);
+//! assert_eq!(config.boolean.annotation(), &Source::Env);
 //! ```
 //!
 //! # Highlights
@@ -85,7 +87,7 @@
 //! | :---: | :---: | :---: | :---: | :---: |
 //! | **property** | *associativity* | *annotation* | *identity element* | *commutativity* |
 //! | **`#[derive(Semigroup)]`** <br> **`#[semigroup(...)]`** | | `annotated` | `monoid` | `commutative` |
-//! | **`#[derive(Op)]`** <br> **`#[op(...)]`** | | `annotated` | `monoid` | `commutative` |
+//! | **`#[derive(Op)]`** <br> **`#[op(...)]`** | | `idempotent` | `monoid` | `commutative` |
 //! | **testing** | [`assert_semigroup!`] |  | [`assert_monoid!`] | [`assert_commutative!`] |
 //! | **typical combiner** | [`CombineIterator`] | [`Lazy`] | [`SegmentTree`](`segment_tree::SegmentTree`) | [`CombineStream`] |
 //!
@@ -123,6 +125,7 @@ pub use self::concurrent::*;
 #[cfg(feature = "monoid")]
 pub use self::monoid::*;
 pub use self::{annotate::*, combine::*, commutative::*, construction::*, lazy::*, semigroup::*};
+
 
 #[cfg(feature = "derive")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "derive")))]

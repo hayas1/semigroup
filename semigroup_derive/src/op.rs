@@ -26,12 +26,12 @@ mod tests {
     use super::*;
 
     #[rstest]
-    #[case::op_annotated(
-        "op_annotated",
+    #[case::op_idempotent(
+        "op_idempotent",
         impl_op::<External>,
         syn::parse_quote! {
             #[derive(Op)]
-            #[op(annotated)]
+            #[op(idempotent)]
             pub struct Coalesce<T>(pub Option<T>);
         },
     )]
@@ -42,21 +42,6 @@ mod tests {
             #[derive(OpPriv)]
             #[op(monoid, commutative, identity = Default::default())]
             pub struct Sum<T: std::ops::Add>(pub T);
-        },
-    )]
-    #[case::op_custom_annotation(
-        "op_custom_annotation",
-        impl_op::<External>,
-        syn::parse_quote! {
-            #[derive(Op)]
-            #[op(
-                annotated,
-                monoid,
-                annotation_type_param = "X: IntoIterator + FromIterator<X::Item>",
-                annotation_where = "X::Item: Clone",
-                unit_annotation = "vec![(); 0]"
-            )]
-            pub struct Concat<T: IntoIterator + FromIterator<T::Item>>(pub T);
         },
     )]
     fn test_derive_op_snapshot(

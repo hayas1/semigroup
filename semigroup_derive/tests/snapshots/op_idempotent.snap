@@ -1,0 +1,51 @@
+---
+source: semigroup_derive/src/op.rs
+expression: formatted
+---
+#[automatically_derived]
+impl<T> From<Option<T>> for Coalesce<T> {
+    fn from(value: Option<T>) -> Self {
+        Coalesce(value)
+    }
+}
+#[automatically_derived]
+impl<T> std::ops::Deref for Coalesce<T> {
+    type Target = Option<T>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+#[automatically_derived]
+impl<T> std::ops::DerefMut for Coalesce<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+#[automatically_derived]
+impl<T> ::semigroup::Construction<Option<T>> for Coalesce<T> {
+    fn into_inner(self) -> Option<T> {
+        self.0
+    }
+}
+#[automatically_derived]
+impl<T> ::semigroup::Op<Option<T>> for Coalesce<T> {
+    fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {
+        if let ::semigroup::Selected::Other = <Self as ::semigroup::IdempotentOp<
+            Option<T>,
+        >>::lift_select(base, &other) {
+            *base = other;
+        }
+    }
+}
+#[automatically_derived]
+impl<T> ::semigroup::Semigroup for Coalesce<T> {
+    fn op_assign(base: &mut Self, other: Self) {
+        <Self as ::semigroup::Op<_>>::lift_op_assign(&mut base.0, other.0);
+    }
+}
+#[automatically_derived]
+impl<T> ::semigroup::Idempotent for Coalesce<T> {
+    fn select(base: &Self, other: &Self) -> ::semigroup::Selected {
+        <Self as ::semigroup::IdempotentOp<_>>::lift_select(&base.0, &other.0)
+    }
+}
