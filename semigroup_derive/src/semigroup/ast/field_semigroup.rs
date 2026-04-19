@@ -1,8 +1,8 @@
-use syn::{DeriveInput, Field, FieldValue, Fields, Member, Stmt, Type, parse_quote};
+use syn::{DeriveInput, Expr, Field, FieldValue, Fields, Member, Stmt, Type, parse_quote};
 
 use crate::{
     constant::Constant,
-    semigroup::attr::{ContainerAttr, FieldAttr},
+    semigroup::attr::{ContainerAttr, FieldAttr, With},
 };
 
 #[derive(Debug, Clone)]
@@ -51,17 +51,62 @@ impl<'a> FieldSemigroupOp<'a> {
             ..
         } = self;
         let with = field_attr.with(container_attr);
-        with.map(|path| {
-            parse_quote! {
-                #path::lift_op_assign(&mut base.#member, other.#member);
+        match with {
+            None => {
+                parse_quote! {
+                    #path_semigroup::op_assign(&mut base.#member, other.#member);
+                }
             }
-        })
-        .unwrap_or_else(|| {
-            parse_quote! {
-               #path_semigroup::op_assign(&mut base.#member, other.#member);
+            Some(With::Path(path)) => {
+                // Backward-compatible: bare path → call lift_op_assign
+                parse_quote! {
+                    #path::lift_op_assign(&mut base.#member, other.#member);
+                }
             }
-        })
+            Some(with) => {
+                // Constructor expression, e.g. `Dual(Coalesce(_))`:
+                // wrap both values, run Semigroup::op_assign, unwrap the result.
+                //
+                // `base` is `&mut Self`, so we cannot move `base.#member` directly.
+                // We use `ptr::read` to take ownership temporarily, then `ptr::write` to
+                // restore a valid value.  An abort-on-drop guard ensures soundness if
+                // `op_assign` panics (same pattern as `Dual::lift_op_assign`).
+                let Constant {
+                    path_construction_trait,
+                    ..
+                } = self.constant;
+                // Use a local variable as the placeholder so the constructor expression
+                // receives an owned value instead of trying to move out of &mut.
+                let base_accessor: Expr = parse_quote! { __semigroup_base_owned };
+                let other_accessor: Expr = parse_quote! { other.#member };
+                let base_wrapped = with.substitute(&base_accessor);
+                let other_wrapped = with.substitute(&other_accessor);
+                let chain_into_inner = with.chain_into_inner(parse_quote! { __semigroup_base });
+                parse_quote! {
+                    {
+                        use #path_construction_trait;
+                        struct __AbortOnDrop;
+                        impl ::core::ops::Drop for __AbortOnDrop {
+                            fn drop(&mut self) {
+                                ::std::process::abort();
+                            }
+                        }
+                        let __guard = __AbortOnDrop;
+                        // SAFETY: We write back a valid value via `ptr::write` before this
+                        // block exits.  If `op_assign` panics, `__AbortOnDrop` aborts the
+                        // process so `base` is never observed in a partially-initialized state.
+                        let __semigroup_base_owned = unsafe { ::core::ptr::read(&raw const base.#member) };
+                        let (mut __semigroup_base, __semigroup_other) = (#base_wrapped, #other_wrapped);
+                        #path_semigroup::op_assign(&mut __semigroup_base, __semigroup_other);
+                        let __semigroup_result = #chain_into_inner;
+                        unsafe { ::core::ptr::write(&raw mut base.#member, __semigroup_result); }
+                        ::core::mem::forget(__guard);
+                    }
+                }
+            }
+        }
     }
+
     pub fn impl_field_monoid_identity(&self) -> FieldValue {
         let Self {
             constant: Constant { path_monoid, .. },
@@ -71,16 +116,38 @@ impl<'a> FieldSemigroupOp<'a> {
             ..
         } = self;
         let with = field_attr.with(container_attr);
-        with.map(|path| {
-            parse_quote! {
-                #member: #path::lift_identity()
+        match with {
+            None => {
+                parse_quote! {
+                    #member: #path_monoid::identity()
+                }
             }
-        })
-        .unwrap_or_else(|| {
-            parse_quote! {
-                #member: #path_monoid::identity()
+            Some(With::Path(path)) => {
+                // Backward-compatible: bare path → lift_identity()
+                parse_quote! {
+                    #member: #path::lift_identity()
+                }
             }
-        })
+            Some(with) => {
+                // Constructor expression: call Monoid::identity() on the wrapped type,
+                // then unwrap back to the field type.
+                let Constant {
+                    path_construction_trait,
+                    ..
+                } = self.constant;
+                let wrapped_ty = with
+                    .as_type()
+                    .expect("with expr must be a constructor call");
+                let chain_into_inner = with.chain_into_inner(parse_quote! { __monoid_identity });
+                parse_quote! {
+                    #member: {
+                        use #path_construction_trait;
+                        let __monoid_identity = <#wrapped_ty as #path_monoid>::identity();
+                        #chain_into_inner
+                    }
+                }
+            }
+        }
     }
 
     pub fn where_ty(&self) -> Option<&Type> {
@@ -147,23 +214,65 @@ impl<'a> FieldAnnotatedOp<'a> {
         } = constant;
         let with = field_attr.with(container_attr);
 
-        with.map(|path| {
-            parse_quote! {
-                #path::lift_annotated_op_assign(
-                    #path_annotated::new(&mut base_value.#member, &mut base_annotation.#member),
-                    #path_annotated::new(other_value.#member, other_annotation.#member),
-                );
-
+        match with {
+            None => {
+                parse_quote! {
+                    #path_annotated_semigroup::annotated_op_assign(
+                        #path_annotated::new(&mut base_value.#member, &mut base_annotation.#member),
+                        #path_annotated::new(other_value.#member, other_annotation.#member),
+                    );
+                }
             }
-        })
-        .unwrap_or_else(|| {
-            parse_quote! {
-                #path_annotated_semigroup::annotated_op_assign(
-                    #path_annotated::new(&mut base_value.#member, &mut base_annotation.#member),
-                    #path_annotated::new(other_value.#member, other_annotation.#member),
-                );
+            Some(With::Path(path)) => {
+                // Backward-compatible: bare path → lift_annotated_op_assign
+                parse_quote! {
+                    #path::lift_annotated_op_assign(
+                        #path_annotated::new(&mut base_value.#member, &mut base_annotation.#member),
+                        #path_annotated::new(other_value.#member, other_annotation.#member),
+                    );
+                }
             }
-        })
+            Some(with) => {
+                // Constructor expression: wrap the value, run annotated_op_assign, unwrap.
+                //
+                // `base_value` is `&mut Self`, so we cannot move `base_value.#member` directly.
+                // Use the same `ptr::read` / `ptr::write` + abort-on-drop pattern as the plain
+                // semigroup case above.
+                let Constant {
+                    path_construction_trait,
+                    ..
+                } = constant;
+                let base_accessor: Expr = parse_quote! { __annotated_base_owned };
+                let other_accessor: Expr = parse_quote! { other_value.#member };
+                let base_wrapped = with.substitute(&base_accessor);
+                let other_wrapped = with.substitute(&other_accessor);
+                let chain_into_inner = with.chain_into_inner(parse_quote! { __annotated_base });
+                parse_quote! {
+                    {
+                        use #path_construction_trait;
+                        struct __AbortOnDrop;
+                        impl ::core::ops::Drop for __AbortOnDrop {
+                            fn drop(&mut self) {
+                                ::std::process::abort();
+                            }
+                        }
+                        let __guard = __AbortOnDrop;
+                        // SAFETY: We write back a valid value via `ptr::write` before exiting.
+                        // Panic safety is provided by `__AbortOnDrop`.
+                        let __annotated_base_owned = unsafe { ::core::ptr::read(&raw const base_value.#member) };
+                        let mut __annotated_base = #base_wrapped;
+                        let __annotated_other = #other_wrapped;
+                        #path_annotated_semigroup::annotated_op_assign(
+                            #path_annotated::new(&mut __annotated_base, &mut base_annotation.#member),
+                            #path_annotated::new(__annotated_other, other_annotation.#member),
+                        );
+                        let __annotated_result = #chain_into_inner;
+                        unsafe { ::core::ptr::write(&raw mut base_value.#member, __annotated_result); }
+                        ::core::mem::forget(__guard);
+                    }
+                }
+            }
+        }
     }
 
     pub fn where_ty(&self) -> Option<&Type> {

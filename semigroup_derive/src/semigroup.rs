@@ -66,6 +66,21 @@ mod tests {
             }
         },
     )]
+    #[case::semigroup_with_dual(
+        "semigroup_with_dual",
+        impl_semigroup::<Internal>,
+        syn::parse_quote! {
+            #[derive(SemigroupPriv)]
+            pub struct NamedStruct{
+                #[semigroup(with = "semigroup::op::Overwrite")]
+                pub foo: String,
+                #[semigroup(with = "semigroup::op::Overwrite(_)")]
+                pub bar: String,
+                #[semigroup(with = "semigroup::Dual(semigroup::op::Overwrite(_))")]
+                pub bar: String,
+            }
+        },
+    )]
     #[case::semigroup_monoid(
         "semigroup_monoid",
         impl_semigroup::<External>,

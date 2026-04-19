@@ -1,5 +1,10 @@
 use darling::{FromDeriveInput, FromField};
-use syn::{DeriveInput, Expr, Field, Ident, Path, WherePredicate, parse_quote};
+use syn::punctuated::Punctuated;
+use syn::token::Comma;
+use syn::{
+    AngleBracketedGenericArguments, DeriveInput, Expr, ExprPath, Field, GenericArgument, Ident,
+    PathArguments, Type, TypePath, WherePredicate, parse_quote,
+};
 
 use crate::{annotation::Annotation, constant::Constant, error::SemigroupError, name::var_name};
 
@@ -20,7 +25,7 @@ pub struct ContainerAttr {
     commutative: bool,
     commutative_where: Option<String>, // TODO Vec
 
-    with: Option<Path>,
+    with: Option<Expr>,
     annotation_param: Option<Ident>,
 }
 impl ContainerAttr {
@@ -122,14 +127,126 @@ impl ContainerAttr {
 #[derive(Debug, Clone, FromField)]
 #[darling(attributes(semigroup))]
 pub struct FieldAttr {
-    with: Option<Path>,
+    with: Option<Expr>,
 }
 impl FieldAttr {
     pub fn new(field: &Field) -> syn::Result<Self> {
         Ok(Self::from_field(field)?)
     }
-    pub fn with<'a>(&'a self, container: &'a ContainerAttr) -> Option<&'a Path> {
-        self.with.as_ref().or(container.with.as_ref())
+    pub fn with<'a>(&'a self, container: &'a ContainerAttr) -> Option<With<'a>> {
+        let expr = self.with.as_ref().or(container.with.as_ref())?;
+        Some(match expr {
+            Expr::Path(p) => With::Path(p),
+            other => With::Constructor(other),
+        })
+    }
+}
+
+/// The resolved value of a `#[semigroup(with = "...")]` attribute.
+#[derive(Debug, Clone)]
+pub enum With<'a> {
+    /// Bare path, e.g. `Dual` — backward-compatible lift_* API.
+    Path(&'a ExprPath),
+    /// Constructor expression, e.g. `Dual(Coalesce(_))`.
+    Constructor(&'a Expr),
+}
+
+impl With<'_> {
+    /// Replace every [`Expr::Infer`] (`_`) placeholder with `replacement`.
+    /// For a bare path there is no `_`, so the path is returned unchanged.
+    pub fn substitute(&self, replacement: &Expr) -> Expr {
+        match self {
+            With::Path(p) => Expr::Path((*p).clone()),
+            With::Constructor(expr) => substitute_infer((*expr).clone(), replacement),
+        }
+    }
+
+    /// Number of constructor-call layers wrapping the `_` placeholder.
+    /// `Dual(Coalesce(_))` → 2, `Coalesce(_)` → 1, bare path → 0.
+    pub fn depth(&self) -> usize {
+        fn wrap_depth_recursive(expr: &Expr) -> usize {
+            match expr {
+                Expr::Call(call) => {
+                    1 + call
+                        .args
+                        .iter()
+                        .map(wrap_depth_recursive)
+                        .max()
+                        .unwrap_or(0)
+                }
+                _ => 0,
+            }
+        }
+        match self {
+            With::Path(_) => 0,
+            With::Constructor(expr) => wrap_depth_recursive(expr),
+        }
+    }
+
+    /// Convert to the equivalent type suitable for UFCS.
+    /// `Dual(Coalesce(_))` → `Dual<Coalesce<_>>`, bare path → the path as a type.
+    pub fn as_type(&self) -> Option<Type> {
+        fn type_recursive(expr: &Expr) -> Option<Type> {
+            match expr {
+                Expr::Infer(_) => Some(parse_quote! { _ }),
+                Expr::Path(p) => Some(Type::Path(TypePath {
+                    qself: p.qself.clone(),
+                    path: p.path.clone(),
+                })),
+                Expr::Call(call) => {
+                    let base_ty = type_recursive(&call.func)?;
+                    let args: Punctuated<GenericArgument, Comma> = call
+                        .args
+                        .iter()
+                        .filter_map(|a| type_recursive(a).map(GenericArgument::Type))
+                        .collect();
+                    match base_ty {
+                        Type::Path(mut tp) => {
+                            let last = tp.path.segments.last_mut()?;
+                            last.arguments =
+                                PathArguments::AngleBracketed(AngleBracketedGenericArguments {
+                                    colon2_token: None,
+                                    lt_token: Default::default(),
+                                    args,
+                                    gt_token: Default::default(),
+                                });
+                            Some(Type::Path(tp))
+                        }
+                        _ => None,
+                    }
+                }
+                _ => None,
+            }
+        }
+
+        match self {
+            With::Path(p) => Some(Type::Path(TypePath {
+                qself: p.qself.clone(),
+                path: p.path.clone(),
+            })),
+            With::Constructor(expr) => type_recursive(expr),
+        }
+    }
+
+    /// Build `base.into_inner().into_inner()...` (`self.depth()` times).
+    pub fn chain_into_inner(&self, base: Expr) -> Expr {
+        (0..self.depth()).fold(base, |acc: Expr, _| parse_quote! { #acc.into_inner() })
+    }
+}
+
+/// Replace every [`Expr::Infer`] (`_`) placeholder inside `expr` with `replacement`.
+fn substitute_infer(expr: Expr, replacement: &Expr) -> Expr {
+    match expr {
+        Expr::Infer(_) => replacement.clone(),
+        Expr::Call(mut call) => {
+            call.args = call
+                .args
+                .into_iter()
+                .map(|arg| substitute_infer(arg, replacement))
+                .collect();
+            Expr::Call(call)
+        }
+        other => other,
     }
 }
 

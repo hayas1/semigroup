@@ -1,4 +1,8 @@
-use crate::{Lazy, Semigroup};
+use semigroup_derive::{OpPriv, properties_priv};
+
+use crate::{
+    Annotate, Annotated, AnnotatedOp, AnnotatedSemigroup, Construction, Lazy, Op, Semigroup,
+};
 
 /// Extensions for [`Iterator`]s that items implement [`Semigroup`].
 /// Composed of a variety of the 3 main methods
@@ -28,7 +32,7 @@ pub trait CombineIterator: Sized + Iterator {
         }
     }
 
-    /// Folds every [`Semigroup`] element in reverse order using [`Reversible`]. Given argument is the final value.
+    /// Folds every [`Semigroup`] element in reverse order using [`Dual`]. Given argument is the final value.
     ///
     /// # Examples
     /// ```
@@ -43,12 +47,12 @@ pub trait CombineIterator: Sized + Iterator {
     where
         Self::Item: Semigroup,
     {
-        self.fold(fin, Reversible::rev_op)
+        self.map(Dual).fold(Dual(fin), Semigroup::op).into_inner()
     }
 
     /// This method like [`CombineIterator::fold_final`], but no argument is required and return [`Option`].
     ///
-    /// # Example
+    /// # Examples
     /// ```
     /// use semigroup::{op::Coalesce, CombineIterator, Semigroup};
     /// let v1 = vec![Coalesce(None), Coalesce(Some(2)), Coalesce(Some(3))];
@@ -69,7 +73,7 @@ pub trait CombineIterator: Sized + Iterator {
 
     /// This method like [`CombineIterator::rfold_final`], but no argument is required and return [`Option`].
     ///
-    /// # Example
+    /// # Examples
     /// ```
     /// use semigroup::{op::Coalesce, CombineIterator, Semigroup};
     /// let v1 = vec![Coalesce(None), Coalesce(Some(2)), Coalesce(Some(3))];
@@ -85,7 +89,7 @@ pub trait CombineIterator: Sized + Iterator {
     where
         Self::Item: Semigroup,
     {
-        self.reduce(Reversible::rev_op)
+        self.map(Dual).reduce(Semigroup::op).map(Dual::into_inner)
     }
 
     /// This method like [`CombineIterator::fold_final`], but no argument is required.
@@ -149,50 +153,141 @@ pub trait CombineIterator: Sized + Iterator {
 }
 impl<I: Iterator> CombineIterator for I {}
 
-/// [`Reversible`] provides a reverse operation of [`Semigroup`], `rev_op(a, b) = op(b, a)`.
+/// [`Dual`] provides a reverse operation of [`Semigroup`], `op(Dual(a), Dual(b)) = op(b, a)`.
 ///
-/// If `T` is [`Commutative`](crate::Commutative), then `op(a, b) = op(b, a)`, and thus [`Reversible`] is meaningless.
+/// The [`Dual`] of a [`Commutative`](crate::Commutative) semigroup is the same semigroup, since `op(a, b) = op(b, a)` by definition.
 ///
-/// ## Calculate right fold by left fold algorithm
-/// By using [`Reversible`], a right fold can be computed using a left fold algorithm.
-/// - Let the underlying operation be `a ⊙ b := op(a, b)`, and `a ⊡ b := rev_op(a, b) = op(b, a) = b ⊙ a`
-/// - `op` is [`Semigroup`], so that has associativity property: `a ⊙ b ⊙ c = a ⊙ (b ⊙ c) = (a ⊙ b) ⊙ c`
-/// - Now, `c ⊙ b ⊙ a = rev_op(b, c) ⊙ a = rev_op(a, rev_op(b, c)) = rev_op(a, b ⊡ c) = a ⊡ b ⊡ c`
-/// - This implies that right fold of `op`` `vn ⊙ vn-1 ⊙ ... ⊙ v1` is equal to left fold of `rev_op` `v1 ⊡ v2 ⊡ ... ⊡ vn`.
+/// [`Dual`] can be used to calculate right fold by left fold algorithm.
+/// This works because `Dual::op(a, b) = T::op(b, a)` reverses the argument order, turning left-associativity into right-associativity:
+/// - `left_fold([a, b, c])` = `op(op(a, b), c)`
+/// - `right_fold([a, b, c])` = `op(c, op(b, a))` = `op(op(Dual(a), Dual(b)), Dual(c))`
 ///
 /// # Properties
 /// <!-- properties -->
 ///
 /// # Examples
-/// ## Simple reverse two elements
+/// ## Reversing a non-commutative operation
 /// ```
-/// use semigroup::{op::Coalesce, Reversible, Construction, Semigroup};
+/// use semigroup::{op::Coalesce, Dual, Semigroup, Construction};
 ///
 /// let a = Coalesce(Some(1));
 /// let b = Coalesce(Some(2));
 ///
+/// // Normal Coalesce: takes first non-None
 /// assert_eq!(Semigroup::op(a, b), Coalesce(Some(1)));
-/// assert_eq!(Reversible::rev_op(a, b), Coalesce(Some(2)));
+///
+/// // Dual<Coalesce>: reverses Coalesce, takes last non-None
+/// assert_eq!(Semigroup::op(Dual(a), Dual(b)).into_inner(), Coalesce(Some(2)));
 /// ```
 ///
-/// ## Calculate right fold by left fold algorithm
-/// ```
-/// # #[cfg(feature = "monoid")]
-/// # {
-/// use semigroup::{op::Coalesce, Reversible, Construction, Semigroup, Monoid};
+/// ## Using with `#[derive(Semigroup)]`
+/// Use `#[semigroup(with = "Dual(Op(_))")]` to keep the field as a plain inner type while
+/// composing [`Dual`] with an `Op` wrapper inline.  The `_` is a placeholder for the field value.
 ///
-/// let v = (1..100).map(Some).map(Coalesce).collect::<Vec<_>>();
-///
-/// assert_eq!(v.iter().cloned().fold(Monoid::identity(), Semigroup::op), Coalesce(Some(1)));
-/// assert_eq!(v.iter().cloned().fold(Monoid::identity(), Reversible::rev_op), Coalesce(Some(99)));
-/// # }
 /// ```
-pub trait Reversible: Semigroup {
-    fn rev_op(base: Self, other: Self) -> Self {
-        Semigroup::op(other, base)
+/// use semigroup::{Dual, Semigroup};
+/// use semigroup::op::Coalesce;
+///
+/// /// Config whose `value` field is a plain `Option<u32>` (no wrapper type in the struct).
+/// #[derive(Debug, Clone, PartialEq, Semigroup)]
+/// pub struct Config {
+///     /// Use Coalesce semantics reversed by Dual: last `Some` wins.
+///     #[semigroup(with = "Dual(Coalesce(_))")]
+///     pub value: Option<u32>,
+/// }
+///
+/// let a = Config { value: Some(1) };
+/// let b = Config { value: Some(2) };
+/// // Normal Coalesce keeps first Some, Dual reverses it → last Some wins
+/// assert_eq!(a.semigroup(b), Config { value: Some(2) });
+///
+/// let c = Config { value: None };
+/// let d = Config { value: Some(3) };
+/// assert_eq!(c.semigroup(d), Config { value: Some(3) });
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[op(
+    annotated,
+    manual_op_impl,
+    manual_annotate_impl,
+    annotation_where = "T: crate::AnnotatedSemigroup<A> + Annotate<A>",
+    monoid,
+    identity = Self(T::identity()),
+    monoid_where = "T: crate::Monoid",
+    commutative,
+    commutative_where = "T: crate::Commutative"
+)]
+#[properties_priv(
+    annotated,
+    annotation_where = "T: crate::AnnotatedSemigroup<A> + Annotate<A>",
+    monoid,
+    monoid_where = "T: crate::Monoid",
+    commutative,
+    commutative_where = "T: crate::Commutative"
+)]
+pub struct Dual<T: Semigroup>(pub T);
+
+impl<T: Semigroup + Annotate<A>, A> Annotate<A> for Dual<T> {
+    type Annotation = T::Annotation;
+    fn annotated(self, annotation: Self::Annotation) -> Annotated<Self, A> {
+        self.into_inner().annotated(annotation).map(Self)
     }
 }
-impl<T: Semigroup> Reversible for T {}
+
+impl<T: Semigroup> Op<T> for Dual<T> {
+    /// Reversed operation: computes `*base = T::op(other, *base)`.
+    ///
+    /// Uses `ptr::read` / `ptr::write` to move out of `&mut T`.
+    /// An abort-on-drop guard ensures soundness: if `T::op` panics, the process aborts
+    /// rather than leaving `*base` in an invalid state that would cause a double-drop.
+    fn lift_op_assign(base: &mut T, other: T) {
+        struct AbortOnDrop;
+        impl Drop for AbortOnDrop {
+            fn drop(&mut self) {
+                std::process::abort();
+            }
+        }
+        let _guard = AbortOnDrop;
+        // SAFETY: We immediately overwrite `base` with a valid value via `ptr::write`.
+        // If `T::op` panics, `AbortOnDrop` aborts the process so `*base` is never
+        // observed in its intermediate invalid state.
+        let base_owned = unsafe { std::ptr::read(base) };
+        let result = Semigroup::op(other, base_owned);
+        unsafe { std::ptr::write(base, result) };
+        std::mem::forget(_guard);
+    }
+}
+
+impl<T: AnnotatedSemigroup<A> + Annotate<A>, A> AnnotatedOp<T, A> for Dual<T> {
+    /// Reversed annotated operation: computes `*base = T::annotated_op(other, *base)`.
+    ///
+    /// Uses `ptr::read` / `ptr::write` to move both value and annotation out of `&mut`.
+    /// An abort-on-drop guard ensures soundness if `T::annotated_op` panics.
+    fn lift_annotated_op_assign(base: Annotated<&mut T, &mut A>, other: Annotated<T, A>) {
+        struct AbortOnDrop;
+        impl Drop for AbortOnDrop {
+            fn drop(&mut self) {
+                std::process::abort();
+            }
+        }
+        let _guard = AbortOnDrop;
+        let (base_val, base_ann) = base.into_parts();
+        // SAFETY: We immediately overwrite both slots with valid values via `ptr::write`.
+        // If `T::annotated_op` panics, `AbortOnDrop` aborts so neither slot is observed
+        // in its intermediate invalid state.
+        let (base_val_owned, base_ann_owned) =
+            unsafe { (std::ptr::read(base_val), std::ptr::read(base_ann)) };
+        let base_owned = Annotated::new(base_val_owned, base_ann_owned);
+        let result = Semigroup::op(other, base_owned);
+        let (new_val, new_ann) = result.into_parts();
+        unsafe {
+            std::ptr::write(base_val, new_val);
+            std::ptr::write(base_ann, new_ann);
+        };
+        std::mem::forget(_guard);
+    }
+}
 
 #[cfg(feature = "test")]
 pub mod test_combine {
@@ -231,32 +326,57 @@ pub mod test_combine {
         );
     }
 
-    pub fn assert_semigroup_reverse<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
-        assert_reverse_reverse(a.clone(), b.clone(), c.clone());
-        assert_reverse_associative_law(a.clone(), b.clone(), c.clone());
+    pub fn assert_semigroup_dual<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
+        assert_dual_reverse(a.clone(), b.clone(), c.clone());
+        assert_dual_dual_original(a.clone(), b.clone(), c.clone());
+        assert_dual_associative_law(a.clone(), b.clone(), c.clone());
     }
 
-    pub fn assert_reverse_reverse<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
+    pub fn assert_dual_reverse<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
         assert_eq!(
             Semigroup::op(a.clone(), b.clone()),
-            Reversible::rev_op(b.clone(), a.clone())
+            Semigroup::op(Dual(b.clone()), Dual(a.clone())).into_inner()
         );
         assert_eq!(
             Semigroup::op(b.clone(), c.clone()),
-            Reversible::rev_op(c.clone(), b.clone())
+            Semigroup::op(Dual(c.clone()), Dual(b.clone())).into_inner()
         );
         assert_eq!(
             Semigroup::op(a.clone(), c.clone()),
-            Reversible::rev_op(c.clone(), a.clone())
+            Semigroup::op(Dual(c.clone()), Dual(a.clone())).into_inner()
         );
     }
-    pub fn assert_reverse_associative_law<T: Semigroup + Clone + PartialEq + Debug>(
-        a: T,
-        b: T,
-        c: T,
-    ) {
-        let ab_c = Reversible::rev_op(Reversible::rev_op(a.clone(), b.clone()), c.clone());
-        let a_bc = Reversible::rev_op(a.clone(), Reversible::rev_op(b.clone(), c.clone()));
+
+    pub fn assert_dual_dual_original<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
+        assert_eq!(
+            Semigroup::op(a.clone(), b.clone()),
+            Semigroup::op(Dual(Dual(a.clone())), Dual(Dual(b.clone())))
+                .into_inner()
+                .into_inner()
+        );
+        assert_eq!(
+            Semigroup::op(b.clone(), c.clone()),
+            Semigroup::op(Dual(Dual(b.clone())), Dual(Dual(c.clone())))
+                .into_inner()
+                .into_inner()
+        );
+        assert_eq!(
+            Semigroup::op(c.clone(), a.clone()),
+            Semigroup::op(Dual(Dual(c.clone())), Dual(Dual(a.clone())))
+                .into_inner()
+                .into_inner()
+        );
+    }
+
+    pub fn assert_dual_associative_law<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
+        let ab_c = Semigroup::op(
+            Semigroup::op(Dual(a.clone()), Dual(b.clone())),
+            Dual(c.clone()),
+        );
+        let a_bc = Semigroup::op(
+            Dual(a.clone()),
+            Semigroup::op(Dual(b.clone()), Dual(c.clone())),
+        );
         assert_eq!(ab_c, a_bc);
     }
 }
