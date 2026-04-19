@@ -6,7 +6,6 @@ use crate::{Annotate, Annotated, AnnotatedSemigroup, Semigroup};
 ///
 /// # Examples
 /// Simple example see [`crate::Semigroup#construction`].
-/// TODO more derive details
 pub trait Construction<T>: Sized + From<T> + Deref<Target = T> + DerefMut {
     /// Convert into inner type of [new type struct](https://doc.rust-lang.org/rust-by-example/generics/new_types.html).
     ///
@@ -30,7 +29,8 @@ pub trait Construction<T>: Sized + From<T> + Deref<Target = T> + DerefMut {
     fn into_inner(self) -> T;
 }
 pub trait Op<T>: Semigroup + Construction<T> {
-    /// TODO doc
+    /// Assign-based semigroup operation on the inner type `T`.
+    /// Required method for [`Op::lift_op`].
     fn lift_op_assign(base: &mut T, other: T);
 
     /// Semigroup operation between `base` and `other` with constructed type.
@@ -61,11 +61,9 @@ pub trait Op<T>: Semigroup + Construction<T> {
 }
 
 /// [`AnnotatedOp`] represents [`crate::AnnotatedSemigroup`] as a [new type struct](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) like [`Construction`].
-///
-/// # Examples
-/// TODO more details for derive
 pub trait AnnotatedOp<T, A>: Op<T> + AnnotatedSemigroup<A> + Annotate<A> {
-    /// TODO doc
+    /// Assign-based annotated semigroup operation on the inner type `T`.
+    /// Required method for [`AnnotatedOp::lift_annotated_op`].
     fn lift_annotated_op_assign(base: Annotated<&mut T, &mut A>, other: Annotated<T, A>);
 
     /// Semigroup operation between `base` and `other` with constructed type.
@@ -103,7 +101,6 @@ pub trait AnnotatedOp<T, A>: Op<T> + AnnotatedSemigroup<A> + Annotate<A> {
 ///
 /// # Examples
 /// Simple example see [`crate::Monoid#construction`].
-/// TODO more derive details
 #[cfg(feature = "monoid")]
 pub trait MonoidOp<T>: Op<T> + crate::Monoid {
     /// Get monoid *identity element* with constructed type.
