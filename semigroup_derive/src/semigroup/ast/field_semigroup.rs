@@ -66,11 +66,18 @@ impl<'a> FieldSemigroupOp<'a> {
             Some(with) => {
                 // Constructor expression, e.g. `Dual(Coalesce(_))`:
                 // wrap both values, run Semigroup::op_assign, unwrap the result.
+                //
+                // `base` is `&mut Self`, so we cannot move `base.#member` directly.
+                // We use `ptr::read` to take ownership temporarily, then `ptr::write` to
+                // restore a valid value.  An abort-on-drop guard ensures soundness if
+                // `op_assign` panics (same pattern as `Dual::lift_op_assign`).
                 let Constant {
                     path_construction_trait,
                     ..
                 } = self.constant;
-                let base_accessor: Expr = parse_quote! { base.#member };
+                // Use a local variable as the placeholder so the constructor expression
+                // receives an owned value instead of trying to move out of &mut.
+                let base_accessor: Expr = parse_quote! { __semigroup_base_owned };
                 let other_accessor: Expr = parse_quote! { other.#member };
                 let base_wrapped = with.substitute(&base_accessor);
                 let other_wrapped = with.substitute(&other_accessor);
@@ -78,10 +85,22 @@ impl<'a> FieldSemigroupOp<'a> {
                 parse_quote! {
                     {
                         use #path_construction_trait;
-                        let mut __semigroup_base = #base_wrapped;
-                        let __semigroup_other = #other_wrapped;
+                        struct __AbortOnDrop;
+                        impl ::core::ops::Drop for __AbortOnDrop {
+                            fn drop(&mut self) {
+                                ::std::process::abort();
+                            }
+                        }
+                        let __guard = __AbortOnDrop;
+                        // SAFETY: We write back a valid value via `ptr::write` before this
+                        // block exits.  If `op_assign` panics, `__AbortOnDrop` aborts the
+                        // process so `base` is never observed in a partially-initialized state.
+                        let __semigroup_base_owned = unsafe { ::core::ptr::read(&raw const base.#member) };
+                        let (mut __semigroup_base, __semigroup_other) = (#base_wrapped, #other_wrapped);
                         #path_semigroup::op_assign(&mut __semigroup_base, __semigroup_other);
-                        base.#member = #chain_into_inner;
+                        let __semigroup_result = #chain_into_inner;
+                        unsafe { ::core::ptr::write(&raw mut base.#member, __semigroup_result); }
+                        ::core::mem::forget(__guard);
                     }
                 }
             }
@@ -215,11 +234,15 @@ impl<'a> FieldAnnotatedOp<'a> {
             }
             Some(with) => {
                 // Constructor expression: wrap the value, run annotated_op_assign, unwrap.
+                //
+                // `base_value` is `&mut Self`, so we cannot move `base_value.#member` directly.
+                // Use the same `ptr::read` / `ptr::write` + abort-on-drop pattern as the plain
+                // semigroup case above.
                 let Constant {
                     path_construction_trait,
                     ..
                 } = constant;
-                let base_accessor: Expr = parse_quote! { base_value.#member };
+                let base_accessor: Expr = parse_quote! { __annotated_base_owned };
                 let other_accessor: Expr = parse_quote! { other_value.#member };
                 let base_wrapped = with.substitute(&base_accessor);
                 let other_wrapped = with.substitute(&other_accessor);
@@ -227,13 +250,25 @@ impl<'a> FieldAnnotatedOp<'a> {
                 parse_quote! {
                     {
                         use #path_construction_trait;
+                        struct __AbortOnDrop;
+                        impl ::core::ops::Drop for __AbortOnDrop {
+                            fn drop(&mut self) {
+                                ::std::process::abort();
+                            }
+                        }
+                        let __guard = __AbortOnDrop;
+                        // SAFETY: We write back a valid value via `ptr::write` before exiting.
+                        // Panic safety is provided by `__AbortOnDrop`.
+                        let __annotated_base_owned = unsafe { ::core::ptr::read(&raw const base_value.#member) };
                         let mut __annotated_base = #base_wrapped;
                         let __annotated_other = #other_wrapped;
                         #path_annotated_semigroup::annotated_op_assign(
                             #path_annotated::new(&mut __annotated_base, &mut base_annotation.#member),
                             #path_annotated::new(__annotated_other, other_annotation.#member),
                         );
-                        base_value.#member = #chain_into_inner;
+                        let __annotated_result = #chain_into_inner;
+                        unsafe { ::core::ptr::write(&raw mut base_value.#member, __annotated_result); }
+                        ::core::mem::forget(__guard);
                     }
                 }
             }

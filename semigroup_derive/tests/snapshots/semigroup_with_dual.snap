@@ -1,0 +1,58 @@
+---
+source: semigroup_derive/src/semigroup.rs
+assertion_line: 115
+expression: formatted
+---
+#[automatically_derived]
+impl crate::Semigroup for NamedStruct {
+    fn op_assign(base: &mut Self, other: Self) {
+        use crate::Op;
+        semigroup::op::Overwrite::lift_op_assign(&mut base.foo, other.foo);
+        {
+            use crate::Construction;
+            struct __AbortOnDrop;
+            impl ::core::ops::Drop for __AbortOnDrop {
+                fn drop(&mut self) {
+                    ::std::process::abort();
+                }
+            }
+            let __guard = __AbortOnDrop;
+            let __semigroup_base_owned = unsafe {
+                ::core::ptr::read(&raw const base.bar)
+            };
+            let (mut __semigroup_base, __semigroup_other) = (
+                semigroup::op::Overwrite(__semigroup_base_owned),
+                semigroup::op::Overwrite(other.bar),
+            );
+            crate::Semigroup::op_assign(&mut __semigroup_base, __semigroup_other);
+            let __semigroup_result = __semigroup_base.into_inner();
+            unsafe {
+                ::core::ptr::write(&raw mut base.bar, __semigroup_result);
+            }
+            ::core::mem::forget(__guard);
+        }
+        {
+            use crate::Construction;
+            struct __AbortOnDrop;
+            impl ::core::ops::Drop for __AbortOnDrop {
+                fn drop(&mut self) {
+                    ::std::process::abort();
+                }
+            }
+            let __guard = __AbortOnDrop;
+            let __semigroup_base_owned = unsafe {
+                ::core::ptr::read(&raw const base.bar)
+            };
+            let (mut __semigroup_base, __semigroup_other) = (
+                semigroup::Dual(semigroup::op::Overwrite(__semigroup_base_owned)),
+                semigroup::Dual(semigroup::op::Overwrite(other.bar)),
+            );
+            crate::Semigroup::op_assign(&mut __semigroup_base, __semigroup_other);
+            let __semigroup_result = __semigroup_base.into_inner().into_inner();
+            unsafe {
+                ::core::ptr::write(&raw mut base.bar, __semigroup_result);
+            }
+            ::core::mem::forget(__guard);
+        }
+    }
+}
