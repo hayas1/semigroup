@@ -33,10 +33,10 @@ mod tests {
             #[derive(Semigroup)]
             #[semigroup(annotated)]
             pub struct NamedStruct {
-                #[semigroup(with = "semigroup::op::Overwrite")]
+                #[semigroup(with = "semigroup::op::Last")]
                 pub foo: String,
                 pub bar: Option<u32>,
-                pub baz: semigroup::op::Overwrite<bool>,
+                pub baz: semigroup::op::Last<bool>,
             }
         },
     )]
@@ -45,7 +45,7 @@ mod tests {
         impl_semigroup::<Internal>,
         syn::parse_quote! {
             #[derive(SemigroupPriv)]
-            #[semigroup(with = "semigroup::op::Overwrite")]
+            #[semigroup(with = "semigroup::op::Last")]
             pub struct UnnamedStruct<T: std::ops::Add> (
                 #[semigroup(with = "semigroup::op::Added")]
                 T,
@@ -58,7 +58,7 @@ mod tests {
         impl_semigroup::<External>,
         syn::parse_quote! {
             #[derive(Semigroup)]
-            #[semigroup(annotated, annotation_param = X, with = "semigroup::op::Overwrite")]
+            #[semigroup(annotated, annotation_param = X, with = "semigroup::op::Last")]
             pub struct NamedStruct{
                 pub foo: String,
                 pub bar: Option<u32>,

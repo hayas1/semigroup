@@ -3,7 +3,7 @@ use semigroup::Semigroup;
 #[derive(Debug, Clone, PartialEq, Semigroup)]
 #[semigroup(with = "semigroup::op::Coalesce")]
 pub struct NamedStruct {
-    #[semigroup(with = "semigroup::op::Overwrite")]
+    #[semigroup(with = "semigroup::op::Last")]
     pub name: String,
     pub value: Option<u32>,
 }
@@ -38,7 +38,7 @@ fn test_named_struct_semigroup() {
 #[derive(Debug, Clone, PartialEq, Semigroup)]
 #[semigroup(with = "semigroup::op::Coalesce")]
 pub struct UnnamedStruct(
-    #[semigroup(with = "semigroup::op::Overwrite")] String,
+    #[semigroup(with = "semigroup::op::Last")] String,
     Option<u32>,
 );
 

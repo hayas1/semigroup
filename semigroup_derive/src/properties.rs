@@ -57,7 +57,7 @@ mod tests {
                 /// # Properties
                 /// <!-- properties -->
                 #[derive(SemigroupPriv)]
-                #[semigroup(with = "semigroup::op::Overwrite")]
+                #[semigroup(with = "semigroup::op::Last")]
                 pub struct UnnamedStruct<T: std::ops::Add> (
                     #[semigroup(with = "semigroup::op::Added")]
                     T,

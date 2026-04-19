@@ -13,7 +13,7 @@ use crate::Annotated;
 /// #[semigroup(with = "semigroup::op::Coalesce")]
 /// pub struct ExampleStruct<'a> {
 ///     pub str: Option<&'a str>,
-///     #[semigroup(with = "semigroup::op::Overwrite")]
+///     #[semigroup(with = "semigroup::op::Last")]
 ///     pub boolean: bool,
 ///     #[semigroup(with = "semigroup::op::Sum")]
 ///     pub sum: u32,

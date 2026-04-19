@@ -2,16 +2,18 @@ use semigroup_derive::{OpPriv, properties_priv};
 
 use crate::{Annotated, AnnotatedOp};
 
-/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns the second value.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns the last (second) value.
+///
+/// This is the dual of [`First`](crate::op::First): `Last::op(a, b) = First::op(b, a)`.
 /// # Properties
 /// <!-- properties -->
 ///
 /// # Examples
 /// ```
-/// use semigroup::{op::Overwrite, Construction, Semigroup};
+/// use semigroup::{op::Last, Construction, Semigroup};
 ///
-/// let a = Overwrite(1);
-/// let b = Overwrite(2);
+/// let a = Last(1);
+/// let b = Last(2);
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), 2);
 /// ```
@@ -19,8 +21,8 @@ use crate::{Annotated, AnnotatedOp};
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[op(annotated)]
 #[properties_priv(annotated)]
-pub struct Overwrite<T>(pub T);
-impl<T, A> AnnotatedOp<T, A> for Overwrite<T> {
+pub struct Last<T>(pub T);
+impl<T, A> AnnotatedOp<T, A> for Last<T> {
     fn lift_annotated_op_assign(mut base: Annotated<&mut T, &mut A>, other: Annotated<T, A>) {
         base.replace(other);
     }
@@ -33,14 +35,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_overwrite_semigroup() {
-        let (a, b, c) = (Overwrite(1), Overwrite(2), Overwrite(3));
+    fn test_last_semigroup() {
+        let (a, b, c) = (Last(1), Last(2), Last(3));
         crate::assert_semigroup!(a, b, c);
     }
 
     #[test]
-    fn test_overwrite() {
-        let (a, b) = (Overwrite(Some(1)), Overwrite(Some(2)));
+    fn test_last() {
+        let (a, b) = (Last(Some(1)), Last(Some(2)));
         assert_eq!(a.semigroup(b).into_inner(), Some(2));
         assert_eq!(b.semigroup(a).into_inner(), Some(1));
     }

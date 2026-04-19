@@ -8,6 +8,6 @@ impl<T: std::ops::Add> crate::Semigroup for UnnamedStruct<T> {
     fn op_assign(base: &mut Self, other: Self) {
         use crate::Op;
         semigroup::op::Added::lift_op_assign(&mut base.0, other.0);
-        semigroup::op::Overwrite::lift_op_assign(&mut base.1, other.1);
+        semigroup::op::Last::lift_op_assign(&mut base.1, other.1);
     }
 }

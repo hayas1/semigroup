@@ -75,7 +75,7 @@ impl<'a, T> ExactSizeIterator for Iter<'a, T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{monoid::OptionMonoid, op::Overwrite};
+    use crate::{monoid::OptionMonoid, op::Last};
 
     use super::*;
 
@@ -83,13 +83,13 @@ mod tests {
     fn test_into_iter() {
         let segment_tree: SegmentTree<_> = ["one", "two", "three", "four", "five"]
             .into_iter()
-            .map(Overwrite)
+            .map(Last)
             .map(OptionMonoid::from)
             .collect();
         let v: Vec<_> = segment_tree
             .into_iter()
             .map(|x| match x {
-                OptionMonoid(Some(Overwrite(s))) => s,
+                OptionMonoid(Some(Last(s))) => s,
                 _ => unreachable!(),
             })
             .collect();
@@ -100,13 +100,13 @@ mod tests {
     fn test_iter() {
         let segment_tree: SegmentTree<_> = ["one", "two", "three", "four", "five"]
             .into_iter()
-            .map(Overwrite)
+            .map(Last)
             .map(OptionMonoid::from)
             .collect();
         let v: Vec<_> = segment_tree
             .iter()
             .map(|x| match x {
-                OptionMonoid(Some(Overwrite(s))) => s,
+                OptionMonoid(Some(Last(s))) => s,
                 _ => unreachable!(),
             })
             .collect();
@@ -117,13 +117,13 @@ mod tests {
     fn test_for() {
         let segment_tree: SegmentTree<_> = ["one", "two", "three", "four", "five"]
             .into_iter()
-            .map(Overwrite)
+            .map(Last)
             .map(OptionMonoid::from)
             .collect();
         let mut v = Vec::new();
         for OptionMonoid(x) in &segment_tree {
             match x {
-                Some(Overwrite(s)) => v.push(s),
+                Some(Last(s)) => v.push(s),
                 _ => unreachable!(),
             }
         }
@@ -134,14 +134,14 @@ mod tests {
     fn test_double_ended_iter() {
         let segment_tree: SegmentTree<_> = ["one", "two", "three", "four", "five"]
             .into_iter()
-            .map(Overwrite)
+            .map(Last)
             .map(OptionMonoid::from)
             .collect();
         let v: Vec<_> = segment_tree
             .iter()
             .rev()
             .map(|x| match x {
-                OptionMonoid(Some(Overwrite(s))) => s,
+                OptionMonoid(Some(Last(s))) => s,
                 _ => unreachable!(),
             })
             .collect();
@@ -151,7 +151,7 @@ mod tests {
             .into_iter()
             .rev()
             .map(|x| match x {
-                OptionMonoid(Some(Overwrite(s))) => s,
+                OptionMonoid(Some(Last(s))) => s,
                 _ => unreachable!(),
             })
             .collect();
@@ -162,7 +162,7 @@ mod tests {
     fn test_exact_size_iter() {
         let segment_tree: SegmentTree<_> = ["one", "two", "three", "four", "five"]
             .into_iter()
-            .map(Overwrite)
+            .map(Last)
             .map(OptionMonoid::from)
             .collect();
         assert_eq!(segment_tree.iter().len(), 5);

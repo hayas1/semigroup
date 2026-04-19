@@ -1,17 +1,16 @@
 ---
 source: semigroup_derive/src/semigroup.rs
-assertion_line: 100
 expression: formatted
 ---
 #[automatically_derived]
 impl ::semigroup::Semigroup for NamedStruct
 where
     Option<u32>: ::semigroup::Semigroup,
-    semigroup::op::Overwrite<bool>: ::semigroup::Semigroup,
+    semigroup::op::Last<bool>: ::semigroup::Semigroup,
 {
     fn op_assign(base: &mut Self, other: Self) {
         use ::semigroup::Op;
-        semigroup::op::Overwrite::lift_op_assign(&mut base.foo, other.foo);
+        semigroup::op::Last::lift_op_assign(&mut base.foo, other.foo);
         ::semigroup::Semigroup::op_assign(&mut base.bar, other.bar);
         ::semigroup::Semigroup::op_assign(&mut base.baz, other.baz);
     }
@@ -26,9 +25,7 @@ pub struct NamedStructAnnotation<A> {
 impl<A: Clone> ::semigroup::AnnotatedSemigroup<NamedStructAnnotation<A>> for NamedStruct
 where
     Option<u32>: ::semigroup::AnnotatedSemigroup<NamedStructAnnotation<A>>,
-    semigroup::op::Overwrite<
-        bool,
-    >: ::semigroup::AnnotatedSemigroup<NamedStructAnnotation<A>>,
+    semigroup::op::Last<bool>: ::semigroup::AnnotatedSemigroup<NamedStructAnnotation<A>>,
 {
     fn annotated_op_assign(
         mut base: ::semigroup::Annotated<&mut Self, &mut NamedStructAnnotation<A>>,
@@ -37,7 +34,7 @@ where
         use ::semigroup::AnnotatedOp;
         let (base_value, base_annotation) = base.into_parts();
         let (other_value, other_annotation) = other.into_parts();
-        semigroup::op::Overwrite::lift_annotated_op_assign(
+        semigroup::op::Last::lift_annotated_op_assign(
             ::semigroup::Annotated::new(&mut base_value.foo, &mut base_annotation.foo),
             ::semigroup::Annotated::new(other_value.foo, other_annotation.foo),
         );
