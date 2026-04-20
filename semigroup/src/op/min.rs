@@ -22,7 +22,11 @@ use crate::{IdempotentOp, Selected};
 pub struct Min<T: Ord>(pub T);
 impl<T: Ord> IdempotentOp<T> for Min<T> {
     fn lift_select(base: &T, other: &T) -> Selected {
-        if base > other { Selected::Other } else { Selected::Base }
+        if base > other {
+            Selected::Other
+        } else {
+            Selected::Base
+        }
     }
 }
 

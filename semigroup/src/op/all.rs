@@ -22,7 +22,11 @@ use crate::{IdempotentOp, Selected};
 pub struct All(pub bool);
 impl IdempotentOp<bool> for All {
     fn lift_select(base: &bool, other: &bool) -> Selected {
-        if *base && !other { Selected::Other } else { Selected::Base }
+        if *base && !other {
+            Selected::Other
+        } else {
+            Selected::Base
+        }
     }
 }
 

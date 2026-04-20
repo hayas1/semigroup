@@ -110,7 +110,6 @@ impl ContainerAttr {
             .map(syn::parse_str)
             .map(|p| p.unwrap_or_else(|e| todo!("{e}")))
     }
-
 }
 
 #[derive(Debug, Clone, FromField)]
@@ -221,7 +220,6 @@ impl With<'_> {
     pub fn chain_into_inner(&self, base: Expr) -> Expr {
         (0..self.depth()).fold(base, |acc: Expr, _| parse_quote! { #acc.into_inner() })
     }
-
 }
 
 /// Replace every [`Expr::Infer`] (`_`) placeholder inside `expr` with `replacement`.

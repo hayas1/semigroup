@@ -1,6 +1,8 @@
 use proc_macro2::TokenStream;
 use quote::{ToTokens, format_ident, quote};
-use syn::{DataStruct, DeriveInput, Fields, GenericParam, Ident, ItemImpl, ItemStruct, parse_quote};
+use syn::{
+    DataStruct, DeriveInput, Fields, GenericParam, Ident, ItemImpl, ItemStruct, parse_quote,
+};
 
 use crate::{
     constant::Constant,
@@ -226,10 +228,7 @@ impl<'a> StructAnnotated<'a> {
     /// Generates the `XxxAnnotated<A>` struct definition with per-field `Annotated<Op, A>` fields.
     pub fn def_annotated_struct(&self) -> ItemStruct {
         let Self {
-            constant:
-                Constant {
-                    path_annotated, ..
-                },
+            constant: Constant { path_annotated, .. },
             derive: DeriveInput { vis, generics, .. },
             data_struct,
             annotated_ident,
@@ -308,10 +307,7 @@ impl<'a> StructAnnotated<'a> {
     /// Generates `impl Xxx { pub fn annotated<A: Clone>(self, annotation: A) -> XxxAnnotated<A> }`.
     pub fn impl_annotated_method(&self) -> TokenStream {
         let Self {
-            constant:
-                Constant {
-                    path_annotated, ..
-                },
+            constant: Constant { path_annotated, .. },
             derive: DeriveInput {
                 ident, generics, ..
             },
@@ -326,9 +322,7 @@ impl<'a> StructAnnotated<'a> {
 
         // Generics for the return type (original + A)
         let mut ret_g = generics.clone();
-        ret_g
-            .params
-            .push(GenericParam::Type(parse_quote! { A }));
+        ret_g.params.push(GenericParam::Type(parse_quote! { A }));
         let (_, ret_ty_generics, _) = ret_g.split_for_impl();
 
         let n = field_annotated.len();

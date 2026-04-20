@@ -256,7 +256,6 @@ impl<T: Semigroup> Op<T> for Dual<T> {
     }
 }
 
-
 #[cfg(feature = "test")]
 pub mod test_combine {
     use std::fmt::Debug;

@@ -88,7 +88,6 @@ pub trait Semigroup: Sized {
     }
 }
 
-
 macro_rules! impl_tuple_semigroup {
     ($($idx:tt: $t:tt),+) => {
         impl<$($t: $crate::Semigroup),+> $crate::Semigroup for ($($t,)+) {

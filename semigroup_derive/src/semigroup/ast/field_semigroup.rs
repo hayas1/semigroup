@@ -192,7 +192,11 @@ impl<'a> FieldAnnotated<'a> {
 
     /// Named struct field definition: `pub name: Annotated<FieldType, A>`.
     /// For tuple struct fields, returns only the type.
-    pub fn struct_field_tokens(&self, a: &syn::Ident, path_annotated: &impl ToTokens) -> TokenStream {
+    pub fn struct_field_tokens(
+        &self,
+        a: &syn::Ident,
+        path_annotated: &impl ToTokens,
+    ) -> TokenStream {
         let ty = self.ty;
         match &self.member {
             Member::Named(ident) => {
@@ -275,7 +279,11 @@ impl<'a> FieldAnnotated<'a> {
     /// just wraps the field value with an `Annotated::new`.
     /// Returns `name: Annotated::new(self.name, annotation.clone())` for named,
     /// or `Annotated::new(self.name, annotation.clone())` for unnamed (is_last determines clone).
-    pub fn annotated_init_named(&self, path_annotated: &impl ToTokens, is_last: bool) -> TokenStream {
+    pub fn annotated_init_named(
+        &self,
+        path_annotated: &impl ToTokens,
+        is_last: bool,
+    ) -> TokenStream {
         let ident = match &self.member {
             Member::Named(ident) => ident,
             Member::Unnamed(_) => panic!("annotated_init_named called on unnamed field"),
@@ -285,7 +293,11 @@ impl<'a> FieldAnnotated<'a> {
     }
 
     /// For tuple struct fields: just the expression, no field name.
-    pub fn annotated_init_value_expr(&self, path_annotated: &impl ToTokens, is_last: bool) -> TokenStream {
+    pub fn annotated_init_value_expr(
+        &self,
+        path_annotated: &impl ToTokens,
+        is_last: bool,
+    ) -> TokenStream {
         let member = &self.member;
         let annotation_expr = if is_last {
             quote! { annotation }
