@@ -4,7 +4,7 @@ use semigroup_derive::{OpPriv, properties_priv};
 
 use crate::{Idempotent, Selected, Semigroup};
 
-/// Marker trait that allows attaching an annotation to a value via [`Annotated`].
+/// Some [`Semigroup`] such as [`crate::op::Coalesce`] can have an annotation.
 ///
 /// A blanket implementation is provided for every [`Idempotent`] type, so any type that
 /// implements [`Idempotent`] automatically gains the `.annotated(annotation)` method.
@@ -44,7 +44,6 @@ use crate::{Idempotent, Selected, Semigroup};
 pub trait Annotate<A>: Sized {
     fn annotated(self, annotation: A) -> Annotated<Self, A>;
 }
-
 impl<T: Idempotent, A> Annotate<A> for T {
     fn annotated(self, annotation: A) -> Annotated<Self, A> {
         Annotated::new(self, annotation)

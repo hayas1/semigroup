@@ -92,6 +92,16 @@ pub trait Op<T>: Semigroup + Construction<T> {
 pub trait IdempotentOp<T>: Construction<T> {
     /// Determine which of the two inner values is selected by the operation.
     fn lift_select(base: &T, other: &T) -> Selected;
+
+    /// Assign-based idempotent semigroup operation on the inner type `T`.
+    fn lift_select_assign(base: &mut T, other: T)
+    where
+        Self: Op<T>,
+    {
+        if let Selected::Other = Self::lift_select(base, &other) {
+            *base = other;
+        }
+    }
 }
 
 /// [`MonoidOp`] represents [`crate::Monoid`] as a [new type struct](https://doc.rust-lang.org/rust-by-example/generics/new_types.html). like [`Construction`].

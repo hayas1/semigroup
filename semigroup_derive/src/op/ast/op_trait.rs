@@ -40,7 +40,6 @@ impl<'a> OpTrait<'a> {
                 Constant {
                     path_semigroup_op,
                     path_idempotent_op,
-                    path_selected,
                     ..
                 },
             derive: DeriveInput {
@@ -57,9 +56,7 @@ impl<'a> OpTrait<'a> {
                 #[automatically_derived]
                 impl #impl_generics #path_semigroup_op<#ty> for #ident #ty_generics #where_clause {
                     fn lift_op_assign(base: &mut #ty, other: #ty) {
-                        if let #path_selected::Other = <Self as #path_idempotent_op<#ty>>::lift_select(base, &other) {
-                            *base = other;
-                        }
+                        <Self as #path_idempotent_op<#ty>>::lift_select_assign(base, other);
                     }
                 }
             }

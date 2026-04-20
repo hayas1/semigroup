@@ -1,5 +1,6 @@
 ---
 source: semigroup_derive/src/op.rs
+assertion_line: 55
 expression: formatted
 ---
 #[automatically_derived]
@@ -30,11 +31,7 @@ impl<T> ::semigroup::Construction<Option<T>> for Coalesce<T> {
 #[automatically_derived]
 impl<T> ::semigroup::Op<Option<T>> for Coalesce<T> {
     fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {
-        if let ::semigroup::Selected::Other = <Self as ::semigroup::IdempotentOp<
-            Option<T>,
-        >>::lift_select(base, &other) {
-            *base = other;
-        }
+        <Self as ::semigroup::IdempotentOp<Option<T>>>::lift_select_assign(base, other);
     }
 }
 #[automatically_derived]
