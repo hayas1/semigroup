@@ -22,10 +22,9 @@ use crate::{IdempotentOp, Selected};
 pub struct Coalesce<T>(pub Option<T>);
 impl<T> IdempotentOp<Option<T>> for Coalesce<T> {
     fn lift_select(base: &Option<T>, other: &Option<T>) -> Selected {
-        if base.is_none() && other.is_some() {
-            Selected::Other
-        } else {
-            Selected::Base
+        match (base, other) {
+            (None, Some(_)) => Selected::Other,
+            _ => Selected::Base,
         }
     }
 }

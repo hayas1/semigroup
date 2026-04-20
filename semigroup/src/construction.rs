@@ -17,8 +17,9 @@ pub trait Construction<T>: Sized + From<T> + Deref<Target = T> + DerefMut {
     /// struct Coalesce<T>(Option<T>);
     /// impl<T> Op<Option<T>> for Coalesce<T> {
     ///     fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {
-    ///         if base.is_none() && other.is_some() {
-    ///             *base = other;
+    ///         match (&base, &other) {
+    ///             (None, Some(_)) => *base = other,
+    ///             _ => {},
     ///         }
     ///     }
     /// }
@@ -44,8 +45,9 @@ pub trait Op<T>: Semigroup + Construction<T> {
     /// struct Coalesce<T>(Option<T>);
     /// impl<T> Op<Option<T>> for Coalesce<T> {
     ///     fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {
-    ///         if base.is_none() && other.is_some() {
-    ///             *base = other;
+    ///         match (&base, &other) {
+    ///             (None, Some(_)) => *base = other,
+    ///             _ => {},
     ///         }
     ///     }
     /// }
@@ -75,10 +77,9 @@ pub trait Op<T>: Semigroup + Construction<T> {
 /// struct Coalesce<T>(Option<T>);
 /// impl<T> IdempotentOp<Option<T>> for Coalesce<T> {
 ///     fn lift_select(base: &Option<T>, other: &Option<T>) -> Selected {
-///         if base.is_none() && other.is_some() {
-///             Selected::Other
-///         } else {
-///             Selected::Base
+///         match (base, other) {
+///             (None, Some(_)) => Selected::Other,
+///             _ => Selected::Base,
 ///         }
 ///     }
 /// }
@@ -119,8 +120,9 @@ pub trait MonoidOp<T>: Op<T> + crate::Monoid {
     /// struct Coalesce<T>(Option<T>);
     /// impl<T> Op<Option<T>> for Coalesce<T> {
     ///     fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {
-    ///         if base.is_none() && other.is_some() {
-    ///             *base = other;
+    ///         match (&base, &other) {
+    ///             (None, Some(_)) => *base = other,
+    ///             _ => {},
     ///         }
     ///     }
     /// }
