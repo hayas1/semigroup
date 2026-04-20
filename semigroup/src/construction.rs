@@ -1,6 +1,6 @@
 use std::ops::{Deref, DerefMut};
 
-use crate::{Selected, Semigroup};
+use crate::{Idempotent, Selected, Semigroup};
 
 /// [`Construction`] represents [`crate::Semigroup`] as a [new type struct](https://doc.rust-lang.org/rust-by-example/generics/new_types.html).
 ///
@@ -89,15 +89,12 @@ pub trait Op<T>: Semigroup + Construction<T> {
 /// assert_eq!(ab.value(), &Coalesce(Some(2)));
 /// assert_eq!(ab.annotation(), &"second");
 /// ```
-pub trait IdempotentOp<T>: Construction<T> {
+pub trait IdempotentOp<T>: Idempotent + Construction<T> {
     /// Determine which of the two inner values is selected by the operation.
     fn lift_select(base: &T, other: &T) -> Selected;
 
     /// Assign-based idempotent semigroup operation on the inner type `T`.
-    fn lift_select_assign(base: &mut T, other: T)
-    where
-        Self: Op<T>,
-    {
+    fn lift_select_assign(base: &mut T, other: T) {
         if let Selected::Other = Self::lift_select(base, &other) {
             *base = other;
         }

@@ -108,14 +108,6 @@ pub enum Selected {
 /// [`Annotated`](crate::Annotated) can track which operand was selected.
 pub trait Idempotent {
     fn select(base: &Self, other: &Self) -> Selected;
-    fn idempotent_assign(&mut self, other: Self)
-    where
-        Self: Sized + Semigroup,
-    {
-        if let Selected::Other = Self::select(self, &other) {
-            *self = other;
-        }
-    }
 }
 
 #[cfg(feature = "test")]
