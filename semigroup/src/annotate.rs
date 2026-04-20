@@ -68,6 +68,14 @@ impl<T: Idempotent, A> Annotate<A> for T {
 /// assert_eq!(annotated.annotation(), &"first");
 /// assert_eq!(annotated, Annotated::new(Coalesce(Some(1)), "first"));
 /// ```
+///
+/// Duplicate annotation is not allowed:
+/// ```compile_fail
+/// use semigroup::{op::Coalesce, Annotate, Annotated};
+///
+/// let annotated = Coalesce(Some(1)).annotated("first").annotated("second");
+/// assert_eq!(annotated.value().value(), &Coalesce(Some(1)));
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
 #[op(
     commutative,
@@ -82,10 +90,9 @@ pub struct Annotated<T, A> {
     value: T,
     annotation: A,
 }
-
 impl<T: Semigroup + Idempotent, A> Semigroup for Annotated<T, A> {
     fn op_assign(base: &mut Self, other: Self) {
-        let selected = T::select(&base.value, &other.value);
+        let selected = Idempotent::select(&base.value, &other.value);
         let (other_value, other_annotation) = other.into_parts();
         Semigroup::op_assign(&mut base.value, other_value);
         if let Selected::Other = selected {
@@ -93,6 +100,12 @@ impl<T: Semigroup + Idempotent, A> Semigroup for Annotated<T, A> {
         }
     }
 }
+// do not impl Annotated<T, A>: Annotate<A>
+// impl<T: Idempotent, A> Idempotent for Annotated<T, A> {
+//     fn select(base: &Self, other: &Self) -> Selected {
+//         Idempotent::select(&base.value, &other.value)
+//     }
+// }
 
 impl<T, A> Annotated<T, A> {
     /// [`Annotated`] has `new` method, but [`Annotated`] should be created by [`Annotate`] trait.
