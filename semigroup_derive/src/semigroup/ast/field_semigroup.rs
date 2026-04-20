@@ -1,5 +1,4 @@
-use proc_macro2::TokenStream;
-use quote::{ToTokens, format_ident, quote};
+use quote::{ToTokens, format_ident};
 use syn::{DeriveInput, Expr, Field, FieldValue, Fields, Member, Stmt, Type, parse_quote};
 
 use crate::{
@@ -192,18 +191,14 @@ impl<'a> FieldAnnotated<'a> {
 
     /// Named struct field definition: `pub name: Annotated<FieldType, A>`.
     /// For tuple struct fields, returns only the type.
-    pub fn struct_field_tokens(
-        &self,
-        a: &syn::Ident,
-        path_annotated: &impl ToTokens,
-    ) -> TokenStream {
+    pub fn struct_field_tokens(&self, a: &syn::Ident, path_annotated: &impl ToTokens) -> Field {
         let ty = self.ty;
         match &self.member {
             Member::Named(ident) => {
-                quote! { pub #ident: #path_annotated<#ty, #a> }
+                parse_quote! { pub #ident: #path_annotated<#ty, #a> }
             }
             Member::Unnamed(_) => {
-                quote! { pub #path_annotated<#ty, #a> }
+                parse_quote! { pub #path_annotated<#ty, #a> }
             }
         }
     }
@@ -234,7 +229,7 @@ impl<'a> FieldAnnotated<'a> {
     ///
     /// Uses `With::lift_select` and `With::lift_op_assign` to drive selection and mutation,
     /// then updates the annotation if `Selected::Other` was returned.
-    pub fn annotated_op_assign_stmts(&self, path_selected: &impl ToTokens) -> TokenStream {
+    pub fn annotated_op_assign_stmts(&self, path_selected: &impl ToTokens) -> Vec<Stmt> {
         let member = &self.member;
         let selected_var = self.selected_var();
         let (other_val_var, other_ann_var) = self.other_vars();
@@ -246,31 +241,27 @@ impl<'a> FieldAnnotated<'a> {
                 // No with: field type must implement Idempotent + Semigroup directly.
                 let path_idempotent = &self.constant.path_idempotent;
                 let path_semigroup = &self.constant.path_semigroup;
-                quote! {
-                    let #selected_var = <#ty as #path_idempotent>::select(base.#member.value(), other.#member.value());
-                    let (#other_val_var, #other_ann_var) = other.#member.into_parts();
-                    #path_semigroup::op_assign(base.#member.value_mut(), #other_val_var);
-                    if let #path_selected::Other = #selected_var {
-                        *base.#member.annotation_mut() = #other_ann_var;
-                    }
-                }
+                vec![
+                    parse_quote! { let #selected_var = <#ty as #path_idempotent>::select(base.#member.value(), other.#member.value()); },
+                    parse_quote! { let (#other_val_var, #other_ann_var) = other.#member.into_parts(); },
+                    parse_quote! { #path_semigroup::op_assign(base.#member.value_mut(), #other_val_var); },
+                    parse_quote! { if let #path_selected::Other = #selected_var { *base.#member.annotation_mut() = #other_ann_var; } },
+                ]
             }
             Some(With::Path(p)) => {
-                quote! {
-                    let #selected_var = #p::lift_select(base.#member.value(), other.#member.value());
-                    let (#other_val_var, #other_ann_var) = other.#member.into_parts();
-                    #p::lift_op_assign(base.#member.value_mut(), #other_val_var);
-                    if let #path_selected::Other = #selected_var {
-                        *base.#member.annotation_mut() = #other_ann_var;
-                    }
-                }
+                vec![
+                    parse_quote! { let #selected_var = #p::lift_select(base.#member.value(), other.#member.value()); },
+                    parse_quote! { let (#other_val_var, #other_ann_var) = other.#member.into_parts(); },
+                    parse_quote! { #p::lift_op_assign(base.#member.value_mut(), #other_val_var); },
+                    parse_quote! { if let #path_selected::Other = #selected_var { *base.#member.annotation_mut() = #other_ann_var; } },
+                ]
             }
             Some(With::Constructor(_)) => {
                 // Constructor forms (e.g. `Dual(Coalesce(_))`) are not yet supported
                 // for annotated struct fields.
-                quote! {
+                vec![parse_quote! {
                     compile_error!("constructor `with` expressions are not supported in annotated struct fields; use a bare path like `\"semigroup::op::Overwrite\"`");
-                }
+                }]
             }
         }
     }
@@ -283,27 +274,23 @@ impl<'a> FieldAnnotated<'a> {
         &self,
         path_annotated: &impl ToTokens,
         is_last: bool,
-    ) -> TokenStream {
+    ) -> FieldValue {
         let ident = match &self.member {
             Member::Named(ident) => ident,
             Member::Unnamed(_) => panic!("annotated_init_named called on unnamed field"),
         };
         let val = self.annotated_init_value_expr(path_annotated, is_last);
-        quote! { #ident: #val }
+        parse_quote! { #ident: #val }
     }
 
     /// For tuple struct fields: just the expression, no field name.
-    pub fn annotated_init_value_expr(
-        &self,
-        path_annotated: &impl ToTokens,
-        is_last: bool,
-    ) -> TokenStream {
+    pub fn annotated_init_value_expr(&self, path_annotated: &impl ToTokens, is_last: bool) -> Expr {
         let member = &self.member;
-        let annotation_expr = if is_last {
-            quote! { annotation }
+        let annotation_expr: Expr = if is_last {
+            parse_quote! { annotation }
         } else {
-            quote! { annotation.clone() }
+            parse_quote! { annotation.clone() }
         };
-        quote! { #path_annotated::new(self.#member, #annotation_expr) }
+        parse_quote! { #path_annotated::new(self.#member, #annotation_expr) }
     }
 }

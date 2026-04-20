@@ -1,7 +1,8 @@
 use proc_macro2::TokenStream;
-use quote::{ToTokens, format_ident, quote};
+use quote::{ToTokens, format_ident};
 use syn::{
-    DataStruct, DeriveInput, Fields, GenericParam, Ident, ItemImpl, ItemStruct, parse_quote,
+    DataStruct, DeriveInput, Expr, FieldValue, Fields, GenericParam, Ident, ItemImpl, ItemStruct,
+    parse_quote,
 };
 
 use crate::{
@@ -244,7 +245,7 @@ impl<'a> StructAnnotated<'a> {
         g.params.push(a_param);
         let (_, ty_generics, where_clause) = g.split_for_impl();
 
-        let field_defs: Vec<TokenStream> = field_annotated
+        let field_defs: Vec<syn::Field> = field_annotated
             .iter()
             .map(|f| f.struct_field_tokens(&a_ident, path_annotated))
             .collect();
@@ -287,9 +288,9 @@ impl<'a> StructAnnotated<'a> {
         let g = self.generics_with_a();
         let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
 
-        let fields_op_assign: Vec<TokenStream> = field_annotated
+        let fields_op_assign: Vec<_> = field_annotated
             .iter()
-            .map(|f| f.annotated_op_assign_stmts(path_selected))
+            .flat_map(|f| f.annotated_op_assign_stmts(path_selected))
             .collect();
 
         parse_quote! {
@@ -305,7 +306,7 @@ impl<'a> StructAnnotated<'a> {
     }
 
     /// Generates `impl Xxx { pub fn annotated<A: Clone>(self, annotation: A) -> XxxAnnotated<A> }`.
-    pub fn impl_annotated_method(&self) -> TokenStream {
+    pub fn impl_annotated_method(&self) -> ItemImpl {
         let Self {
             constant: Constant { path_annotated, .. },
             derive: DeriveInput {
@@ -327,26 +328,26 @@ impl<'a> StructAnnotated<'a> {
 
         let n = field_annotated.len();
 
-        let struct_init = match &data_struct.fields {
+        let struct_init: Expr = match &data_struct.fields {
             Fields::Named(_) => {
-                let field_inits: Vec<TokenStream> = field_annotated
+                let field_inits: Vec<FieldValue> = field_annotated
                     .iter()
                     .enumerate()
                     .map(|(i, f)| f.annotated_init_named(path_annotated, i + 1 == n))
                     .collect();
-                quote! {
+                parse_quote! {
                     #annotated_ident {
                         #( #field_inits ),*
                     }
                 }
             }
             Fields::Unnamed(_) => {
-                let field_inits: Vec<TokenStream> = field_annotated
+                let field_inits: Vec<Expr> = field_annotated
                     .iter()
                     .enumerate()
                     .map(|(i, f)| f.annotated_init_value_expr(path_annotated, i + 1 == n))
                     .collect();
-                quote! {
+                parse_quote! {
                     #annotated_ident(
                         #( #field_inits ),*
                     )
@@ -355,7 +356,7 @@ impl<'a> StructAnnotated<'a> {
             Fields::Unit => todo!(),
         };
 
-        quote! {
+        parse_quote! {
             impl #impl_generics #ident #ty_generics #where_clause {
                 pub fn annotated<A: Clone>(self, annotation: A) -> #annotated_ident #ret_ty_generics {
                     #struct_init
