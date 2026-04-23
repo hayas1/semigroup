@@ -41,8 +41,10 @@ impl<A: Clone> ::semigroup::Semigroup for NamedStructAnnotated<A> {
         }
     }
 }
-impl NamedStruct {
-    pub fn annotated<A: Clone>(self, annotation: A) -> NamedStructAnnotated<A> {
+#[automatically_derived]
+impl<A: Clone> ::semigroup::AnnotateFields<A> for NamedStruct {
+    type Annotated = NamedStructAnnotated<A>;
+    fn annotated(self, annotation: A) -> Self::Annotated {
         NamedStructAnnotated {
             foo: ::semigroup::Annotated::new(self.foo, annotation.clone()),
             bar: ::semigroup::Annotated::new(self.bar, annotation),

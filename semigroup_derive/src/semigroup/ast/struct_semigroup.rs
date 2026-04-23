@@ -305,10 +305,15 @@ impl<'a> StructAnnotated<'a> {
         }
     }
 
-    /// Generates `impl Xxx { pub fn annotated<A: Clone>(self, annotation: A) -> XxxAnnotated<A> }`.
+    /// Generates `impl<A: Clone> AnnotateFields<A> for Xxx { type Annotated = XxxAnnotated<..., A>; fn annotated(...) }`.
     pub fn impl_annotated_method(&self) -> ItemImpl {
         let Self {
-            constant: Constant { path_annotated, .. },
+            constant:
+                Constant {
+                    path_annotated,
+                    path_annotate_fields,
+                    ..
+                },
             derive: DeriveInput {
                 ident, generics, ..
             },
@@ -318,13 +323,9 @@ impl<'a> StructAnnotated<'a> {
             ..
         } = self;
 
-        // Generics for the original struct's impl block (no A)
-        let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-
-        // Generics for the return type (original + A)
-        let mut ret_g = generics.clone();
-        ret_g.params.push(GenericParam::Type(parse_quote! { A }));
-        let (_, ret_ty_generics, _) = ret_g.split_for_impl();
+        let g_with_a = self.generics_with_a();
+        let (impl_generics, ret_ty_generics, where_clause) = g_with_a.split_for_impl();
+        let (_, ty_generics, _) = generics.split_for_impl();
 
         let n = field_annotated.len();
 
@@ -357,8 +358,10 @@ impl<'a> StructAnnotated<'a> {
         };
 
         parse_quote! {
-            impl #impl_generics #ident #ty_generics #where_clause {
-                pub fn annotated<A: Clone>(self, annotation: A) -> #annotated_ident #ret_ty_generics {
+            #[automatically_derived]
+            impl #impl_generics #path_annotate_fields<A> for #ident #ty_generics #where_clause {
+                type Annotated = #annotated_ident #ret_ty_generics;
+                fn annotated(self, annotation: A) -> Self::Annotated {
                     #struct_init
                 }
             }

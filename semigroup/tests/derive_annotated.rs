@@ -1,4 +1,4 @@
-use semigroup::Semigroup;
+use semigroup::{AnnotateFields, Semigroup};
 
 #[derive(Debug, Clone, PartialEq, Semigroup)]
 #[semigroup(annotated, with = "semigroup::op::Coalesce")]

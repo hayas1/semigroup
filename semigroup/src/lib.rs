@@ -39,7 +39,7 @@
 //! ## Coalesce with rich enum annotation and lazy evaluation
 //! More detail is in [`Annotate`] and [`Lazy`].
 //! ```
-//! use semigroup::{Annotate, Lazy, Semigroup};
+//! use semigroup::{Annotate, AnnotateFields, Lazy, Semigroup};
 //! #[derive(Debug, Clone, PartialEq, Semigroup)]
 //! #[semigroup(annotated, with = "semigroup::op::Coalesce")]
 //! pub struct Config<'a> {
