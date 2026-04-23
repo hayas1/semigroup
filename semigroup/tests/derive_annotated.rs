@@ -39,6 +39,17 @@ fn test_named_struct_semigroup() {
     assert_eq!(ba.value.annotation(), &"First");
 }
 
+#[test]
+fn test_named_struct_into() {
+    let original = NamedStruct {
+        name: "A".to_string(),
+        value: Some(10u32),
+    };
+    let annotated = original.clone().annotated("ann");
+    let recovered: NamedStruct = annotated.into();
+    assert_eq!(recovered, original);
+}
+
 #[derive(Debug, Clone, PartialEq, Semigroup)]
 #[semigroup(annotated, with = "semigroup::op::Coalesce")]
 pub struct UnnamedStruct(
@@ -64,4 +75,12 @@ fn test_unnamed_struct_semigroup() {
     assert_eq!(ba.0.annotation(), &1.0_f64);
     assert_eq!(ba.1.value(), &Some(10u32));
     assert_eq!(ba.1.annotation(), &1.0_f64);
+}
+
+#[test]
+fn test_unnamed_struct_into() {
+    let original = UnnamedStruct("A".to_string(), Some(10u32));
+    let annotated = original.clone().annotated(1.0_f64);
+    let recovered: UnnamedStruct = annotated.into();
+    assert_eq!(recovered, original);
 }

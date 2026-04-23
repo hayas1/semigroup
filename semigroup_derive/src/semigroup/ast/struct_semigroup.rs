@@ -194,6 +194,7 @@ impl ToTokens for StructAnnotated<'_> {
         self.def_annotated_struct().to_tokens(tokens);
         self.impl_semigroup_for_annotated().to_tokens(tokens);
         self.impl_annotated_method().to_tokens(tokens);
+        self.impl_from_for_original().to_tokens(tokens);
     }
 }
 impl<'a> StructAnnotated<'a> {
@@ -362,6 +363,45 @@ impl<'a> StructAnnotated<'a> {
             impl #impl_generics #path_annotate_fields<A> for #ident #ty_generics #where_clause {
                 type Annotated = #annotated_ident #ret_ty_generics;
                 fn annotated(self, annotation: A) -> Self::Annotated {
+                    #struct_init
+                }
+            }
+        }
+    }
+
+    /// Generates `impl<A> From<XxxAnnotated<..., A>> for Xxx<...>`.
+    pub fn impl_from_for_original(&self) -> ItemImpl {
+        let Self {
+            derive: DeriveInput { ident, generics, .. },
+            data_struct,
+            annotated_ident,
+            field_annotated,
+            ..
+        } = self;
+
+        let mut g_with_a = generics.clone();
+        g_with_a.params.push(GenericParam::Type(parse_quote! { A }));
+        let (impl_generics, ret_ty_generics, where_clause) = g_with_a.split_for_impl();
+        let (_, ty_generics, _) = generics.split_for_impl();
+
+        let struct_init: Expr = match &data_struct.fields {
+            Fields::Named(_) => {
+                let field_inits: Vec<FieldValue> =
+                    field_annotated.iter().map(|f| f.from_named()).collect();
+                parse_quote! { Self { #(#field_inits),* } }
+            }
+            Fields::Unnamed(_) => {
+                let field_inits: Vec<Expr> =
+                    field_annotated.iter().map(|f| f.from_value_expr()).collect();
+                parse_quote! { Self(#(#field_inits),*) }
+            }
+            Fields::Unit => todo!(),
+        };
+
+        parse_quote! {
+            #[automatically_derived]
+            impl #impl_generics From<#annotated_ident #ret_ty_generics> for #ident #ty_generics #where_clause {
+                fn from(annotated: #annotated_ident #ret_ty_generics) -> Self {
                     #struct_init
                 }
             }

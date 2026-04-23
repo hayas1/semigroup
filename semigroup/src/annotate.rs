@@ -52,7 +52,7 @@ impl<T: Idempotent, A> Annotate<A> for T {
 /// assert_eq!(ab.name.annotation(), &"file");
 /// ```
 pub trait AnnotateFields<A>: Sized {
-    type Annotated;
+    type Annotated: Into<Self>;
     fn annotated(self, annotation: A) -> Self::Annotated;
 }
 
