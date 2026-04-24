@@ -256,12 +256,41 @@ impl<'a> FieldAnnotated<'a> {
                     parse_quote! { if let #path_selected::Other = #selected_var { *base.#member.annotation_mut() = #other_ann_var; } },
                 ]
             }
-            Some(With::Constructor(_)) => {
-                // Constructor forms (e.g. `Dual(Coalesce(_))`) are not yet supported
-                // for annotated struct fields.
-                vec![parse_quote! {
-                    compile_error!("constructor `with` expressions are not supported in annotated struct fields; use a bare path like `\"semigroup::op::Overwrite\"`");
-                }]
+            Some(With::Constructor(expr)) => {
+                let with = With::Constructor(expr);
+                let Constant {
+                    path_semigroup,
+                    path_construction_trait,
+                    path_idempotent,
+                    ..
+                } = self.constant;
+                let wrapped_ty = with.as_type().expect("constructor with always resolves to a type");
+                let base_accessor: Expr = parse_quote! { __annotated_base_owned };
+                let base_wrapped = with.substitute(&base_accessor);
+                let other_accessor: Expr = parse_quote! { #other_val_var };
+                let other_wrapped = with.substitute(&other_accessor);
+                let chain_into_inner = with.chain_into_inner(parse_quote! { __semigroup_base });
+                vec![parse_quote! {{
+                    use #path_construction_trait;
+                    struct __AbortOnDrop;
+                    impl ::core::ops::Drop for __AbortOnDrop {
+                        fn drop(&mut self) {
+                            ::std::process::abort();
+                        }
+                    }
+                    let __guard = __AbortOnDrop;
+                    let __annotated_base_owned = unsafe { ::core::ptr::read(&raw const *base.#member.value()) };
+                    let (#other_val_var, #other_ann_var) = other.#member.into_parts();
+                    let (mut __semigroup_base, __semigroup_other) = (#base_wrapped, #other_wrapped);
+                    let #selected_var = <#wrapped_ty as #path_idempotent>::select(&__semigroup_base, &__semigroup_other);
+                    #path_semigroup::op_assign(&mut __semigroup_base, __semigroup_other);
+                    let __annotated_result = #chain_into_inner;
+                    unsafe { ::core::ptr::write(&raw mut *base.#member.value_mut(), __annotated_result); }
+                    ::core::mem::forget(__guard);
+                    if let #path_selected::Other = #selected_var {
+                        *base.#member.annotation_mut() = #other_ann_var;
+                    }
+                }}]
             }
         }
     }

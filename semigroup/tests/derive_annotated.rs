@@ -84,3 +84,43 @@ fn test_unnamed_struct_into() {
     let recovered: UnnamedStruct = annotated.into();
     assert_eq!(recovered, original);
 }
+
+#[derive(Debug, Clone, PartialEq, Semigroup)]
+#[semigroup(annotated)]
+pub struct DualCoalesce {
+    #[semigroup(with = "semigroup::Dual(semigroup::op::Overwrite(_))")]
+    pub key: String,
+    #[semigroup(with = "semigroup::Dual(semigroup::op::Coalesce(_))")]
+    pub value: Option<u32>,
+}
+
+#[test]
+fn test_constructor_with_annotated() {
+    let a = DualCoalesce {
+        key: "a".to_string(),
+        value: None,
+    }
+    .annotated("first");
+    let b = DualCoalesce {
+        key: "b".to_string(),
+        value: Some(2),
+    }
+    .annotated("second");
+    let ab = Semigroup::op(a.clone(), b.clone());
+    assert_eq!(ab.value.value(), &Some(2u32));
+    assert_eq!(ab.value.annotation(), &"second");
+
+    let c = DualCoalesce {
+        key: "c".to_string(),
+        value: Some(1),
+    }
+    .annotated("first");
+    let d = DualCoalesce {
+        key: "d".to_string(),
+        value: None,
+    }
+    .annotated("second");
+    let cd = Semigroup::op(c.clone(), d.clone());
+    assert_eq!(cd.value.value(), &Some(1u32));
+    assert_eq!(cd.value.annotation(), &"first");
+}
