@@ -1,8 +1,8 @@
 use proc_macro2::TokenStream;
 use quote::{ToTokens, format_ident};
 use syn::{
-    DataStruct, DeriveInput, Expr, FieldValue, Fields, GenericParam, Ident, ItemImpl, ItemStruct,
-    parse_quote,
+    Block, DataStruct, DeriveInput, Expr, FieldValue, Fields, GenericParam, Ident, ItemImpl,
+    ItemStruct, parse_quote,
 };
 
 use crate::{
@@ -289,9 +289,9 @@ impl<'a> StructAnnotated<'a> {
         let g = self.generics_with_a();
         let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
 
-        let fields_op_assign: Vec<_> = field_annotated
+        let fields_op_assign: Vec<Block> = field_annotated
             .iter()
-            .flat_map(|f| f.annotated_op_assign_stmts(path_selected))
+            .map(|f| f.annotated_op_assign_stmts(path_selected))
             .collect();
 
         parse_quote! {

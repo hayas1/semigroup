@@ -1,5 +1,5 @@
 use quote::{ToTokens, format_ident};
-use syn::{DeriveInput, Expr, Field, FieldValue, Fields, Member, Stmt, Type, parse_quote};
+use syn::{Block, DeriveInput, Expr, Field, FieldValue, Fields, Member, Stmt, Type, parse_quote};
 
 use crate::{
     constant::Constant,
@@ -229,7 +229,7 @@ impl<'a> FieldAnnotated<'a> {
     ///
     /// Uses `With::lift_select` and `With::lift_op_assign` to drive selection and mutation,
     /// then updates the annotation if `Selected::Other` was returned.
-    pub fn annotated_op_assign_stmts(&self, path_selected: &impl ToTokens) -> Vec<Stmt> {
+    pub fn annotated_op_assign_stmts(&self, path_selected: &impl ToTokens) -> Block {
         let member = &self.member;
         let selected_var = self.selected_var();
         let (other_val_var, other_ann_var) = self.other_vars();
@@ -238,23 +238,22 @@ impl<'a> FieldAnnotated<'a> {
 
         match with {
             None => {
-                // No with: field type must implement Idempotent + Semigroup directly.
                 let path_idempotent = &self.constant.path_idempotent;
                 let path_semigroup = &self.constant.path_semigroup;
-                vec![
-                    parse_quote! { let #selected_var = <#ty as #path_idempotent>::select(base.#member.value(), other.#member.value()); },
-                    parse_quote! { let (#other_val_var, #other_ann_var) = other.#member.into_parts(); },
-                    parse_quote! { #path_semigroup::op_assign(base.#member.value_mut(), #other_val_var); },
-                    parse_quote! { if let #path_selected::Other = #selected_var { *base.#member.annotation_mut() = #other_ann_var; } },
-                ]
+                parse_quote! {{
+                    let #selected_var = <#ty as #path_idempotent>::select(base.#member.value(), other.#member.value());
+                    let (#other_val_var, #other_ann_var) = other.#member.into_parts();
+                    #path_semigroup::op_assign(base.#member.value_mut(), #other_val_var);
+                    if let #path_selected::Other = #selected_var { *base.#member.annotation_mut() = #other_ann_var; }
+                }}
             }
             Some(With::Path(p)) => {
-                vec![
-                    parse_quote! { let #selected_var = #p::lift_select(base.#member.value(), other.#member.value()); },
-                    parse_quote! { let (#other_val_var, #other_ann_var) = other.#member.into_parts(); },
-                    parse_quote! { #p::lift_op_assign(base.#member.value_mut(), #other_val_var); },
-                    parse_quote! { if let #path_selected::Other = #selected_var { *base.#member.annotation_mut() = #other_ann_var; } },
-                ]
+                parse_quote! {{
+                    let #selected_var = #p::lift_select(base.#member.value(), other.#member.value());
+                    let (#other_val_var, #other_ann_var) = other.#member.into_parts();
+                    #p::lift_op_assign(base.#member.value_mut(), #other_val_var);
+                    if let #path_selected::Other = #selected_var { *base.#member.annotation_mut() = #other_ann_var; }
+                }}
             }
             Some(With::Constructor(expr)) => {
                 let with = With::Constructor(expr);
@@ -270,7 +269,7 @@ impl<'a> FieldAnnotated<'a> {
                 let other_accessor: Expr = parse_quote! { #other_val_var };
                 let other_wrapped = with.substitute(&other_accessor);
                 let chain_into_inner = with.chain_into_inner(parse_quote! { __semigroup_base });
-                vec![parse_quote! {{
+                parse_quote! {{
                     use #path_construction_trait;
                     struct __AbortOnDrop;
                     impl ::core::ops::Drop for __AbortOnDrop {
@@ -290,7 +289,7 @@ impl<'a> FieldAnnotated<'a> {
                     if let #path_selected::Other = #selected_var {
                         *base.#member.annotation_mut() = #other_ann_var;
                     }
-                }}]
+                }}
             }
         }
     }
