@@ -45,7 +45,12 @@ impl<'a> FieldSemigroupOp<'a> {
 
     pub fn impl_field_semigroup_op_assign(&self) -> Stmt {
         let Self {
-            constant: Constant { path_semigroup, path_construction_trait, .. },
+            constant:
+                Constant {
+                    path_semigroup,
+                    path_construction_trait,
+                    ..
+                },
             container_attr,
             member,
             field_attr,
@@ -93,7 +98,12 @@ impl<'a> FieldSemigroupOp<'a> {
 
     pub fn impl_field_monoid_identity(&self) -> syn::Result<FieldValue> {
         let Self {
-            constant: Constant { path_monoid, path_construction_trait, .. },
+            constant:
+                Constant {
+                    path_monoid,
+                    path_construction_trait,
+                    ..
+                },
             container_attr,
             member,
             field_attr,
@@ -235,7 +245,11 @@ impl<'a> FieldAnnotated<'a> {
 
         Ok(match with {
             None => {
-                let Constant { path_idempotent, path_semigroup, .. } = constant;
+                let Constant {
+                    path_idempotent,
+                    path_semigroup,
+                    ..
+                } = constant;
                 parse_quote! {{
                     let #selected_var = <#ty as #path_idempotent>::select(base.#member.value(), other.#member.value());
                     let (#other_val_var, #other_ann_var) = other.#member.into_parts();
