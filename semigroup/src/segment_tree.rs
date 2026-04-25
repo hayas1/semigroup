@@ -171,8 +171,8 @@ impl<T: Monoid + Clone> SegmentTree<T> {
         // TODO `std::slice::range` is nightly only https://doc.rust-lang.org/std/slice/fn.range.html
         let start = match range.start_bound() {
             Bound::Unbounded => 0,
-            Bound::Excluded(&l) => (l + 1).max(0),
-            Bound::Included(&l) => l.max(0),
+            Bound::Excluded(&l) => l + 1,
+            Bound::Included(&l) => l,
         };
         let end = match range.end_bound() {
             Bound::Unbounded => self.len(),

@@ -15,7 +15,7 @@ pub struct OpTrait<'a> {
 
 impl ToTokens for OpTrait<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.impl_op_with_unit_annotation().to_tokens(tokens);
+        self.impl_op_from_idempotent().to_tokens(tokens);
         self.impl_monoid_op().to_tokens(tokens);
     }
 }
@@ -34,13 +34,12 @@ impl<'a> OpTrait<'a> {
         })
     }
 
-    pub fn impl_op_with_unit_annotation(&self) -> Option<ItemImpl> {
+    pub fn impl_op_from_idempotent(&self) -> Option<ItemImpl> {
         let Self {
             constant:
                 Constant {
-                    path_annotated,
                     path_semigroup_op,
-                    path_annotated_op,
+                    path_idempotent_op,
                     ..
                 },
             derive: DeriveInput {
@@ -51,19 +50,13 @@ impl<'a> OpTrait<'a> {
             ..
         } = self;
 
-        (attr.is_annotated() && attr.gen_op_impl()).then(|| {
+        (attr.is_idempotent() && attr.gen_op_impl()).then(|| {
             let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-            let unit_annotation = attr.unit_annotation();
             parse_quote! {
                 #[automatically_derived]
                 impl #impl_generics #path_semigroup_op<#ty> for #ident #ty_generics #where_clause {
                     fn lift_op_assign(base: &mut #ty, other: #ty) {
-                        let (mut base_unit, other_unit) = (#unit_annotation, #unit_annotation);
-                        let (b, o) = (
-                            #path_annotated::new(base, &mut base_unit),
-                            #path_annotated::new(other, other_unit),
-                        );
-                        <Self as #path_annotated_op<_, _>>::lift_annotated_op_assign(b, o);
+                        <Self as #path_idempotent_op<#ty>>::lift_select_assign(base, other);
                     }
                 }
             }

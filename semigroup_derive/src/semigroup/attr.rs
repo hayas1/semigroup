@@ -1,12 +1,10 @@
 use darling::{FromDeriveInput, FromField};
-use syn::punctuated::Punctuated;
-use syn::token::Comma;
 use syn::{
     AngleBracketedGenericArguments, DeriveInput, Expr, ExprPath, Field, GenericArgument, Ident,
     PathArguments, Type, TypePath, WherePredicate, parse_quote,
 };
 
-use crate::{annotation::Annotation, constant::Constant, error::SemigroupError, name::var_name};
+use crate::{error::SemigroupError, name::var_name};
 
 #[derive(Debug, Clone, PartialEq, FromDeriveInput)]
 #[darling(attributes(semigroup), and_then = Self::validate)]
@@ -110,18 +108,6 @@ impl ContainerAttr {
             .map(syn::parse_str)
             .map(|p| p.unwrap_or_else(|e| todo!("{e}")))
     }
-
-    pub fn annotation(&self, constant: &Constant, annotation_ident: &Ident) -> Annotation {
-        let a = self
-            .annotation_param
-            .as_ref()
-            .unwrap_or(&constant.default_type_param.ident);
-        Annotation::new(
-            parse_quote! { #a: Clone },
-            Some(parse_quote! { #annotation_ident<#a> }),
-            None,
-        )
-    }
 }
 
 #[derive(Debug, Clone, FromField)]
@@ -185,42 +171,48 @@ impl With<'_> {
 
     /// Convert to the equivalent type suitable for UFCS.
     /// `Dual(Coalesce(_))` → `Dual<Coalesce<_>>`, bare path → the path as a type.
-    pub fn as_type(&self) -> Option<Type> {
-        fn type_recursive(expr: &Expr) -> Option<Type> {
+    pub fn as_type(&self) -> syn::Result<Type> {
+        fn type_recursive(expr: &Expr) -> syn::Result<Type> {
             match expr {
-                Expr::Infer(_) => Some(parse_quote! { _ }),
-                Expr::Path(p) => Some(Type::Path(TypePath {
+                Expr::Infer(_) => Ok(parse_quote! { _ }),
+                Expr::Path(p) => Ok(Type::Path(TypePath {
                     qself: p.qself.clone(),
                     path: p.path.clone(),
                 })),
                 Expr::Call(call) => {
                     let base_ty = type_recursive(&call.func)?;
-                    let args: Punctuated<GenericArgument, Comma> = call
+                    let args = call
                         .args
                         .iter()
-                        .filter_map(|a| type_recursive(a).map(GenericArgument::Type))
-                        .collect();
+                        .map(|a| type_recursive(a).map(GenericArgument::Type))
+                        .collect::<syn::Result<Vec<_>>>()?;
                     match base_ty {
                         Type::Path(mut tp) => {
-                            let last = tp.path.segments.last_mut()?;
+                            let last = tp.path.segments.last_mut().expect("path has segments");
                             last.arguments =
                                 PathArguments::AngleBracketed(AngleBracketedGenericArguments {
                                     colon2_token: None,
                                     lt_token: Default::default(),
-                                    args,
+                                    args: args.into_iter().collect(),
                                     gt_token: Default::default(),
                                 });
-                            Some(Type::Path(tp))
+                            Ok(Type::Path(tp))
                         }
-                        _ => None,
+                        _ => Err(syn::Error::new_spanned(
+                            &call.func,
+                            "expected a type path as constructor function",
+                        )),
                     }
                 }
-                _ => None,
+                _ => Err(syn::Error::new_spanned(
+                    expr,
+                    "expected a constructor call like `Wrapper(_)` or a bare path",
+                )),
             }
         }
 
         match self {
-            With::Path(p) => Some(Type::Path(TypePath {
+            With::Path(p) => Ok(Type::Path(TypePath {
                 qself: p.qself.clone(),
                 path: p.path.clone(),
             })),
@@ -275,14 +267,6 @@ mod tests {
             annotated: true,
             ..default_container_attr()
         }),
-    )]
-    #[case::invalid_annotated_attr(
-        syn::parse_quote! {
-            #[derive(Semigroup)]
-            #[semigroup(annotation_param = "X")]
-            pub struct UnnamedStruct();
-        },
-        Err("attribute `annotation_param` are supported only with `annotated`"),
     )]
     #[case::invalid_monoid_attr(
         syn::parse_quote! {

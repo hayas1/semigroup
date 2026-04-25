@@ -6,7 +6,7 @@ use crate::{
     constant::Constant,
     error::SemigroupError,
     semigroup::{
-        ast::struct_semigroup::{StructAnnotate, StructSemigroup},
+        ast::struct_semigroup::{StructAnnotated, StructSemigroup},
         attr::ContainerAttr,
     },
 };
@@ -17,12 +17,12 @@ pub mod struct_semigroup;
 #[derive(Debug, Clone)]
 pub struct Semigroup<'a> {
     semigroup: StructSemigroup<'a>,
-    annotate: Option<StructAnnotate<'a>>,
+    annotated: Option<StructAnnotated<'a>>,
 }
 impl ToTokens for Semigroup<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.semigroup.to_tokens(tokens);
-        self.annotate.to_tokens(tokens);
+        self.annotated.to_tokens(tokens);
     }
 }
 impl<'a> Semigroup<'a> {
@@ -38,13 +38,13 @@ impl<'a> Semigroup<'a> {
             )),
             Data::Struct(data_struct) => {
                 let semigroup = StructSemigroup::new(constant, derive, attr, data_struct)?;
-                let annotate = attr
+                let annotated = attr
                     .is_annotated()
-                    .then(|| StructAnnotate::new(constant, derive, attr, data_struct))
+                    .then(|| StructAnnotated::new(constant, derive, attr, data_struct))
                     .transpose()?;
                 Ok(Self {
                     semigroup,
-                    annotate,
+                    annotated,
                 })
             }
             Data::Union(DataUnion { union_token, .. }) => Err(syn::Error::new_spanned(

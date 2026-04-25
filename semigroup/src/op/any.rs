@@ -1,6 +1,6 @@
 use semigroup_derive::{OpPriv, properties_priv};
 
-use crate::{Annotated, AnnotatedOp};
+use crate::{IdempotentOp, Selected};
 
 /// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns `true` if either value is `true`.
 /// # Properties
@@ -17,16 +17,15 @@ use crate::{Annotated, AnnotatedOp};
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[op(annotated, monoid, commutative, identity = Self(false))]
-#[properties_priv(annotated, monoid, commutative)]
+#[op(idempotent, monoid, commutative, identity = Self(false))]
+#[properties_priv(idempotent, monoid, commutative)]
 pub struct Any(pub bool);
-impl<A> AnnotatedOp<bool, A> for Any {
-    fn lift_annotated_op_assign(
-        mut base: Annotated<&mut bool, &mut A>,
-        mut other: Annotated<bool, A>,
-    ) {
-        if base.value() < &other.value_mut() {
-            base.replace(other);
+impl IdempotentOp<bool> for Any {
+    fn lift_select(base: &bool, other: &bool) -> Selected {
+        if !base && *other {
+            Selected::Other
+        } else {
+            Selected::Base
         }
     }
 }

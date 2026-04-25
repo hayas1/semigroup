@@ -31,12 +31,11 @@ mod tests {
         impl_semigroup::<External>,
         syn::parse_quote! {
             #[derive(Semigroup)]
-            #[semigroup(annotated)]
+            #[semigroup(annotated, with = "semigroup::op::Coalesce")]
             pub struct NamedStruct {
                 #[semigroup(with = "semigroup::op::Overwrite")]
                 pub foo: String,
                 pub bar: Option<u32>,
-                pub baz: semigroup::op::Overwrite<bool>,
             }
         },
     )]
@@ -51,19 +50,6 @@ mod tests {
                 T,
                 u64
             );
-        },
-    )]
-    #[case::semigroup_custom_annotation(
-        "semigroup_custom_annotation",
-        impl_semigroup::<External>,
-        syn::parse_quote! {
-            #[derive(Semigroup)]
-            #[semigroup(annotated, annotation_param = X, with = "semigroup::op::Overwrite")]
-            pub struct NamedStruct{
-                pub foo: String,
-                pub bar: Option<u32>,
-                pub baz: bool,
-            }
         },
     )]
     #[case::semigroup_with_dual(

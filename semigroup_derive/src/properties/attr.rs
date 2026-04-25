@@ -4,8 +4,8 @@ use darling::FromMeta;
 #[darling(derive_syn_parse, and_then = Self::validate)]
 pub struct ContainerAttr {
     #[darling(default)]
-    annotated: bool,
-    annotation_where: Option<String>, // TODO Vec
+    idempotent: bool,
+    idempotent_where: Option<String>, // TODO Vec
 
     #[darling(default)]
     monoid: bool,
@@ -19,8 +19,8 @@ impl ContainerAttr {
     pub fn validate(self) -> darling::Result<Self> {
         Ok(self)
     }
-    pub fn is_annotated(&self) -> bool {
-        self.annotated
+    pub fn is_idempotent(&self) -> bool {
+        self.idempotent
     }
     pub fn is_monoid(&self) -> bool {
         self.monoid
@@ -29,8 +29,8 @@ impl ContainerAttr {
         self.commutative
     }
 
-    pub fn annotation_where(&self) -> Option<&str> {
-        self.annotation_where.as_deref()
+    pub fn idempotent_where(&self) -> Option<&str> {
+        self.idempotent_where.as_deref()
     }
     pub fn monoid_where(&self) -> Option<&str> {
         self.monoid_where.as_deref()

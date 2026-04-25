@@ -1,6 +1,6 @@
 use semigroup_derive::{OpPriv, properties_priv};
 
-use crate::{Annotated, AnnotatedOp};
+use crate::{IdempotentOp, Selected};
 
 /// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns the second value.
 /// # Properties
@@ -17,18 +17,18 @@ use crate::{Annotated, AnnotatedOp};
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[op(annotated)]
-#[properties_priv(annotated)]
+#[op(idempotent)]
+#[properties_priv(idempotent)]
 pub struct Overwrite<T>(pub T);
-impl<T, A> AnnotatedOp<T, A> for Overwrite<T> {
-    fn lift_annotated_op_assign(mut base: Annotated<&mut T, &mut A>, other: Annotated<T, A>) {
-        base.replace(other);
+impl<T> IdempotentOp<T> for Overwrite<T> {
+    fn lift_select(_base: &T, _other: &T) -> Selected {
+        Selected::Other
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{Construction, Semigroup};
+    use crate::{Annotate, Construction, Semigroup};
 
     use super::*;
 
@@ -43,5 +43,17 @@ mod tests {
         let (a, b) = (Overwrite(Some(1)), Overwrite(Some(2)));
         assert_eq!(a.semigroup(b).into_inner(), Some(2));
         assert_eq!(b.semigroup(a).into_inner(), Some(1));
+    }
+
+    #[test]
+    fn test_overwrite_annotated() {
+        let a = Overwrite(1).annotated("first");
+        let b = Overwrite(2).annotated("second");
+        let ab = a.semigroup(b);
+        assert_eq!(ab.value(), &Overwrite(2));
+        assert_eq!(ab.annotation(), &"second");
+        let ba = b.semigroup(a);
+        assert_eq!(ba.value(), &Overwrite(1));
+        assert_eq!(ba.annotation(), &"first");
     }
 }
