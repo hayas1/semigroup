@@ -23,9 +23,10 @@ pub struct Op<'a> {
 }
 impl ToTokens for Op<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.construction_trait.to_tokens(tokens);
-        self.op_trait.to_tokens(tokens);
-        self.trait_impl.to_tokens(tokens);
+        let Self { construction_trait, op_trait, trait_impl } = self;
+        construction_trait.to_tokens(tokens);
+        op_trait.to_tokens(tokens);
+        trait_impl.to_tokens(tokens);
     }
 }
 impl<'a> Op<'a> {

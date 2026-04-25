@@ -45,7 +45,7 @@ impl<'a> FieldSemigroupOp<'a> {
 
     pub fn impl_field_semigroup_op_assign(&self) -> Stmt {
         let Self {
-            constant: Constant { path_semigroup, .. },
+            constant: Constant { path_semigroup, path_construction_trait, .. },
             container_attr,
             member,
             field_attr,
@@ -64,10 +64,6 @@ impl<'a> FieldSemigroupOp<'a> {
                 }
             }
             Some(with) => {
-                let Constant {
-                    path_construction_trait,
-                    ..
-                } = self.constant;
                 let base_accessor: Expr = parse_quote! { __semigroup_base_owned };
                 let other_accessor: Expr = parse_quote! { other.#member };
                 let base_wrapped = with.substitute(&base_accessor);
@@ -97,7 +93,7 @@ impl<'a> FieldSemigroupOp<'a> {
 
     pub fn impl_field_monoid_identity(&self) -> syn::Result<FieldValue> {
         let Self {
-            constant: Constant { path_monoid, .. },
+            constant: Constant { path_monoid, path_construction_trait, .. },
             container_attr,
             member,
             field_attr,
@@ -116,10 +112,6 @@ impl<'a> FieldSemigroupOp<'a> {
                 }
             }
             Some(with) => {
-                let Constant {
-                    path_construction_trait,
-                    ..
-                } = self.constant;
                 let wrapped_ty = with.as_type()?;
                 let chain_into_inner = with.chain_into_inner(parse_quote! { __monoid_identity });
                 parse_quote! {
@@ -190,8 +182,8 @@ impl<'a> FieldAnnotated<'a> {
     /// Named struct field definition: `pub name: Annotated<FieldType, A>`.
     /// For tuple struct fields, returns only the type.
     pub fn struct_field_tokens(&self, a: &syn::Ident, path_annotated: &impl ToTokens) -> Field {
-        let ty = self.ty;
-        match &self.member {
+        let Self { ty, member, .. } = self;
+        match member {
             Member::Named(ident) => {
                 parse_quote! { pub #ident: #path_annotated<#ty, #a> }
             }
@@ -203,7 +195,8 @@ impl<'a> FieldAnnotated<'a> {
 
     /// Generates a variable name for this field's selected value (unique per field).
     fn selected_var(&self) -> syn::Ident {
-        match &self.member {
+        let Self { member, .. } = self;
+        match member {
             Member::Named(ident) => format_ident!("__selected_{}", ident),
             Member::Unnamed(idx) => format_ident!("__selected_{}", idx.index),
         }
@@ -211,7 +204,8 @@ impl<'a> FieldAnnotated<'a> {
 
     /// Generates variable names for other_val and other_ann for this field.
     fn other_vars(&self) -> (syn::Ident, syn::Ident) {
-        match &self.member {
+        let Self { member, .. } = self;
+        match member {
             Member::Named(ident) => (
                 format_ident!("__other_{}_val", ident),
                 format_ident!("__other_{}_ann", ident),
@@ -228,16 +222,20 @@ impl<'a> FieldAnnotated<'a> {
     /// Uses `With::lift_select` and `With::lift_op_assign` to drive selection and mutation,
     /// then updates the annotation if `Selected::Other` was returned.
     pub fn annotated_op_assign_stmts(&self, path_selected: &impl ToTokens) -> syn::Result<Block> {
-        let member = &self.member;
         let selected_var = self.selected_var();
         let (other_val_var, other_ann_var) = self.other_vars();
-        let ty = self.ty;
-        let with = self.field_attr.with(self.container_attr);
+        let Self {
+            constant,
+            member,
+            ty,
+            field_attr,
+            container_attr,
+        } = self;
+        let with = field_attr.with(container_attr);
 
         Ok(match with {
             None => {
-                let path_idempotent = &self.constant.path_idempotent;
-                let path_semigroup = &self.constant.path_semigroup;
+                let Constant { path_idempotent, path_semigroup, .. } = constant;
                 parse_quote! {{
                     let #selected_var = <#ty as #path_idempotent>::select(base.#member.value(), other.#member.value());
                     let (#other_val_var, #other_ann_var) = other.#member.into_parts();
@@ -260,7 +258,7 @@ impl<'a> FieldAnnotated<'a> {
                     path_construction_trait,
                     path_idempotent,
                     ..
-                } = self.constant;
+                } = constant;
                 let wrapped_ty = with.as_type()?;
                 let base_accessor: Expr = parse_quote! { __annotated_base_owned };
                 let base_wrapped = with.substitute(&base_accessor);
@@ -301,17 +299,18 @@ impl<'a> FieldAnnotated<'a> {
         path_annotated: &impl ToTokens,
         is_last: bool,
     ) -> FieldValue {
-        let ident = match &self.member {
+        let val = self.annotated_init_value_expr(path_annotated, is_last);
+        let Self { member, .. } = self;
+        let ident = match member {
             Member::Named(ident) => ident,
             Member::Unnamed(_) => panic!("annotated_init_named called on unnamed field"),
         };
-        let val = self.annotated_init_value_expr(path_annotated, is_last);
         parse_quote! { #ident: #val }
     }
 
     /// For tuple struct fields: just the expression, no field name.
     pub fn annotated_init_value_expr(&self, path_annotated: &impl ToTokens, is_last: bool) -> Expr {
-        let member = &self.member;
+        let Self { member, .. } = self;
         let annotation_expr: Expr = if is_last {
             parse_quote! { annotation }
         } else {
@@ -321,7 +320,7 @@ impl<'a> FieldAnnotated<'a> {
     }
 
     pub fn field_value(&self) -> FieldValue {
-        let member = &self.member;
+        let Self { member, .. } = self;
         parse_quote! { #member: annotated.#member.into_value() }
     }
 }
