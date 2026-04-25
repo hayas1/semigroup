@@ -320,13 +320,8 @@ impl<'a> FieldAnnotated<'a> {
         parse_quote! { #path_annotated::new(self.#member, #annotation_expr) }
     }
 
-    pub fn from_named(&self) -> FieldValue {
+    pub fn field_value(&self) -> FieldValue {
         let member = &self.member;
         parse_quote! { #member: annotated.#member.into_value() }
-    }
-
-    pub fn from_value_expr(&self) -> Expr {
-        let member = &self.member;
-        parse_quote! { annotated.#member.into_value() }
     }
 }

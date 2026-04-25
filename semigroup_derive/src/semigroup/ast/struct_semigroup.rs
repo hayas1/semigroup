@@ -391,18 +391,10 @@ impl<'a> StructAnnotated<'a> {
         let (impl_generics, ret_ty_generics, where_clause) = g_with_a.split_for_impl();
         let (_, ty_generics, _) = generics.split_for_impl();
 
+        let field_inits: Vec<_> = field_annotated.iter().map(|f| f.field_value()).collect();
         let struct_init: Expr = match &data_struct.fields {
-            Fields::Named(_) => {
-                let field_inits: Vec<FieldValue> =
-                    field_annotated.iter().map(|f| f.from_named()).collect();
+            Fields::Named(_) | Fields::Unnamed(_) => {
                 parse_quote! { Self { #(#field_inits),* } }
-            }
-            Fields::Unnamed(_) => {
-                let field_inits: Vec<Expr> = field_annotated
-                    .iter()
-                    .map(|f| f.from_value_expr())
-                    .collect();
-                parse_quote! { Self(#(#field_inits),*) }
             }
             Fields::Unit => todo!(),
         };
