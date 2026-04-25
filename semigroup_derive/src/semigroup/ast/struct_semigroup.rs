@@ -241,7 +241,6 @@ impl<'a> StructAnnotated<'a> {
         let a_param: GenericParam = parse_quote! { A };
         let a_ident: Ident = parse_quote! { A };
 
-        // Build generics for the struct: original params + A (no Clone bound in struct def)
         let mut g = generics.clone();
         g.params.push(a_param);
         let (_, ty_generics, where_clause) = g.split_for_impl();
@@ -372,7 +371,9 @@ impl<'a> StructAnnotated<'a> {
     /// Generates `impl<A> From<XxxAnnotated<..., A>> for Xxx<...>`.
     pub fn impl_from_for_original(&self) -> ItemImpl {
         let Self {
-            derive: DeriveInput { ident, generics, .. },
+            derive: DeriveInput {
+                ident, generics, ..
+            },
             data_struct,
             annotated_ident,
             field_annotated,
@@ -391,8 +392,10 @@ impl<'a> StructAnnotated<'a> {
                 parse_quote! { Self { #(#field_inits),* } }
             }
             Fields::Unnamed(_) => {
-                let field_inits: Vec<Expr> =
-                    field_annotated.iter().map(|f| f.from_value_expr()).collect();
+                let field_inits: Vec<Expr> = field_annotated
+                    .iter()
+                    .map(|f| f.from_value_expr())
+                    .collect();
                 parse_quote! { Self(#(#field_inits),*) }
             }
             Fields::Unit => todo!(),
