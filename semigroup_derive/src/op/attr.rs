@@ -8,6 +8,7 @@ use crate::{error::ConstructionError, name::var_name};
 pub struct ContainerAttr {
     #[darling(default)]
     idempotent: bool,
+    idempotent_where: Option<String>, // TODO Vec
 
     #[darling(default)]
     monoid: bool,
@@ -32,6 +33,8 @@ impl ContainerAttr {
     }
     pub fn validate(self) -> darling::Result<Self> {
         let Self {
+            idempotent,
+            idempotent_where,
             monoid,
             identity,
             monoid_where,
@@ -40,6 +43,13 @@ impl ContainerAttr {
             commutative_where,
             ..
         } = &self;
+        if !idempotent {
+            if let Some(_) = idempotent_where {
+                return Err(darling::Error::custom(ConstructionError::OnlyIdempotent(
+                    var_name!(idempotent_where),
+                )));
+            }
+        }
         if !monoid {
             let err_attr_name = if identity.is_some() {
                 Some(var_name!(identity))
@@ -71,6 +81,12 @@ impl ContainerAttr {
 
     pub fn is_idempotent(&self) -> bool {
         self.idempotent
+    }
+    pub fn idempotent_where(&self) -> Option<WherePredicate> {
+        self.idempotent_where
+            .as_deref()
+            .map(syn::parse_str)
+            .map(|p| p.unwrap_or_else(|e| todo!("{e}")))
     }
 
     pub fn is_monoid(&self) -> bool {

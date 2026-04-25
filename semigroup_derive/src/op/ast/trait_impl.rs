@@ -73,7 +73,11 @@ impl<'a> TraitImpl<'a> {
         } = self;
 
         attr.is_idempotent().then(|| {
-            let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+            let mut g = generics.clone();
+            attr.idempotent_where()
+                .into_iter()
+                .for_each(|w| g.make_where_clause().predicates.push(w));
+            let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
             parse_quote! {
                 #[automatically_derived]
                 impl #impl_generics #path_idempotent for #ident #ty_generics #where_clause {
