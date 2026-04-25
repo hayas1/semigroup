@@ -333,32 +333,13 @@ impl<'a> StructAnnotated<'a> {
         let (impl_generics, ret_ty_generics, where_clause) = g_with_a.split_for_impl();
         let (_, ty_generics, _) = generics.split_for_impl();
 
-        let n = field_annotated.len();
-
+        let field_inits: Vec<FieldValue> = field_annotated
+            .iter()
+            .map(|f| f.annotated_init_field_value(path_annotated))
+            .collect();
         let struct_init: Expr = match &data_struct.fields {
-            Fields::Named(_) => {
-                let field_inits: Vec<FieldValue> = field_annotated
-                    .iter()
-                    .enumerate()
-                    .map(|(i, f)| f.annotated_init_named(path_annotated, i + 1 == n))
-                    .collect();
-                parse_quote! {
-                    #annotated_ident {
-                        #( #field_inits ),*
-                    }
-                }
-            }
-            Fields::Unnamed(_) => {
-                let field_inits: Vec<Expr> = field_annotated
-                    .iter()
-                    .enumerate()
-                    .map(|(i, f)| f.annotated_init_value_expr(path_annotated, i + 1 == n))
-                    .collect();
-                parse_quote! {
-                    #annotated_ident(
-                        #( #field_inits ),*
-                    )
-                }
+            Fields::Named(_) | Fields::Unnamed(_) => {
+                parse_quote! { #annotated_ident { #( #field_inits ),* } }
             }
             Fields::Unit => todo!(),
         };

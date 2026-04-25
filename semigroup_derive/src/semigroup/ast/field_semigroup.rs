@@ -290,33 +290,9 @@ impl<'a> FieldAnnotated<'a> {
         })
     }
 
-    /// Generates the field initialiser for the `annotated()` method:
-    /// just wraps the field value with an `Annotated::new`.
-    /// Returns `name: Annotated::new(self.name, annotation.clone())` for named,
-    /// or `Annotated::new(self.name, annotation.clone())` for unnamed (is_last determines clone).
-    pub fn annotated_init_named(
-        &self,
-        path_annotated: &impl ToTokens,
-        is_last: bool,
-    ) -> FieldValue {
-        let val = self.annotated_init_value_expr(path_annotated, is_last);
+    pub fn annotated_init_field_value(&self, path_annotated: &impl ToTokens) -> FieldValue {
         let Self { member, .. } = self;
-        let ident = match member {
-            Member::Named(ident) => ident,
-            Member::Unnamed(_) => panic!("annotated_init_named called on unnamed field"),
-        };
-        parse_quote! { #ident: #val }
-    }
-
-    /// For tuple struct fields: just the expression, no field name.
-    pub fn annotated_init_value_expr(&self, path_annotated: &impl ToTokens, is_last: bool) -> Expr {
-        let Self { member, .. } = self;
-        let annotation_expr: Expr = if is_last {
-            parse_quote! { annotation }
-        } else {
-            parse_quote! { annotation.clone() }
-        };
-        parse_quote! { #path_annotated::new(self.#member, #annotation_expr) }
+        parse_quote! { #member: #path_annotated::new(self.#member, annotation.clone()) }
     }
 
     pub fn field_value(&self) -> FieldValue {

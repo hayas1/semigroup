@@ -56,7 +56,7 @@ impl<A: Clone> ::semigroup::AnnotateFields<A> for NamedStruct {
     fn annotated(self, annotation: A) -> Self::Annotated {
         NamedStructAnnotated {
             foo: ::semigroup::Annotated::new(self.foo, annotation.clone()),
-            bar: ::semigroup::Annotated::new(self.bar, annotation),
+            bar: ::semigroup::Annotated::new(self.bar, annotation.clone()),
         }
     }
 }
