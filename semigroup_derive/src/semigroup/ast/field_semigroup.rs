@@ -95,7 +95,7 @@ impl<'a> FieldSemigroupOp<'a> {
         }
     }
 
-    pub fn impl_field_monoid_identity(&self) -> FieldValue {
+    pub fn impl_field_monoid_identity(&self) -> syn::Result<FieldValue> {
         let Self {
             constant: Constant { path_monoid, .. },
             container_attr,
@@ -104,7 +104,7 @@ impl<'a> FieldSemigroupOp<'a> {
             ..
         } = self;
         let with = field_attr.with(container_attr);
-        match with {
+        Ok(match with {
             None => {
                 parse_quote! {
                     #member: #path_monoid::identity()
@@ -120,9 +120,7 @@ impl<'a> FieldSemigroupOp<'a> {
                     path_construction_trait,
                     ..
                 } = self.constant;
-                let wrapped_ty = with
-                    .as_type()
-                    .expect("with expr must be a constructor call");
+                let wrapped_ty = with.as_type()?;
                 let chain_into_inner = with.chain_into_inner(parse_quote! { __monoid_identity });
                 parse_quote! {
                     #member: {
@@ -132,7 +130,7 @@ impl<'a> FieldSemigroupOp<'a> {
                     }
                 }
             }
-        }
+        })
     }
 
     pub fn where_ty(&self) -> Option<&Type> {
@@ -229,14 +227,14 @@ impl<'a> FieldAnnotated<'a> {
     ///
     /// Uses `With::lift_select` and `With::lift_op_assign` to drive selection and mutation,
     /// then updates the annotation if `Selected::Other` was returned.
-    pub fn annotated_op_assign_stmts(&self, path_selected: &impl ToTokens) -> Block {
+    pub fn annotated_op_assign_stmts(&self, path_selected: &impl ToTokens) -> syn::Result<Block> {
         let member = &self.member;
         let selected_var = self.selected_var();
         let (other_val_var, other_ann_var) = self.other_vars();
         let ty = self.ty;
         let with = self.field_attr.with(self.container_attr);
 
-        match with {
+        Ok(match with {
             None => {
                 let path_idempotent = &self.constant.path_idempotent;
                 let path_semigroup = &self.constant.path_semigroup;
@@ -263,7 +261,7 @@ impl<'a> FieldAnnotated<'a> {
                     path_idempotent,
                     ..
                 } = self.constant;
-                let wrapped_ty = with.as_type().expect("constructor with always resolves to a type");
+                let wrapped_ty = with.as_type()?;
                 let base_accessor: Expr = parse_quote! { __annotated_base_owned };
                 let base_wrapped = with.substitute(&base_accessor);
                 let other_accessor: Expr = parse_quote! { #other_val_var };
@@ -291,7 +289,7 @@ impl<'a> FieldAnnotated<'a> {
                     }
                 }}
             }
-        }
+        })
     }
 
     /// Generates the field initialiser for the `annotated()` method:

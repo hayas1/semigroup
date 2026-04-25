@@ -1,6 +1,4 @@
 use darling::{FromDeriveInput, FromField};
-use syn::punctuated::Punctuated;
-use syn::token::Comma;
 use syn::{
     AngleBracketedGenericArguments, DeriveInput, Expr, ExprPath, Field, GenericArgument, Ident,
     PathArguments, Type, TypePath, WherePredicate, parse_quote,
@@ -173,42 +171,48 @@ impl With<'_> {
 
     /// Convert to the equivalent type suitable for UFCS.
     /// `Dual(Coalesce(_))` → `Dual<Coalesce<_>>`, bare path → the path as a type.
-    pub fn as_type(&self) -> Option<Type> {
-        fn type_recursive(expr: &Expr) -> Option<Type> {
+    pub fn as_type(&self) -> syn::Result<Type> {
+        fn type_recursive(expr: &Expr) -> syn::Result<Type> {
             match expr {
-                Expr::Infer(_) => Some(parse_quote! { _ }),
-                Expr::Path(p) => Some(Type::Path(TypePath {
+                Expr::Infer(_) => Ok(parse_quote! { _ }),
+                Expr::Path(p) => Ok(Type::Path(TypePath {
                     qself: p.qself.clone(),
                     path: p.path.clone(),
                 })),
                 Expr::Call(call) => {
                     let base_ty = type_recursive(&call.func)?;
-                    let args: Punctuated<GenericArgument, Comma> = call
+                    let args = call
                         .args
                         .iter()
-                        .filter_map(|a| type_recursive(a).map(GenericArgument::Type))
-                        .collect();
+                        .map(|a| type_recursive(a).map(GenericArgument::Type))
+                        .collect::<syn::Result<Vec<_>>>()?;
                     match base_ty {
                         Type::Path(mut tp) => {
-                            let last = tp.path.segments.last_mut()?;
+                            let last = tp.path.segments.last_mut().expect("path has segments");
                             last.arguments =
                                 PathArguments::AngleBracketed(AngleBracketedGenericArguments {
                                     colon2_token: None,
                                     lt_token: Default::default(),
-                                    args,
+                                    args: args.into_iter().collect(),
                                     gt_token: Default::default(),
                                 });
-                            Some(Type::Path(tp))
+                            Ok(Type::Path(tp))
                         }
-                        _ => None,
+                        _ => Err(syn::Error::new_spanned(
+                            &call.func,
+                            "expected a type path as constructor function",
+                        )),
                     }
                 }
-                _ => None,
+                _ => Err(syn::Error::new_spanned(
+                    expr,
+                    "expected a constructor call like `Wrapper(_)` or a bare path",
+                )),
             }
         }
 
         match self {
-            With::Path(p) => Some(Type::Path(TypePath {
+            With::Path(p) => Ok(Type::Path(TypePath {
                 qself: p.qself.clone(),
                 path: p.path.clone(),
             })),

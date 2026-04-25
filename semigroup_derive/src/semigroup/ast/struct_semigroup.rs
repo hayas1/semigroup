@@ -123,7 +123,10 @@ impl<'a> StructSemigroup<'a> {
                     }
                 })
                 .unwrap_or_else(|| {
-                    let fields_op = field_ops.iter().map(|op| op.impl_field_monoid_identity());
+                    let fields_op = field_ops.iter().map(|op| {
+                        op.impl_field_monoid_identity()
+                            .unwrap_or_else(|e| todo!("{e}"))
+                    });
                     parse_quote! {
                         #[automatically_derived]
                         #attr_feature_monoid
@@ -290,7 +293,10 @@ impl<'a> StructAnnotated<'a> {
 
         let fields_op_assign: Vec<Block> = field_annotated
             .iter()
-            .map(|f| f.annotated_op_assign_stmts(path_selected))
+            .map(|f| {
+                f.annotated_op_assign_stmts(path_selected)
+                    .unwrap_or_else(|e| todo!("{e}"))
+            })
             .collect();
 
         parse_quote! {
