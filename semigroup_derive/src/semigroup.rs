@@ -31,12 +31,11 @@ mod tests {
         impl_semigroup::<External>,
         syn::parse_quote! {
             #[derive(Semigroup)]
-            #[semigroup(annotated)]
+            #[semigroup(annotated, with = "semigroup::op::Coalesce")]
             pub struct NamedStruct {
                 #[semigroup(with = "semigroup::op::Last")]
                 pub foo: String,
                 pub bar: Option<u32>,
-                pub baz: semigroup::op::Last<bool>,
             }
         },
     )]
@@ -53,16 +52,18 @@ mod tests {
             );
         },
     )]
-    #[case::semigroup_custom_annotation(
-        "semigroup_custom_annotation",
-        impl_semigroup::<External>,
+    #[case::semigroup_with_dual(
+        "semigroup_with_dual",
+        impl_semigroup::<Internal>,
         syn::parse_quote! {
-            #[derive(Semigroup)]
-            #[semigroup(annotated, annotation_param = X, with = "semigroup::op::Last")]
+            #[derive(SemigroupPriv)]
             pub struct NamedStruct{
+                #[semigroup(with = "semigroup::op::Last")]
                 pub foo: String,
-                pub bar: Option<u32>,
-                pub baz: bool,
+                #[semigroup(with = "semigroup::op::Last(_)")]
+                pub bar: String,
+                #[semigroup(with = "semigroup::Dual(semigroup::op::Last(_))")]
+                pub baz: String,
             }
         },
     )]

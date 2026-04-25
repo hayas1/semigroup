@@ -1,0 +1,7 @@
+error[E0599]: no function or associated item named `lift_select` found for struct `semigroup::op::Sum<_>` in the current scope
+ --> tests/ui/monoid/unimplemented_idempotent_annotated.rs:3:35
+  |
+3 | #[derive(Debug, Clone, PartialEq, Semigroup)]
+  |                                   ^^^^^^^^^ function or associated item not found in `semigroup::op::Sum<_>`
+  |
+  = note: this error originates in the derive macro `Semigroup` (in Nightly builds, run with -Z macro-backtrace for more info)

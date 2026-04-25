@@ -1,6 +1,6 @@
 ---
 source: semigroup_derive/src/semigroup.rs
-assertion_line: 100
+assertion_line: 101
 expression: formatted
 ---
 #[automatically_derived]

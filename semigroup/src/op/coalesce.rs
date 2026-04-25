@@ -1,6 +1,6 @@
 use semigroup_derive::{OpPriv, properties_priv};
 
-use crate::{Annotated, AnnotatedOp};
+use crate::{IdempotentOp, Selected};
 
 /// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns the first non-`None` value.
 /// # Properties
@@ -17,26 +17,21 @@ use crate::{Annotated, AnnotatedOp};
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[op(annotated, monoid, identity = Self(None))]
-#[properties_priv(annotated, monoid)]
+#[op(idempotent, monoid, identity = Self(None))]
+#[properties_priv(idempotent, monoid)]
 pub struct Coalesce<T>(pub Option<T>);
-impl<T, A> AnnotatedOp<Option<T>, A> for Coalesce<T> {
-    fn lift_annotated_op_assign(
-        mut base: Annotated<&mut Option<T>, &mut A>,
-        other: Annotated<Option<T>, A>,
-    ) {
-        match (&base.value(), &other.value()) {
-            (Some(_), _) | (None, None) => {}
-            (None, Some(_)) => {
-                base.replace(other);
-            }
+impl<T> IdempotentOp<Option<T>> for Coalesce<T> {
+    fn lift_select(base: &Option<T>, other: &Option<T>) -> Selected {
+        match (base, other) {
+            (None, Some(_)) => Selected::Other,
+            _ => Selected::Base,
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{Construction, Semigroup};
+    use crate::{Annotate, Construction, Semigroup};
 
     use super::*;
 
@@ -74,5 +69,24 @@ mod tests {
         let (a, b) = (Coalesce(Some(1)), Coalesce(Some(2)));
         assert_eq!(a.semigroup(b).into_inner(), Some(1));
         assert_eq!(b.semigroup(a).into_inner(), Some(2));
+    }
+
+    #[test]
+    fn test_coalesce_annotated() {
+        let a = Coalesce(Some(1)).annotated("first");
+        let b = Coalesce(None).annotated("second");
+        let c = Coalesce(Some(3)).annotated("third");
+
+        let ab = a.semigroup(b);
+        assert_eq!(ab.value(), &Coalesce(Some(1)));
+        assert_eq!(ab.annotation(), &"first");
+
+        let bc = b.semigroup(c);
+        assert_eq!(bc.value(), &Coalesce(Some(3)));
+        assert_eq!(bc.annotation(), &"third");
+
+        let ca = c.semigroup(a);
+        assert_eq!(ca.value(), &Coalesce(Some(3)));
+        assert_eq!(ca.annotation(), &"third");
     }
 }
