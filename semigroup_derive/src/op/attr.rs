@@ -43,12 +43,10 @@ impl ContainerAttr {
             commutative_where,
             ..
         } = &self;
-        if !idempotent {
-            if let Some(_) = idempotent_where {
-                return Err(darling::Error::custom(ConstructionError::OnlyIdempotent(
-                    var_name!(idempotent_where),
-                )));
-            }
+        if !idempotent && let Some(_) = idempotent_where {
+            return Err(darling::Error::custom(ConstructionError::OnlyIdempotent(
+                var_name!(idempotent_where),
+            )));
         }
         if !monoid {
             let err_attr_name = if identity.is_some() {
