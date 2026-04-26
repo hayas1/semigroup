@@ -82,6 +82,9 @@ impl<'a> OpTrait<'a> {
 
         attr.is_monoid().then(|| {
             let mut g = generics.clone();
+            attr.semigroup_where()
+                .into_iter()
+                .for_each(|w| g.make_where_clause().predicates.push(w));
             g.make_where_clause()
                 .predicates
                 .push(parse_quote! { Self: #path_monoid });

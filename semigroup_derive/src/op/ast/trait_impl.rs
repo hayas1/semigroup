@@ -43,8 +43,12 @@ impl<'a> TraitImpl<'a> {
             ..
         } = self;
 
-        let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
         attr.open_inner().then(|| {
+            let mut g = generics.clone();
+            attr.semigroup_where()
+                .into_iter()
+                .for_each(|w| g.make_where_clause().predicates.push(w));
+            let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
             parse_quote! {
                 #[automatically_derived]
                 impl #impl_generics #path_semigroup for #ident #ty_generics #where_clause {

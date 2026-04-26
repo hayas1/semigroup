@@ -207,8 +207,9 @@ impl<I: Iterator> CombineIterator for I {}
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[op(
     manual_op_impl,
+    semigroup_where = "T: crate::Semigroup",
     idempotent,
-    idempotent_where = "T: crate::Semigroup + crate::Idempotent",
+    idempotent_where = "T: crate::Idempotent",
     monoid,
     identity = Self(T::identity()),
     monoid_where = "T: crate::Monoid",
@@ -217,15 +218,15 @@ impl<I: Iterator> CombineIterator for I {}
 )]
 #[properties_priv(
     idempotent,
-    idempotent_where = "T: crate::Semigroup + crate::Idempotent",
+    idempotent_where = "T: crate::Idempotent",
     monoid,
     monoid_where = "T: crate::Monoid",
     commutative,
     commutative_where = "T: crate::Commutative"
 )]
-pub struct Dual<T: Semigroup>(pub T);
+pub struct Dual<T>(pub T);
 
-impl<T: Semigroup + Idempotent> IdempotentOp<T> for Dual<T> {
+impl<T: Idempotent> IdempotentOp<T> for Dual<T> {
     fn lift_select(base: &T, other: &T) -> Selected {
         match T::select(other, base) {
             Selected::Base => Selected::Other,
