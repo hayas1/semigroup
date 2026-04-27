@@ -20,7 +20,7 @@ async = ["dep:futures"]
 semigroup_derive = { version = "0.5", path = "../semigroup_derive" }
 serde = { version = "1", features = ["derive"], optional = true }
 num = { version = "0.4", optional = true }
-rand = { version = "0.9", optional = true }
+rand = { version = "0.10", optional = true }
 hdrhistogram = { version = "7", optional = true }
 futures = { version = "0.3", optional = true }
 
