@@ -113,9 +113,7 @@ mod tests {
     #[case::too_long_range(3..100)]
     #[case::out_of_range(6..)]
     #[should_panic]
-    fn test_index_panic<I: SegmentTreeIndex<OptionMonoid<Last<&'static str>>>>(
-        #[case] index: I,
-    ) {
+    fn test_index_panic<I: SegmentTreeIndex<OptionMonoid<Last<&'static str>>>>(#[case] index: I) {
         let segment_tree: SegmentTree<_> = ["one", "two", "three", "four", "five"]
             .into_iter()
             .map(Last)
@@ -131,10 +129,7 @@ mod tests {
             .map(Last)
             .map(OptionMonoid::from)
             .collect();
-        assert_eq!(
-            segment_tree.get(1),
-            Some(&OptionMonoid::from(Last("two")))
-        );
+        assert_eq!(segment_tree.get(1), Some(&OptionMonoid::from(Last("two"))));
         assert_eq!(segment_tree.get(2..2), Some(&[][..]));
         assert_eq!(segment_tree.get(100), None);
         assert_eq!(
