@@ -39,7 +39,7 @@ impl<T: Idempotent, A> Annotate<A> for T {
 /// #[semigroup(annotated, with = "semigroup::op::Coalesce")]
 /// struct Config {
 ///     num: Option<u32>,
-///     #[semigroup(with = "semigroup::op::Overwrite")]
+///     #[semigroup(with = "semigroup::op::Last")]
 ///     name: String,
 /// }
 ///

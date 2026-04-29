@@ -3,7 +3,7 @@ use semigroup::{AnnotateFields, Semigroup};
 #[derive(Debug, Clone, PartialEq, Semigroup)]
 #[semigroup(annotated, with = "semigroup::op::Coalesce")]
 pub struct NamedStruct {
-    #[semigroup(with = "semigroup::op::Overwrite")]
+    #[semigroup(with = "semigroup::op::Last")]
     pub name: String,
     pub value: Option<u32>,
 }
@@ -49,7 +49,7 @@ fn test_named_struct_into() {
 #[derive(Debug, Clone, PartialEq, Semigroup)]
 #[semigroup(annotated, with = "semigroup::op::Coalesce")]
 pub struct UnnamedStruct(
-    #[semigroup(with = "semigroup::op::Overwrite")] String,
+    #[semigroup(with = "semigroup::op::Last")] String,
     Option<u32>,
 );
 
@@ -82,7 +82,7 @@ fn test_unnamed_struct_into() {
 #[derive(Debug, Clone, PartialEq, Semigroup)]
 #[semigroup(annotated)]
 pub struct DualCoalesce {
-    #[semigroup(with = "semigroup::Dual(semigroup::op::Overwrite(_))")]
+    #[semigroup(with = "semigroup::Dual(semigroup::op::Last(_))")]
     pub key: String,
     #[semigroup(with = "semigroup::Dual(semigroup::op::Coalesce(_))")]
     pub value: Option<u32>,

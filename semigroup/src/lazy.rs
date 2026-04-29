@@ -34,7 +34,7 @@ use crate::{Annotated, Semigroup};
 /// struct ExampleStruct<'a> {
 ///     num: Option<u32>,
 ///     str: Option<&'a str>,
-///     #[semigroup(with = "semigroup::op::Overwrite")]
+///     #[semigroup(with = "semigroup::op::Last")]
 ///     boolean: bool,
 /// }
 ///

@@ -4,7 +4,7 @@ use semigroup::Semigroup;
 #[semigroup(monoid, with = "semigroup::op::Coalesce")]
 pub struct NamedStruct {
     pub num: Option<u32>,
-    #[semigroup(with = "semigroup::op::Overwrite")]
+    #[semigroup(with = "semigroup::op::Last")]
     pub boolean: bool,
 }
 

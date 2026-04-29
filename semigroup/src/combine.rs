@@ -1,6 +1,6 @@
 use semigroup_derive::{OpPriv, properties_priv};
 
-use crate::{Construction, Idempotent, Lazy, Op, Selected, Semigroup};
+use crate::{Construction, Idempotent, IdempotentOp, Lazy, Op, Selected, Semigroup};
 
 /// Extensions for [`Iterator`]s that items implement [`Semigroup`].
 /// Composed of a variety of the 3 main methods
@@ -207,6 +207,9 @@ impl<I: Iterator> CombineIterator for I {}
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[op(
     manual_op_impl,
+    semigroup_where = "T: crate::Semigroup",
+    idempotent,
+    idempotent_where = "T: crate::Idempotent",
     monoid,
     identity = Self(T::identity()),
     monoid_where = "T: crate::Monoid",
@@ -215,17 +218,17 @@ impl<I: Iterator> CombineIterator for I {}
 )]
 #[properties_priv(
     idempotent,
-    idempotent_where = "T: crate::Semigroup + crate::Idempotent",
+    idempotent_where = "T: crate::Idempotent",
     monoid,
     monoid_where = "T: crate::Monoid",
     commutative,
     commutative_where = "T: crate::Commutative"
 )]
-pub struct Dual<T: Semigroup>(pub T);
+pub struct Dual<T>(pub T);
 
-impl<T: Semigroup + Idempotent> Idempotent for Dual<T> {
-    fn select(base: &Self, other: &Self) -> Selected {
-        match T::select(&other.0, &base.0) {
+impl<T: Idempotent> IdempotentOp<T> for Dual<T> {
+    fn lift_select(base: &T, other: &T) -> Selected {
+        match T::select(other, base) {
             Selected::Base => Selected::Other,
             Selected::Other => Selected::Base,
         }

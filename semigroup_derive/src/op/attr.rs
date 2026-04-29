@@ -6,6 +6,8 @@ use crate::{error::ConstructionError, name::var_name};
 #[derive(Debug, Clone, PartialEq, FromDeriveInput)]
 #[darling(attributes(op), and_then = Self::validate)]
 pub struct ContainerAttr {
+    semigroup_where: Option<String>, // TODO Vec
+
     #[darling(default)]
     idempotent: bool,
     idempotent_where: Option<String>, // TODO Vec
@@ -75,6 +77,13 @@ impl ContainerAttr {
             })?;
         }
         Ok(self)
+    }
+
+    pub fn semigroup_where(&self) -> Option<WherePredicate> {
+        self.semigroup_where
+            .as_deref()
+            .map(syn::parse_str)
+            .map(|p| p.unwrap_or_else(|e| todo!("{e}")))
     }
 
     pub fn is_idempotent(&self) -> bool {

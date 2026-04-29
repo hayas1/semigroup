@@ -33,7 +33,7 @@ mod tests {
             #[derive(Semigroup)]
             #[semigroup(annotated, with = "semigroup::op::Coalesce")]
             pub struct NamedStruct {
-                #[semigroup(with = "semigroup::op::Overwrite")]
+                #[semigroup(with = "semigroup::op::Last")]
                 pub foo: String,
                 pub bar: Option<u32>,
             }
@@ -44,7 +44,7 @@ mod tests {
         impl_semigroup::<Internal>,
         syn::parse_quote! {
             #[derive(SemigroupPriv)]
-            #[semigroup(with = "semigroup::op::Overwrite")]
+            #[semigroup(with = "semigroup::op::Last")]
             pub struct UnnamedStruct<T: std::ops::Add> (
                 #[semigroup(with = "semigroup::op::Added")]
                 T,
@@ -58,12 +58,12 @@ mod tests {
         syn::parse_quote! {
             #[derive(SemigroupPriv)]
             pub struct NamedStruct{
-                #[semigroup(with = "semigroup::op::Overwrite")]
+                #[semigroup(with = "semigroup::op::Last")]
                 pub foo: String,
-                #[semigroup(with = "semigroup::op::Overwrite(_)")]
+                #[semigroup(with = "semigroup::op::Last(_)")]
                 pub bar: String,
-                #[semigroup(with = "semigroup::Dual(semigroup::op::Overwrite(_))")]
-                pub bar: String,
+                #[semigroup(with = "semigroup::Dual(semigroup::op::Last(_))")]
+                pub baz: String,
             }
         },
     )]
