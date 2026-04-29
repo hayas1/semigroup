@@ -1,12 +1,42 @@
 <!-- cargo-rdme start -->
 
-[`Semigroup`](https://docs.rs/semigroup/latest/semigroup/semigroup/trait.Semigroup.html) trait is useful for combining multiple elements.
-For example:
-- [`Coalesce`](`op::Coalesce`): reading configs from multiple sources
-- [`Histogram`](`op::HdrHistogram`): statistical aggregation
+[`Semigroup`](https://docs.rs/semigroup/latest/semigroup/semigroup/trait.Semigroup.html) is a trait for any **associative
+binary operation** — a way to merge two values of the same type into one.
+This crate provides a rich set of practical building blocks (and `derive`
+macros) for composing such operations, so you can express common "combine"
+workflows declaratively instead of writing ad-hoc merge code by hand.
 
-This crate enables you to **derive [`Semigroup`](https://docs.rs/semigroup/latest/semigroup/semigroup/trait.Semigroup.html)**
-and provides many practical implementations.
+The focus is on **everyday combining problems**, not on modeling abstract
+algebra. Associativity matters here because it is the property that lets
+you safely fold, parallelize, and stream-aggregate with results that don't
+depend on grouping — not because we want algebraic structures for their own
+sake. If you need to merge configs, aggregate statistics, union sets, or
+reduce values across an iterator/stream, this crate is for you.
+
+## Use cases
+- **Layered configuration** — merge config from CLI, environment, and files
+  with explicit precedence; see [`op::Coalesce`], [`op::Overwrite`].
+  A worked `clap` + `serde` example is in [`Examples`](#examples).
+- **Statistical aggregation** — combine histograms over partitions or a
+  `Stream` of partial results to compute mean, p99 latency, throughput, etc.
+  via [`op::HdrHistogram`] (feature `histogram`).
+- **Numeric reductions** — [`op::Sum`], [`op::Prod`], [`op::Min`],
+  [`op::Max`], [`op::Xor`], [`op::Gcd`], [`op::Lcm`].
+- **Boolean reductions** — [`op::All`], [`op::Any`] for merging flags or
+  pass/fail signals.
+- **Set & map merging** — [`op::Union`], [`op::Intersection`],
+  [`op::UnionMap`], [`op::IntersectionMap`].
+- **Collection concatenation** — [`op::Concat`] for `Vec`, `String`, and any
+  `Default + Extend + IntoIterator`.
+- **First / last wins** — [`op::First`], [`op::Last`] for order-based selection.
+- **Range queries** with O(log n) updates and queries via
+  [`segment_tree::SegmentTree`] over any [`Monoid`].
+- **Concurrent / streaming aggregation** via [`CombineStream`] — fold a
+  `Stream` of partial results into one when the operation is [`Commutative`].
+- **Per-field provenance** — track *which input each merged field came from*
+  with [`Annotate`] (e.g. "`port` came from CLI, `host` came from env").
+- **Deferred / multi-shot evaluation** — buffer merge inputs and evaluate
+  later, or evaluate multiple ways from the same buffer, with [`Lazy`].
 
 ## Usage
 ```sh
@@ -74,15 +104,22 @@ assert_eq!(config.boolean.annotation(), &Source::Env);
 ```
 
 ## Highlights
-- `#[derive(Semigroup)]` and `#[derive(Op)]`
-  - derive [`Semigroup`] implements *semigroup* for a struct by field level semantics.
-  - derive [`Op`] defines a new *semigroup* operation (Some operations are already defined in [`crate::op`]).
-- Practical *annotation* support
-  - Some *semigroup* operations such as [`op::Coalesce`] can have an annotation that is represented by [`Annotate`] trait.
-- Combine multiple elements
-  - [`CombineIterator`] provides *fold* and *combine* operations for iterators.
-  - [`Lazy`] provides *lazy evaluation*.
-  - [`segment_tree::SegmentTree`] is useful for fast range queries on [`Monoid`].
+- **Two derives** that cover the common cases.
+  - `#[derive(Semigroup)]` implements [`Semigroup`] for a struct *field by field*.
+    Each field is merged with its own [`Semigroup`] impl, or with the operation
+    given by `#[semigroup(with = "...")]`. No need to hand-write merge logic.
+  - `#[derive(Op)]` defines a brand-new combining operation as a thin newtype
+    wrapper. Many ready-made ones live in [`crate::op`], but you can plug in
+    your own with the same ergonomics.
+- **Annotations** for tracking provenance via [`Annotate`]. Particularly useful
+  with selection-style ops like [`op::Coalesce`], where you want to know *which
+  input* the surviving value came from after a merge.
+- **Combine helpers** for collections of values:
+  - [`CombineIterator`] — `fold` / `reduce` / `combine` over iterators.
+  - [`Lazy`] — defer the merge and evaluate it later, or evaluate it multiple
+    ways from the same buffered inputs.
+  - [`segment_tree::SegmentTree`] — O(log n) range queries on a [`Monoid`].
+  - [`CombineStream`] — combine `Stream`s asynchronously (commutative ops only).
 
 | | [`Semigroup`] | [`Annotate`] | [`Monoid`] | [`Commutative`] |
 | :---: | :---: | :---: | :---: | :---: |
