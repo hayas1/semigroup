@@ -12,31 +12,6 @@
 //! sake. If you need to merge configs, aggregate statistics, union sets, or
 //! reduce values across an iterator/stream, this crate is for you.
 //!
-//! # Use cases
-//! - **Layered configuration** — merge config from CLI, environment, and files
-//!   with explicit precedence; see [`op::Coalesce`], [`op::Overwrite`].
-//!   A worked `clap` + `serde` example is in [`Examples`](#examples).
-//! - **Statistical aggregation** — combine histograms over partitions or a
-//!   `Stream` of partial results to compute mean, p99 latency, throughput, etc.
-//!   via [`op::HdrHistogram`] (feature `histogram`).
-//! - **Numeric reductions** — [`op::Sum`], [`op::Prod`], [`op::Min`],
-//!   [`op::Max`], [`op::Xor`], [`op::Gcd`], [`op::Lcm`].
-//! - **Boolean reductions** — [`op::All`], [`op::Any`] for merging flags or
-//!   pass/fail signals.
-//! - **Set & map merging** — [`op::Union`], [`op::Intersection`],
-//!   [`op::UnionMap`], [`op::IntersectionMap`].
-//! - **Collection concatenation** — [`op::Concat`] for `Vec`, `String`, and any
-//!   `Default + Extend + IntoIterator`.
-//! - **First / last wins** — [`op::First`], [`op::Last`] for order-based selection.
-//! - **Range queries** with O(log n) updates and queries via
-//!   [`segment_tree::SegmentTree`] over any [`Monoid`].
-//! - **Concurrent / streaming aggregation** via [`CombineStream`] — fold a
-//!   `Stream` of partial results into one when the operation is [`Commutative`].
-//! - **Per-field provenance** — track *which input each merged field came from*
-//!   with [`Annotate`] (e.g. "`port` came from CLI, `host` came from env").
-//! - **Deferred / multi-shot evaluation** — buffer merge inputs and evaluate
-//!   later, or evaluate multiple ways from the same buffer, with [`Lazy`].
-//!
 //! # Usage
 //! ```sh
 //! cargo add semigroup --features derive,monoid
@@ -102,24 +77,18 @@
 //! assert_eq!(config.boolean.annotation(), &Source::Env);
 //! ```
 //!
-//! # Highlights
-//! - **Two derives** that cover the common cases.
-//!   - `#[derive(Semigroup)]` implements [`Semigroup`] for a struct *field by field*.
-//!     Each field is merged with its own [`Semigroup`] impl, or with the operation
-//!     given by `#[semigroup(with = "...")]`. No need to hand-write merge logic.
-//!   - `#[derive(Op)]` defines a brand-new combining operation as a thin newtype
-//!     wrapper. Many ready-made ones live in [`crate::op`], but you can plug in
-//!     your own with the same ergonomics.
-//! - **Annotations** for tracking provenance via [`Annotate`]. Particularly useful
-//!   with selection-style ops like [`op::Coalesce`], where you want to know *which
-//!   input* the surviving value came from after a merge.
-//! - **Combine helpers** for collections of values:
-//!   - [`CombineIterator`] — `fold` / `reduce` / `combine` over iterators.
-//!   - [`Lazy`] — defer the merge and evaluate it later, or evaluate it multiple
-//!     ways from the same buffered inputs.
-//!   - [`segment_tree::SegmentTree`] — O(log n) range queries on a [`Monoid`].
-//!   - [`CombineStream`] — combine `Stream`s asynchronously (commutative ops only).
+//! # Use cases
+//! The crate ships practical operations under [`crate::op`] that you can use directly
+//! or compose into your own structs via `#[derive(Semigroup)]`. The two most common ones:
+//! - [`op::Coalesce`] — **layered configuration**: merge CLI / environment / file with
+//!   explicit precedence; see [Examples](#examples) for a worked use.
+//! - [`op::HdrHistogram`] — **statistical aggregation**: combine histograms over partitions
+//!   or a `Stream` to compute mean, p99 latency, throughput, etc. (feature `histogram`).
 //!
+//! See [`crate::op`] for the full catalog (numeric, boolean, set / map merging, concat,
+//! first / last, ...).
+//!
+//! # Concepts at a glance
 //! | | [`Semigroup`] | [`Annotate`] | [`Monoid`] | [`Commutative`] |
 //! | :---: | :---: | :---: | :---: | :---: |
 //! | **property** | *associativity* | *annotation* | *identity element* | *commutativity* |
