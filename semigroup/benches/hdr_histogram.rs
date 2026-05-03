@@ -1,57 +1,41 @@
-#![feature(test)]
-
-extern crate test;
-use test::{black_box, Bencher};
-
-use semigroup::{op::HdrHistogram, CombineIterator, Semigroup};
+use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
+use semigroup::{CombineIterator, Semigroup, op::HdrHistogram};
 
 // chain_merge: fold N single-value HdrHistograms via semigroup
 // exercises the Value+Value→Histogram and Histogram+Value paths in HdrHistogramInner
-
-#[bench]
-fn chain_merge_10(b: &mut Bencher) {
-    b.iter(|| (0u64..10).map(HdrHistogram::<u32>::from).lreduce());
-}
-
-#[bench]
-fn chain_merge_100(b: &mut Bencher) {
-    b.iter(|| (0u64..100).map(HdrHistogram::<u32>::from).lreduce());
-}
-
-#[bench]
-fn chain_merge_1000(b: &mut Bencher) {
-    b.iter(|| (0u64..1000).map(HdrHistogram::<u32>::from).lreduce());
+fn bench_chain_merge(c: &mut Criterion) {
+    let mut group = c.benchmark_group("hdr_histogram/chain_merge");
+    for n in [10u64, 100, 1000] {
+        group.bench_with_input(BenchmarkId::from_parameter(n), &n, |b, &n| {
+            b.iter(|| (0..n).map(HdrHistogram::<u32>::from).lreduce());
+        });
+    }
+    group.finish();
 }
 
 // collect: build a histogram from N u64 values via FromIterator
-
-#[bench]
-fn collect_10(b: &mut Bencher) {
-    b.iter(|| black_box((0u64..10).collect::<HdrHistogram<u32>>()));
-}
-
-#[bench]
-fn collect_100(b: &mut Bencher) {
-    b.iter(|| black_box((0u64..100).collect::<HdrHistogram<u32>>()));
-}
-
-#[bench]
-fn collect_1000(b: &mut Bencher) {
-    b.iter(|| black_box((0u64..1000).collect::<HdrHistogram<u32>>()));
+fn bench_collect(c: &mut Criterion) {
+    let mut group = c.benchmark_group("hdr_histogram/collect");
+    for n in [10u64, 100, 1000] {
+        group.bench_with_input(BenchmarkId::from_parameter(n), &n, |b, &n| {
+            b.iter(|| black_box((0..n).collect::<HdrHistogram<u32>>()));
+        });
+    }
+    group.finish();
 }
 
 // merge_pair: merge two pre-built histograms, exercising the Histogram+Histogram path
-
-#[bench]
-fn merge_pair_500_500(b: &mut Bencher) {
-    let a: HdrHistogram<u32> = (0u64..500).collect();
-    let rhs: HdrHistogram<u32> = (500u64..1000).collect();
-    b.iter(|| black_box(a.clone().semigroup(rhs.clone())));
+fn bench_merge_pair(c: &mut Criterion) {
+    let mut group = c.benchmark_group("hdr_histogram/merge_pair");
+    for n in [500u64, 5000] {
+        group.bench_with_input(BenchmarkId::from_parameter(n), &n, |b, &n| {
+            let a: HdrHistogram<u32> = (0..n).collect();
+            let rhs: HdrHistogram<u32> = (n..n * 2).collect();
+            b.iter(|| black_box(a.clone().semigroup(rhs.clone())));
+        });
+    }
+    group.finish();
 }
 
-#[bench]
-fn merge_pair_5000_5000(b: &mut Bencher) {
-    let a: HdrHistogram<u32> = (0u64..5000).collect();
-    let rhs: HdrHistogram<u32> = (5000u64..10000).collect();
-    b.iter(|| black_box(a.clone().semigroup(rhs.clone())));
-}
+criterion_group!(benches, bench_chain_merge, bench_collect, bench_merge_pair);
+criterion_main!(benches);

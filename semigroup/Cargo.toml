@@ -31,7 +31,7 @@ trybuild = { version = "1", features = ["diff"] }
 serde_json = "1"
 serde = { version = "1", features = ["derive"] }
 clap = { version = "4", features = ["derive", "env"] }
-
+criterion = "0.5"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(doc_cfg)'] }
