@@ -37,13 +37,30 @@ struct Config {
 }
 
 fn bench_derive_struct(c: &mut Criterion) {
-    let cli = Config { host: Some("localhost".into()), port: Some(8080), timeout: None };
-    let env = Config { host: None, port: None, timeout: Some(30) };
-    let file = Config { host: Some("default".into()), port: Some(80), timeout: Some(60) };
+    let cli = Config {
+        host: Some("localhost".into()),
+        port: Some(8080),
+        timeout: None,
+    };
+    let env = Config {
+        host: None,
+        port: None,
+        timeout: Some(30),
+    };
+    let file = Config {
+        host: Some("default".into()),
+        port: Some(80),
+        timeout: Some(60),
+    };
     c.bench_function("coalesce/derive_struct/merge_3", |b| {
         b.iter(|| black_box(cli.clone().semigroup(env.clone()).semigroup(file.clone())))
     });
 }
 
-criterion_group!(benches, bench_fold_all_some, bench_fold_leading_nones, bench_derive_struct);
+criterion_group!(
+    benches,
+    bench_fold_all_some,
+    bench_fold_leading_nones,
+    bench_derive_struct
+);
 criterion_main!(benches);
