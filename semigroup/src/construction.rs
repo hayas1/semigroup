@@ -29,6 +29,15 @@ pub trait Construction<T>: Sized + From<T> + Deref<Target = T> + DerefMut {
     /// ```
     fn into_inner(self) -> T;
 }
+
+/// [`Op`] represents [`crate::Semigroup`] as a [new type struct](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) like [`Construction`].
+///
+/// Implement [`Op::lift_op_assign`] to define the semigroup operation on the inner type `T`.
+/// The derive macro `#[derive(Op)]` automatically generates the [`Semigroup`](crate::Semigroup) and
+/// [`Construction`] implementations from this single method.
+///
+/// # Examples
+/// Simple example see [`crate::Semigroup#construction`].
 pub trait Op<T>: Semigroup + Construction<T> {
     /// Assign-based semigroup operation on the inner type `T`.
     /// Required method for [`Op::lift_op`].

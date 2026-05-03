@@ -39,6 +39,10 @@ jobs:
       run: >
         cargo install cargo-tarpaulin &&
           cargo tarpaulin --all-features -p semigroup* --output-dir target/doc/semigroup --out Html
+    - name: Benchmark
+      run: cargo bench --all-features
+    - name: Copy benchmark reports
+      run: cp -r target/criterion target/doc/criterion
     - name: Remove 600 permission files
       run: find target/doc -perm 600 | xargs rm -rf
     - name: Upload artifact

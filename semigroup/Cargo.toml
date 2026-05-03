@@ -31,7 +31,22 @@ trybuild = { version = "1", features = ["diff"] }
 serde_json = "1"
 serde = { version = "1", features = ["derive"] }
 clap = { version = "4", features = ["derive", "env"] }
+criterion = "0.5"
 
+[[bench]]
+name = "coalesce"
+harness = false
+required-features = ["derive"]
+
+[[bench]]
+name = "hdr_histogram"
+harness = false
+required-features = ["histogram"]
+
+[[bench]]
+name = "segment_tree"
+harness = false
+required-features = ["monoid"]
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(doc_cfg)'] }
