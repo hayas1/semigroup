@@ -4,7 +4,7 @@ use syn::{DeriveInput, Expr, WherePredicate};
 use crate::{error::ConstructionError, name::var_name};
 
 #[derive(Debug, Clone, PartialEq, FromDeriveInput)]
-#[darling(attributes(op), and_then = Self::validate)]
+#[darling(attributes(semigroup_op), and_then = Self::validate)]
 pub struct ContainerAttr {
     semigroup_where: Option<String>, // TODO Vec
 
@@ -140,7 +140,7 @@ mod tests {
 
     fn default_container_attr() -> ContainerAttr {
         ContainerAttr::new(&parse_quote! {
-            #[derive(Op)]
+            #[derive(SemigroupOp)]
             pub struct Construct<T>(T);
         })
         .unwrap()
@@ -149,8 +149,8 @@ mod tests {
     #[rstest]
     #[case::ok(
         syn::parse_quote! {
-            #[derive(Op)]
-            #[op(idempotent)]
+            #[derive(SemigroupOp)]
+            #[semigroup_op(idempotent)]
             pub struct Coalesce<T>(pub Option<T>);
         },
         Ok(ContainerAttr {
@@ -160,8 +160,8 @@ mod tests {
     )]
     #[case::invalid_monoid_attr(
         syn::parse_quote! {
-            #[derive(Op)]
-            #[op(identity = ())]
+            #[derive(SemigroupOp)]
+            #[semigroup_op(identity = ())]
             pub struct Construct<T>(T);
         },
         Err("attribute `identity` are supported only with `monoid`"),

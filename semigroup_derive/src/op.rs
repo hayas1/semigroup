@@ -30,8 +30,8 @@ mod tests {
         "op_idempotent",
         impl_op::<External>,
         syn::parse_quote! {
-            #[derive(Op)]
-            #[op(idempotent)]
+            #[derive(SemigroupOp)]
+            #[semigroup_op(idempotent)]
             pub struct Coalesce<T>(pub Option<T>);
         },
     )]
@@ -39,8 +39,8 @@ mod tests {
         "op_not_annotated",
         impl_op::<Internal>,
         syn::parse_quote! {
-            #[derive(OpPriv)]
-            #[op(monoid, commutative, identity = Default::default())]
+            #[derive(SemigroupOpPriv)]
+            #[semigroup_op(monoid, commutative, identity = Default::default())]
             pub struct Sum<T: std::ops::Add>(pub T);
         },
     )]

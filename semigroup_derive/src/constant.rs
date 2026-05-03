@@ -1,6 +1,6 @@
 use syn::{Attribute, Path, parse_quote};
 
-pub const DERIVE_OP: &str = "Op";
+pub const DERIVE_OP: &str = "SemigroupOp";
 pub const DERIVE_SEMIGROUP: &str = "Semigroup";
 
 #[derive(Debug, Clone)]
@@ -35,7 +35,7 @@ impl ConstantExt for External {
             path_monoid: parse_quote! {::semigroup::Monoid},
             path_commutative: parse_quote! {::semigroup::Commutative},
             path_construction_trait: parse_quote! {::semigroup::Construction},
-            path_semigroup_op: parse_quote! {::semigroup::Op},
+            path_semigroup_op: parse_quote! {::semigroup::SemigroupOp},
             path_idempotent_op: parse_quote! {::semigroup::IdempotentOp},
             path_monoid_op: parse_quote! {::semigroup::MonoidOp},
             attr_feature_monoid: None,
@@ -55,7 +55,7 @@ impl ConstantExt for Internal {
             path_monoid: parse_quote! {crate::Monoid},
             path_commutative: parse_quote! {crate::Commutative},
             path_construction_trait: parse_quote! {crate::Construction},
-            path_semigroup_op: parse_quote! {crate::Op},
+            path_semigroup_op: parse_quote! {crate::SemigroupOp},
             path_idempotent_op: parse_quote! {crate::IdempotentOp},
             path_monoid_op: parse_quote! {crate::MonoidOp},
             attr_feature_monoid: Some(parse_quote! {#[cfg(feature = "monoid")]}),

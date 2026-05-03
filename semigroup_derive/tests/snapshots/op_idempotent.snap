@@ -29,7 +29,7 @@ impl<T> ::semigroup::Construction<Option<T>> for Coalesce<T> {
     }
 }
 #[automatically_derived]
-impl<T> ::semigroup::Op<Option<T>> for Coalesce<T> {
+impl<T> ::semigroup::SemigroupOp<Option<T>> for Coalesce<T> {
     fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {
         <Self as ::semigroup::IdempotentOp<Option<T>>>::lift_select_assign(base, other);
     }
@@ -37,7 +37,7 @@ impl<T> ::semigroup::Op<Option<T>> for Coalesce<T> {
 #[automatically_derived]
 impl<T> ::semigroup::Semigroup for Coalesce<T> {
     fn op_assign(base: &mut Self, other: Self) {
-        <Self as ::semigroup::Op<_>>::lift_op_assign(&mut base.0, other.0);
+        <Self as ::semigroup::SemigroupOp<_>>::lift_op_assign(&mut base.0, other.0);
     }
 }
 #[automatically_derived]

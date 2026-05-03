@@ -1,6 +1,6 @@
-use semigroup_derive::{OpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, properties_priv};
 
-/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that concatenates two values.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::SemigroupOp) that concatenates two values.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -13,12 +13,12 @@ use semigroup_derive::{OpPriv, properties_priv};
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), vec![1, 2, 3, 4]);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[op(monoid, identity = Self(Default::default()))]
+#[semigroup_op(monoid, identity = Self(Default::default()))]
 #[properties_priv(monoid)]
 pub struct Concat<T: Default + Extend<T::Item> + IntoIterator>(pub T);
-impl<T: Default + Extend<T::Item> + IntoIterator> crate::Op<T> for Concat<T> {
+impl<T: Default + Extend<T::Item> + IntoIterator> crate::SemigroupOp<T> for Concat<T> {
     fn lift_op_assign(base: &mut T, other: T) {
         base.extend(other);
     }

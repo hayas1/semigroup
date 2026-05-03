@@ -1,6 +1,6 @@
 use std::ops::{Deref, DerefMut};
 
-use semigroup_derive::{OpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, properties_priv};
 
 use crate::{Idempotent, Selected, Semigroup};
 
@@ -82,8 +82,8 @@ pub trait AnnotateFields<A>: Sized {
 /// let annotated = Coalesce(Some(1)).annotated("first").annotated("second");
 /// assert_eq!(annotated.value().value(), &Coalesce(Some(1)));
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
-#[op(
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
+#[semigroup_op(
     commutative,
     commutative_where = "T: crate::Idempotent + crate::Commutative",
     hidden_inner

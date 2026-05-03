@@ -11,11 +11,11 @@ pub trait Construction<T>: Sized + From<T> + Deref<Target = T> + DerefMut {
     ///
     /// # Examples
     /// ```
-    /// use semigroup::{Construction, Op, Semigroup};
+    /// use semigroup::{Construction, SemigroupOp, Semigroup};
     ///
-    /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Op)]
+    /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
     /// struct Coalesce<T>(Option<T>);
-    /// impl<T> Op<Option<T>> for Coalesce<T> {
+    /// impl<T> SemigroupOp<Option<T>> for Coalesce<T> {
     ///     fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {
     ///         match (&base, &other) {
     ///             (None, Some(_)) => *base = other,
@@ -30,17 +30,17 @@ pub trait Construction<T>: Sized + From<T> + Deref<Target = T> + DerefMut {
     fn into_inner(self) -> T;
 }
 
-/// [`Op`] represents [`crate::Semigroup`] as a [new type struct](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) like [`Construction`].
+/// [`SemigroupOp`] represents [`crate::Semigroup`] as a [new type struct](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) like [`Construction`].
 ///
-/// Implement [`Op::lift_op_assign`] to define the semigroup operation on the inner type `T`.
-/// The derive macro `#[derive(Op)]` automatically generates the [`Semigroup`](crate::Semigroup) and
+/// Implement [`SemigroupOp::lift_op_assign`] to define the semigroup operation on the inner type `T`.
+/// The derive macro `#[derive(SemigroupOp)]` automatically generates the [`Semigroup`](crate::Semigroup) and
 /// [`Construction`] implementations from this single method.
 ///
 /// # Examples
 /// Simple example see [`crate::Semigroup#construction`].
-pub trait Op<T>: Semigroup + Construction<T> {
+pub trait SemigroupOp<T>: Semigroup + Construction<T> {
     /// Assign-based semigroup operation on the inner type `T`.
-    /// Required method for [`Op::lift_op`].
+    /// Required method for [`SemigroupOp::lift_op`].
     fn lift_op_assign(base: &mut T, other: T);
 
     /// Semigroup operation between `base` and `other` with constructed type.
@@ -48,11 +48,11 @@ pub trait Op<T>: Semigroup + Construction<T> {
     ///
     /// # Examples
     /// ```
-    /// use semigroup::{Construction, Op, Semigroup};
+    /// use semigroup::{Construction, SemigroupOp, Semigroup};
     ///
-    /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Op)]
+    /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
     /// struct Coalesce<T>(Option<T>);
-    /// impl<T> Op<Option<T>> for Coalesce<T> {
+    /// impl<T> SemigroupOp<Option<T>> for Coalesce<T> {
     ///     fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {
     ///         match (&base, &other) {
     ///             (None, Some(_)) => *base = other,
@@ -74,15 +74,15 @@ pub trait Op<T>: Semigroup + Construction<T> {
 /// [`IdempotentOp`] represents [`Idempotent`] as a [new type struct](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) like [`Construction`].
 ///
 /// Implement [`IdempotentOp::lift_select`] to declare which inner value is selected.
-/// The derive macro `#[op(idempotent)]` automatically generates the [`Op`], [`Semigroup`], and
+/// The derive macro `#[semigroup_op(idempotent)]` automatically generates the [`SemigroupOp`], [`Semigroup`], and
 /// [`Idempotent`] implementations from this single method.
 ///
 /// # Examples
 /// ```
-/// use semigroup::{Construction, IdempotentOp, Op, Selected, Semigroup, Annotate};
+/// use semigroup::{Construction, IdempotentOp, SemigroupOp, Selected, Semigroup, Annotate};
 ///
-/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Op)]
-/// #[op(idempotent)]
+/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
+/// #[semigroup_op(idempotent)]
 /// struct Coalesce<T>(Option<T>);
 /// impl<T> IdempotentOp<Option<T>> for Coalesce<T> {
 ///     fn lift_select(base: &Option<T>, other: &Option<T>) -> Selected {
@@ -116,18 +116,18 @@ pub trait IdempotentOp<T>: Idempotent + Construction<T> {
 /// # Examples
 /// Simple example see [`crate::Monoid#construction`].
 #[cfg(feature = "monoid")]
-pub trait MonoidOp<T>: Op<T> + crate::Monoid {
+pub trait MonoidOp<T>: SemigroupOp<T> + crate::Monoid {
     /// Get monoid *identity element* with constructed type.
     /// When `T` does not implement [`crate::Monoid`], this function can be used.
     ///
     /// # Examples
     /// ```
-    /// use semigroup::{Construction, MonoidOp, Op, Semigroup};
+    /// use semigroup::{Construction, MonoidOp, SemigroupOp, Semigroup};
     ///
-    /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Op)]
-    /// #[op(monoid, identity = Self(None))]
+    /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
+    /// #[semigroup_op(monoid, identity = Self(None))]
     /// struct Coalesce<T>(Option<T>);
-    /// impl<T> Op<Option<T>> for Coalesce<T> {
+    /// impl<T> SemigroupOp<Option<T>> for Coalesce<T> {
     ///     fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {
     ///         match (&base, &other) {
     ///             (None, Some(_)) => *base = other,

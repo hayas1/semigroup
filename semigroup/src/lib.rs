@@ -93,7 +93,7 @@
 //! | :---: | :---: | :---: | :---: | :---: |
 //! | **property** | *associativity* | *annotation* | *identity element* | *commutativity* |
 //! | **`#[derive(Semigroup)]`** <br> **`#[semigroup(...)]`** | | `annotated` | `monoid` | `commutative` |
-//! | **`#[derive(Op)]`** <br> **`#[op(...)]`** | | `idempotent` | `monoid` | `commutative` |
+//! | **`#[derive(SemigroupOp)]`** <br> **`#[semigroup_op(...)]`** | | `idempotent` | `monoid` | `commutative` |
 //! | **testing** | [`assert_semigroup!`] |  | [`assert_monoid!`] | [`assert_commutative!`] |
 //! | **typical combiner** | [`CombineIterator`] | [`Lazy`] | [`SegmentTree`](`segment_tree::SegmentTree`) | [`CombineStream`] |
 //!
@@ -134,4 +134,4 @@ pub use self::{annotate::*, combine::*, commutative::*, construction::*, lazy::*
 
 #[cfg(feature = "derive")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "derive")))]
-pub use semigroup_derive::{Op, Semigroup, properties};
+pub use semigroup_derive::{SemigroupOp, Semigroup, properties};

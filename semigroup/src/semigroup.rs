@@ -27,15 +27,15 @@
 /// ```
 ///
 /// ## Construction
-/// [`Semigroup`] can be constructed as [`crate::Op`] by [`crate::Construction`].
+/// [`Semigroup`] can be constructed as [`crate::SemigroupOp`] by [`crate::Construction`].
 ///
 /// Some operations are already provided by [`crate::op`].
 /// ```
-/// use semigroup::{Construction, Op, Semigroup};
+/// use semigroup::{Construction, SemigroupOp, Semigroup};
 ///
-/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Op)]
+/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
 /// pub struct Sum(u64);
-/// impl Op<u64> for Sum {
+/// impl SemigroupOp<u64> for Sum {
 ///     fn lift_op_assign(base: &mut u64, other: u64) {
 ///         *base += other;
 ///     }
@@ -149,10 +149,10 @@ pub mod test_semigroup {
     /// # Panics
     /// - If the given function does not satisfy the *semigroup* property.
     /// ```should_panic
-    /// use semigroup::{assert_semigroup, Construction, Op, Semigroup};
-    /// #[derive(Debug, Clone, PartialEq, Op)]
+    /// use semigroup::{assert_semigroup, Construction, SemigroupOp, Semigroup};
+    /// #[derive(Debug, Clone, PartialEq, SemigroupOp)]
     /// pub struct Sub(i32);
-    /// impl Op<i32> for Sub {
+    /// impl SemigroupOp<i32> for Sub {
     ///     fn lift_op_assign(base: &mut i32, other: i32) {
     ///         *base -= other;
     ///     }

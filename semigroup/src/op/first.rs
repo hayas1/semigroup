@@ -1,8 +1,8 @@
-use semigroup_derive::{OpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, properties_priv};
 
 use crate::{IdempotentOp, Selected};
 
-/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns the first value.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::SemigroupOp) that returns the first value.
 ///
 /// This is the dual of [`Last`](crate::op::Last): `Last::op(a, b) = First::op(b, a)`.
 /// # Properties
@@ -17,9 +17,9 @@ use crate::{IdempotentOp, Selected};
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), 1);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[op(idempotent)]
+#[semigroup_op(idempotent)]
 #[properties_priv(idempotent)]
 pub struct First<T>(pub T);
 impl<T> IdempotentOp<T> for First<T> {

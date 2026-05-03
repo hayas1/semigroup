@@ -10,7 +10,7 @@ where
     Vec<U>: crate::Semigroup,
 {
     fn op_assign(base: &mut Self, other: Self) {
-        use crate::Op;
+        use crate::SemigroupOp;
         crate::Semigroup::op_assign(&mut base.0, other.0);
         crate::Semigroup::op_assign(&mut base.1, other.1);
     }
