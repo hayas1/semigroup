@@ -1,8 +1,8 @@
-use semigroup_derive::{OpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, properties_priv};
 
 use crate::{IdempotentOp, Selected};
 
-/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns `true` if both values are `true`.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::SemigroupOp) that returns `true` if both values are `true`.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -15,9 +15,9 @@ use crate::{IdempotentOp, Selected};
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), false);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[op(idempotent, monoid, commutative, identity = Self(true))]
+#[semigroup_op(idempotent, monoid, commutative, identity = Self(true))]
 #[properties_priv(idempotent, monoid, commutative)]
 pub struct All(pub bool);
 impl IdempotentOp<bool> for All {

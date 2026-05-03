@@ -1,8 +1,8 @@
-use semigroup_derive::{OpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, properties_priv};
 
 use crate::{IdempotentOp, Selected};
 
-/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns the first non-`None` value.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::SemigroupOp) that returns the first non-`None` value.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -15,9 +15,9 @@ use crate::{IdempotentOp, Selected};
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), Some(2));
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[op(idempotent, monoid, identity = Self(None))]
+#[semigroup_op(idempotent, monoid, identity = Self(None))]
 #[properties_priv(idempotent, monoid)]
 pub struct Coalesce<T>(pub Option<T>);
 impl<T> IdempotentOp<Option<T>> for Coalesce<T> {

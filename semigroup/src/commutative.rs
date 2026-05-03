@@ -35,12 +35,12 @@ use crate::Semigroup;
 /// ## Construction
 /// [`Commutative`] can be constructed like [`Semigroup`], use `commutative` attribute.
 /// ```
-/// use semigroup::{Op, Semigroup};
+/// use semigroup::{SemigroupOp, Semigroup};
 ///
-/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Op)]
-/// #[op(commutative)]
+/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
+/// #[semigroup_op(commutative)]
 /// pub struct Sum(u64);
-/// impl Op<u64> for Sum {
+/// impl SemigroupOp<u64> for Sum {
 ///     fn lift_op_assign(base: &mut u64, other: u64) {
 ///         *base += other;
 ///     }
@@ -107,11 +107,11 @@ pub mod test_commutative {
     /// # Panics
     /// - If the given function does not satisfy the *commutative* property.
     /// ```should_panic
-    /// use semigroup::{assert_commutative, Op, Semigroup};
-    /// #[derive(Debug, Clone, PartialEq, Op)]
-    /// #[op(commutative)]
+    /// use semigroup::{assert_commutative, SemigroupOp, Semigroup};
+    /// #[derive(Debug, Clone, PartialEq, SemigroupOp)]
+    /// #[semigroup_op(commutative)]
     /// pub struct Sub(i32);
-    /// impl Op<i32> for Sub {
+    /// impl SemigroupOp<i32> for Sub {
     ///     fn lift_op_assign(base: &mut i32, other: i32) {
     ///         *base -= other;
     ///     }

@@ -1,6 +1,6 @@
-use semigroup_derive::{OpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, properties_priv};
 
-use crate::{Construction, Idempotent, IdempotentOp, Lazy, Op, Selected, Semigroup};
+use crate::{Construction, Idempotent, IdempotentOp, Lazy, Selected, Semigroup, SemigroupOp};
 
 /// Extensions for [`Iterator`]s that items implement [`Semigroup`].
 /// Composed of a variety of the 3 main methods
@@ -179,8 +179,8 @@ impl<I: Iterator> CombineIterator for I {}
 /// ```
 ///
 /// ## Using with `#[derive(Semigroup)]`
-/// Use `#[semigroup(with = "Dual(Op(_))")]` to keep the field as a plain inner type while
-/// composing [`Dual`] with an `Op` wrapper inline.  The `_` is a placeholder for the field value.
+/// Use `#[semigroup(with = "Dual(SemigroupOp(_))")]` to keep the field as a plain inner type while
+/// composing [`Dual`] with an `SemigroupOp` wrapper inline.  The `_` is a placeholder for the field value.
 ///
 /// ```
 /// use semigroup::{Dual, Semigroup};
@@ -203,9 +203,9 @@ impl<I: Iterator> CombineIterator for I {}
 /// let d = Config { value: Some(3) };
 /// assert_eq!(c.semigroup(d), Config { value: Some(3) });
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[op(
+#[semigroup_op(
     manual_op_impl,
     semigroup_where = "T: crate::Semigroup",
     idempotent,
@@ -235,7 +235,7 @@ impl<T: Idempotent> IdempotentOp<T> for Dual<T> {
     }
 }
 
-impl<T: Semigroup> Op<T> for Dual<T> {
+impl<T: Semigroup> SemigroupOp<T> for Dual<T> {
     /// Reversed operation: computes `*base = T::op(other, *base)`.
     ///
     /// Uses `ptr::read` / `ptr::write` to move out of `&mut T`.

@@ -1,10 +1,10 @@
 use std::ops::AddAssign;
 
-use semigroup_derive::{OpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, properties_priv};
 
-use crate::Op;
+use crate::SemigroupOp;
 
-/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns the sum.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::SemigroupOp) that returns the sum.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -17,12 +17,12 @@ use crate::Op;
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), 3);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[op(monoid, commutative, identity = Self(T::zero()), monoid_where = "T: num::Zero")]
+#[semigroup_op(monoid, commutative, identity = Self(T::zero()), monoid_where = "T: num::Zero")]
 #[properties_priv(monoid, commutative, monoid_where = "T: num::Zero")]
 pub struct Sum<T: AddAssign>(pub T);
-impl<T: AddAssign> Op<T> for Sum<T> {
+impl<T: AddAssign> SemigroupOp<T> for Sum<T> {
     fn lift_op_assign(base: &mut T, other: T) {
         *base += other;
     }

@@ -1,14 +1,16 @@
 #![cfg(all(feature = "monoid", feature = "test"))]
-use semigroup::{Construction, Op, Semigroup, assert_monoid, assert_semigroup, properties};
+use semigroup::{
+    Construction, Semigroup, SemigroupOp, assert_monoid, assert_semigroup, properties,
+};
 
 /// A semigroup construction that join two [`String`]s into a [`String`].
 /// # Properties
 /// <!-- properties -->
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Op)]
-#[op(monoid, identity = Self(String::new()))]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
+#[semigroup_op(monoid, identity = Self(String::new()))]
 #[properties(monoid)]
 pub struct Join(pub String);
-impl Op<String> for Join {
+impl SemigroupOp<String> for Join {
     fn lift_op_assign(base: &mut String, other: String) {
         base.push_str(&other);
     }

@@ -5,7 +5,7 @@ expression: formatted
 #[automatically_derived]
 impl crate::Semigroup for NamedStruct {
     fn op_assign(base: &mut Self, other: Self) {
-        use crate::Op;
+        use crate::SemigroupOp;
         semigroup::op::Last::lift_op_assign(&mut base.foo, other.foo);
         {
             use crate::Construction;

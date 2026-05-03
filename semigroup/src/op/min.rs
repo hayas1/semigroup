@@ -1,8 +1,8 @@
-use semigroup_derive::{OpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, properties_priv};
 
 use crate::{IdempotentOp, Selected};
 
-/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns the minimum value.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::SemigroupOp) that returns the minimum value.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -15,9 +15,9 @@ use crate::{IdempotentOp, Selected};
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), 1);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[op(idempotent, monoid, commutative, identity = Self(T::max_value()), monoid_where = "T: num::Bounded")]
+#[semigroup_op(idempotent, monoid, commutative, identity = Self(T::max_value()), monoid_where = "T: num::Bounded")]
 #[properties_priv(idempotent, monoid, commutative, monoid_where = "T: num::Bounded")]
 pub struct Min<T: Ord>(pub T);
 impl<T: Ord> IdempotentOp<T> for Min<T> {
