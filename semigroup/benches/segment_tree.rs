@@ -5,13 +5,23 @@ fn new_sum_tree(n: usize) -> SegmentTree<Sum<u64>> {
     (0..n as u64).map(Sum).collect()
 }
 
-// build: construct segment tree from N elements, O(N)
+// build/collect: construct segment tree from N elements via FromIterator, O(N)
+// build/push:    construct segment tree by pushing N elements one by one, O(N log N)
 fn bench_build(c: &mut Criterion) {
     let mut group = c.benchmark_group("segment_tree/build");
     group.sample_size(20);
     for n in [1_000, 10_000, 100_000] {
-        group.bench_with_input(BenchmarkId::from_parameter(n), &n, |b, &n| {
+        group.bench_with_input(BenchmarkId::new("collect", n), &n, |b, &n| {
             b.iter(|| black_box(new_sum_tree(n)));
+        });
+        group.bench_with_input(BenchmarkId::new("push", n), &n, |b, &n| {
+            b.iter(|| {
+                let mut tree = SegmentTree::new();
+                for i in 0u64..n as u64 {
+                    tree.push(Sum(i));
+                }
+                black_box(tree)
+            });
         });
     }
     group.finish();
@@ -38,35 +48,32 @@ fn bench_query(c: &mut Criterion) {
     group.finish();
 }
 
-// update: single-point update, O(log N)
+// update: single-point update, O(log N) — reuses the same tree across iterations
 fn bench_update(c: &mut Criterion) {
     let mut group = c.benchmark_group("segment_tree/update");
     for n in [1_000, 10_000, 100_000] {
         let mut tree = new_sum_tree(n);
-        let mut i = 0usize;
-        group.bench_with_input(BenchmarkId::from_parameter(n), &n, |b, _| {
-            b.iter(|| {
-                tree.update(i % n, Sum(black_box(42u64)));
-                i += 1;
-            })
+        group.bench_function(BenchmarkId::from_parameter(n), |b| {
+            b.iter(|| tree.update(black_box(n / 2), Sum(black_box(42u64))))
         });
     }
     group.finish();
 }
 
-// push: append to end, amortized O(log N)
+// push: append to end, amortized O(log N) — measures a single push into an N-element tree
+// returns tree so criterion drops it outside the timed region
 fn bench_push(c: &mut Criterion) {
     let mut group = c.benchmark_group("segment_tree/push");
-    group.sample_size(20);
     for n in [1_000, 10_000, 100_000] {
         group.bench_with_input(BenchmarkId::from_parameter(n), &n, |b, &n| {
-            b.iter(|| {
-                let mut tree = SegmentTree::new();
-                for i in 0u64..n as u64 {
-                    tree.push(Sum(i));
-                }
-                black_box(tree)
-            })
+            b.iter_batched(
+                || new_sum_tree(n),
+                |mut tree| {
+                    tree.push(Sum(black_box(42u64)));
+                    tree
+                },
+                criterion::BatchSize::SmallInput,
+            )
         });
     }
     group.finish();
