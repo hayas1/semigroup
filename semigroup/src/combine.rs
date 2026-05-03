@@ -1,6 +1,6 @@
 use semigroup_derive::{SemigroupOpPriv, properties_priv};
 
-use crate::{Construction, Idempotent, IdempotentOp, Lazy, SemigroupOp, Selected, Semigroup};
+use crate::{Construction, Idempotent, IdempotentOp, Lazy, Selected, Semigroup, SemigroupOp};
 
 /// Extensions for [`Iterator`]s that items implement [`Semigroup`].
 /// Composed of a variety of the 3 main methods
