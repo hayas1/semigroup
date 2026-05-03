@@ -107,7 +107,7 @@ first / last, ...).
 
 ## Testing
 ### Benchmarks
-// TODO
+<https://hayas1.github.io/semigroup/semigroup/criterion/report/index.html>
 
 ### Coverage
 <https://hayas1.github.io/semigroup/semigroup/tarpaulin-report.html>
