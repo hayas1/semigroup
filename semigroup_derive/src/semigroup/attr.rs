@@ -141,9 +141,23 @@ impl With<'_> {
     /// Replace every [`Expr::Infer`] (`_`) placeholder with `replacement`.
     /// For a bare path there is no `_`, so the path is returned unchanged.
     pub fn substitute(&self, replacement: &Expr) -> Expr {
+        fn substitute_recursive(expr: Expr, replacement: &Expr) -> Expr {
+            match expr {
+                Expr::Infer(_) => replacement.clone(),
+                Expr::Call(mut call) => {
+                    call.args = call
+                        .args
+                        .into_iter()
+                        .map(|arg| substitute_recursive(arg, replacement))
+                        .collect();
+                    Expr::Call(call)
+                }
+                other => other,
+            }
+        }
         match self {
             With::Path(p) => Expr::Path((*p).clone()),
-            With::Constructor(expr) => substitute_infer((*expr).clone(), replacement),
+            With::Constructor(expr) => substitute_recursive((*expr).clone(), replacement),
         }
     }
 
@@ -223,22 +237,6 @@ impl With<'_> {
     /// Build `base.into_inner().into_inner()...` (`self.depth()` times).
     pub fn chain_into_inner(&self, base: Expr) -> Expr {
         (0..self.depth()).fold(base, |acc: Expr, _| parse_quote! { #acc.into_inner() })
-    }
-}
-
-/// Replace every [`Expr::Infer`] (`_`) placeholder inside `expr` with `replacement`.
-fn substitute_infer(expr: Expr, replacement: &Expr) -> Expr {
-    match expr {
-        Expr::Infer(_) => replacement.clone(),
-        Expr::Call(mut call) => {
-            call.args = call
-                .args
-                .into_iter()
-                .map(|arg| substitute_infer(arg, replacement))
-                .collect();
-            Expr::Call(call)
-        }
-        other => other,
     }
 }
 
