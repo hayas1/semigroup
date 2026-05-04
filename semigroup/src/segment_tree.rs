@@ -24,11 +24,11 @@ pub mod iter;
 ///
 /// ## Custom monoid operator
 /// ```
-/// use semigroup::{Semigroup, Op, segment_tree::SegmentTree, Monoid};
-/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Op)]
-/// #[op(monoid, commutative, identity = Self(i32::MIN))]
+/// use semigroup::{Semigroup, SemigroupOp, segment_tree::SegmentTree, Monoid};
+/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
+/// #[semigroup_op(monoid, commutative, identity = Self(i32::MIN))]
 /// struct Max(pub i32);
-/// impl Op<i32> for Max {
+/// impl SemigroupOp<i32> for Max {
 ///     fn lift_op_assign(base: &mut i32, other: i32) {
 ///         *base = std::cmp::max(*base, other);
 ///     }
@@ -171,8 +171,8 @@ impl<T: Monoid + Clone> SegmentTree<T> {
         // TODO `std::slice::range` is nightly only https://doc.rust-lang.org/std/slice/fn.range.html
         let start = match range.start_bound() {
             Bound::Unbounded => 0,
-            Bound::Excluded(&l) => (l + 1).max(0),
-            Bound::Included(&l) => l.max(0),
+            Bound::Excluded(&l) => l + 1,
+            Bound::Included(&l) => l,
         };
         let end = match range.end_bound() {
             Bound::Unbounded => self.len(),

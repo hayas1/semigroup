@@ -90,7 +90,7 @@ pub trait CombineStream: Sized + Stream {
 
     /// This method like [`crate::CombineIterator::lreduce`], but stream.
     ///
-    /// # Example
+    /// # Examples
     /// ```
     /// # futures::executor::block_on(async {
     /// use futures::StreamExt;
@@ -125,7 +125,7 @@ pub trait CombineStream: Sized + Stream {
 
     /// This method like [`crate::CombineIterator::combine`], but stream.
     ///
-    /// # Example
+    /// # Examples
     /// ```
     /// # futures::executor::block_on(async {
     /// use futures::StreamExt;
@@ -234,7 +234,7 @@ pub trait TryCombineStream: Sized + TryStream {
 
     /// This method like [`crate::CombineIterator::lreduce`], but stream.
     ///
-    /// # Example
+    /// # Examples
     /// ```
     /// # futures::executor::block_on(async {
     /// use std::convert::Infallible;
@@ -269,7 +269,7 @@ pub trait TryCombineStream: Sized + TryStream {
     }
     /// This method like [`crate::CombineIterator::combine`], but stream.
     ///
-    /// # Example
+    /// # Examples
     /// ```
     /// # futures::executor::block_on(async {
     /// use std::convert::Infallible;
@@ -333,11 +333,11 @@ pub mod test_async_semigroup {
     /// # Panics
     /// - If the given function does not satisfy the *async semigroup* property.
     /// ```should_panic
-    /// use semigroup::{assert_async_semigroup, Op, Semigroup};
-    /// #[derive(Debug, Clone, PartialEq, Op)]
-    /// #[op(commutative)]
+    /// use semigroup::{assert_async_semigroup, SemigroupOp, Semigroup};
+    /// #[derive(Debug, Clone, PartialEq, SemigroupOp)]
+    /// #[semigroup_op(commutative)]
     /// pub struct Sub(i32);
-    /// impl Op<i32> for Sub {
+    /// impl SemigroupOp<i32> for Sub {
     ///     fn lift_op_assign(base: &mut i32, other: i32) {
     ///         *base -= other;
     ///     }
@@ -416,11 +416,11 @@ pub mod test_async_semigroup {
     /// # Panics
     /// - If the given function does not satisfy the *async commutative* property.
     /// ```should_panic
-    /// use semigroup::{assert_async_commutative, Op, Semigroup};
-    /// #[derive(Debug, Clone, PartialEq, Op)]
-    /// #[op(commutative)]
+    /// use semigroup::{assert_async_commutative, SemigroupOp, Semigroup};
+    /// #[derive(Debug, Clone, PartialEq, SemigroupOp)]
+    /// #[semigroup_op(commutative)]
     /// pub struct Sub(i32);
-    /// impl Op<i32> for Sub {
+    /// impl SemigroupOp<i32> for Sub {
     ///     fn lift_op_assign(base: &mut i32, other: i32) {
     ///         *base -= other;
     ///     }

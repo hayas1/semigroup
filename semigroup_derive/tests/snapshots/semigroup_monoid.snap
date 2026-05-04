@@ -1,12 +1,12 @@
 ---
 source: semigroup_derive/src/semigroup.rs
-assertion_line: 100
+assertion_line: 101
 expression: formatted
 ---
 #[automatically_derived]
 impl ::semigroup::Semigroup for MonoidStruct {
     fn op_assign(base: &mut Self, other: Self) {
-        use ::semigroup::Op;
+        use ::semigroup::SemigroupOp;
         semigroup::op::Sum::lift_op_assign(&mut base.sum, other.sum);
     }
 }

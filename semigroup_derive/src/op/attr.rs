@@ -1,14 +1,16 @@
 use darling::FromDeriveInput;
-use syn::{DeriveInput, Expr, TypeParam, WherePredicate, parse_quote};
+use syn::{DeriveInput, Expr, WherePredicate};
 
-use crate::{annotation::Annotation, constant::Constant, error::ConstructionError, name::var_name};
+use crate::{error::ConstructionError, name::var_name};
 
 #[derive(Debug, Clone, PartialEq, FromDeriveInput)]
-#[darling(attributes(op), and_then = Self::validate)]
+#[darling(attributes(semigroup_op), and_then = Self::validate)]
 pub struct ContainerAttr {
+    semigroup_where: Option<String>, // TODO Vec
+
     #[darling(default)]
-    annotated: bool,
-    unit_annotation: Option<Expr>,
+    idempotent: bool,
+    idempotent_where: Option<String>, // TODO Vec
 
     #[darling(default)]
     monoid: bool,
@@ -21,10 +23,8 @@ pub struct ContainerAttr {
     commutative: bool,
     commutative_where: Option<String>, // TODO Vec
 
-    annotation_type_param: Option<TypeParam>,
-    annotation_where: Option<String>, // TODO Vec
     #[darling(default)]
-    manual_annotate_impl: bool,
+    manual_op_impl: bool,
 
     #[darling(default)]
     hidden_inner: bool,
@@ -35,11 +35,8 @@ impl ContainerAttr {
     }
     pub fn validate(self) -> darling::Result<Self> {
         let Self {
-            annotated,
-            unit_annotation,
-            annotation_type_param,
-            annotation_where,
-            manual_annotate_impl,
+            idempotent,
+            idempotent_where,
             monoid,
             identity,
             monoid_where,
@@ -48,21 +45,10 @@ impl ContainerAttr {
             commutative_where,
             ..
         } = &self;
-        if !annotated {
-            let err_attr_name = if unit_annotation.is_some() {
-                Some(var_name!(unit_annotation))
-            } else if annotation_type_param.is_some() {
-                Some(var_name!(annotation_type_param))
-            } else if annotation_where.is_some() {
-                Some(var_name!(annotation_where))
-            } else if *manual_annotate_impl {
-                Some(var_name!(manual_annotate_impl))
-            } else {
-                None
-            };
-            err_attr_name.map_or(Ok(()), |a| {
-                Err(darling::Error::custom(ConstructionError::OnlyAnnotated(a)))
-            })?;
+        if !idempotent && let Some(_) = idempotent_where {
+            return Err(darling::Error::custom(ConstructionError::OnlyIdempotent(
+                var_name!(idempotent_where),
+            )));
         }
         if !monoid {
             let err_attr_name = if identity.is_some() {
@@ -93,8 +79,21 @@ impl ContainerAttr {
         Ok(self)
     }
 
-    pub fn is_annotated(&self) -> bool {
-        self.annotated
+    pub fn semigroup_where(&self) -> Option<WherePredicate> {
+        self.semigroup_where
+            .as_deref()
+            .map(syn::parse_str)
+            .map(|p| p.unwrap_or_else(|e| todo!("{e}")))
+    }
+
+    pub fn is_idempotent(&self) -> bool {
+        self.idempotent
+    }
+    pub fn idempotent_where(&self) -> Option<WherePredicate> {
+        self.idempotent_where
+            .as_deref()
+            .map(syn::parse_str)
+            .map(|p| p.unwrap_or_else(|e| todo!("{e}")))
     }
 
     pub fn is_monoid(&self) -> bool {
@@ -123,27 +122,8 @@ impl ContainerAttr {
             .map(|p| p.unwrap_or_else(|e| todo!("{e}")))
     }
 
-    pub fn unit_annotation(&self) -> Expr {
-        self.unit_annotation
-            .clone()
-            .unwrap_or_else(|| parse_quote!(()))
-    }
-
-    pub fn annotation(&self, constant: &Constant) -> Annotation {
-        Annotation::new(
-            self.annotation_type_param
-                .as_ref()
-                .unwrap_or(&constant.default_type_param)
-                .clone(),
-            None,
-            self.annotation_where
-                .as_deref()
-                .map(syn::parse_str)
-                .map(|p| p.unwrap_or_else(|e| todo!("{e}"))),
-        )
-    }
-    pub fn gen_annotate_impl(&self) -> bool {
-        !self.manual_annotate_impl
+    pub fn gen_op_impl(&self) -> bool {
+        !self.manual_op_impl
     }
 
     pub fn open_inner(&self) -> bool {
@@ -154,12 +134,13 @@ impl ContainerAttr {
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
+    use syn::parse_quote;
 
     use super::*;
 
     fn default_container_attr() -> ContainerAttr {
         ContainerAttr::new(&parse_quote! {
-            #[derive(Op)]
+            #[derive(SemigroupOp)]
             pub struct Construct<T>(T);
         })
         .unwrap()
@@ -168,27 +149,19 @@ mod tests {
     #[rstest]
     #[case::ok(
         syn::parse_quote! {
-            #[derive(Op)]
-            #[op(annotated)]
+            #[derive(SemigroupOp)]
+            #[semigroup_op(idempotent)]
             pub struct Coalesce<T>(pub Option<T>);
         },
         Ok(ContainerAttr {
-            annotated: true,
+            idempotent: true,
             ..default_container_attr()
         }),
     )]
-    #[case::invalid_annotated_attr(
-        syn::parse_quote! {
-            #[derive(Op)]
-            #[op(unit_annotation = ())]
-            pub struct Construct<T>(T);
-        },
-        Err("attribute `unit_annotation` are supported only with `annotated`"),
-    )]
     #[case::invalid_monoid_attr(
         syn::parse_quote! {
-            #[derive(Op)]
-            #[op(identity = ())]
+            #[derive(SemigroupOp)]
+            #[semigroup_op(identity = ())]
             pub struct Construct<T>(T);
         },
         Err("attribute `identity` are supported only with `monoid`"),

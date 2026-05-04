@@ -3,11 +3,11 @@ use std::{
     hash::Hash,
 };
 
-use semigroup_derive::{OpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, properties_priv};
 
-use crate::Op;
+use crate::SemigroupOp;
 
-/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that intersection two sets.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::SemigroupOp) that intersection two sets.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -20,17 +20,17 @@ use crate::Op;
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), vec![2, 3].into_iter().collect());
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Default, OpPriv)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[properties_priv]
 pub struct Intersection<T: Eq + Hash>(pub HashSet<T>);
-impl<T: Eq + Hash> Op<HashSet<T>> for Intersection<T> {
+impl<T: Eq + Hash> SemigroupOp<HashSet<T>> for Intersection<T> {
     fn lift_op_assign(base: &mut HashSet<T>, other: HashSet<T>) {
         base.retain(|k| other.contains(k));
     }
 }
 
-/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that intersection two maps.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::SemigroupOp) that intersection two maps.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -43,11 +43,11 @@ impl<T: Eq + Hash> Op<HashSet<T>> for Intersection<T> {
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), vec![("two",2), ("three", 3)].into_iter().collect());
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Default, OpPriv)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[properties_priv]
 pub struct IntersectionMap<K: Eq + Hash, V>(pub HashMap<K, V>);
-impl<K: Eq + Hash, V> Op<HashMap<K, V>> for IntersectionMap<K, V> {
+impl<K: Eq + Hash, V> SemigroupOp<HashMap<K, V>> for IntersectionMap<K, V> {
     fn lift_op_assign(base: &mut HashMap<K, V>, other: HashMap<K, V>) {
         base.retain(|k, _| other.contains_key(k));
     }

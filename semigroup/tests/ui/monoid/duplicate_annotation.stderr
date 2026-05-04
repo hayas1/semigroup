@@ -1,0 +1,26 @@
+warning: unused imports: `Construction` and `Semigroup`
+ --> tests/ui/monoid/duplicate_annotation.rs:1:27
+  |
+1 | use semigroup::{Annotate, Construction, Semigroup, op::Coalesce};
+  |                           ^^^^^^^^^^^^  ^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error[E0599]: the method `annotated` exists for struct `Annotated<Coalesce<{integer}>, &str>`, but its trait bounds were not satisfied
+ --> tests/ui/monoid/duplicate_annotation.rs:4:46
+  |
+4 |     let a = Coalesce(Some(1)).annotated("a").annotated("b");
+  |                                              ^^^^^^^^^
+  |
+ ::: src/annotate.rs
+  |
+  | pub struct Annotated<T, A> {
+  | -------------------------- doesn't satisfy `Annotated<Coalesce<{integer}>, &str>: Annotate<_>` or `Annotated<Coalesce<{integer}>, &str>: Idempotent`
+  |
+  = note: the following trait bounds were not satisfied:
+          `Annotated<Coalesce<{integer}>, &str>: Idempotent`
+          which is required by `Annotated<Coalesce<{integer}>, &str>: Annotate<_>`
+          `&Annotated<Coalesce<{integer}>, &str>: Idempotent`
+          which is required by `&Annotated<Coalesce<{integer}>, &str>: Annotate<_>`
+          `&mut Annotated<Coalesce<{integer}>, &str>: Idempotent`
+          which is required by `&mut Annotated<Coalesce<{integer}>, &str>: Annotate<_>`

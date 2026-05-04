@@ -1,6 +1,6 @@
-use semigroup_derive::{OpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, properties_priv};
 
-use crate::{Op, Semigroup};
+use crate::{Semigroup, SemigroupOp};
 
 /// [`Monoid`] represents a binary operation that satisfies the following properties
 /// 1. *Closure*: `op: T × T → T`
@@ -34,12 +34,12 @@ use crate::{Op, Semigroup};
 ///
 /// Some operations are already provided by [`crate::op`].
 /// ```
-/// use semigroup::{Semigroup, Op, Monoid};
+/// use semigroup::{Semigroup, SemigroupOp, Monoid};
 ///
-/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Op)]
-/// #[op(monoid, identity = Self(0))]
+/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
+/// #[semigroup_op(monoid, identity = Self(0))]
 /// pub struct Sum(u64);
-/// impl Op<u64> for Sum {
+/// impl SemigroupOp<u64> for Sum {
 ///     fn lift_op_assign(base: &mut u64, other: u64) {
 ///         *base += other;
 ///     }
@@ -118,8 +118,8 @@ pub trait Monoid: Semigroup {
 /// }
 /// assert_eq!(bd.as_ref().unwrap().duration(), Duration::from_millis(250));
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
-#[op(monoid, commutative, identity = Self(None), commutative_where = "T: crate::Commutative")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
+#[semigroup_op(monoid, commutative, identity = Self(None), commutative_where = "T: crate::Commutative")]
 #[properties_priv(monoid, commutative, commutative_where = "T: crate::Commutative")]
 pub struct OptionMonoid<T: Semigroup>(pub Option<T>);
 impl<T: Semigroup> From<T> for OptionMonoid<T> {
@@ -127,7 +127,7 @@ impl<T: Semigroup> From<T> for OptionMonoid<T> {
         Self(Some(value))
     }
 }
-impl<T: Semigroup> Op<Option<T>> for OptionMonoid<T> {
+impl<T: Semigroup> SemigroupOp<Option<T>> for OptionMonoid<T> {
     fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {
         match (base, other) {
             (Some(b), Some(o)) => Semigroup::op_assign(b, o),
@@ -192,11 +192,11 @@ pub mod test_monoid {
     /// # Panics
     /// - If the given function does not satisfy the *monoid* property.
     /// ```should_panic
-    /// use semigroup::{assert_monoid, Op, Semigroup};
-    /// #[derive(Debug, Clone, PartialEq, Op)]
-    /// #[op(monoid, identity = Self(0))]
+    /// use semigroup::{assert_monoid, SemigroupOp, Semigroup};
+    /// #[derive(Debug, Clone, PartialEq, SemigroupOp)]
+    /// #[semigroup_op(monoid, identity = Self(0))]
     /// pub struct Sub(i32);
-    /// impl Op<i32> for Sub {
+    /// impl SemigroupOp<i32> for Sub {
     ///     fn lift_op_assign(base: &mut i32, other: i32) {
     ///         *base -= other;
     ///     }

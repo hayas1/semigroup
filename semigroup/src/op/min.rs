@@ -1,8 +1,8 @@
-use semigroup_derive::{OpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, properties_priv};
 
-use crate::{Annotated, AnnotatedOp};
+use crate::{IdempotentOp, Selected};
 
-/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns the minimum value.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::SemigroupOp) that returns the minimum value.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -15,22 +15,24 @@ use crate::{Annotated, AnnotatedOp};
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), 1);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[op(annotated, monoid, commutative, identity = Self(T::max_value()), monoid_where = "T: num::Bounded")]
-#[properties_priv(annotated, monoid, commutative, monoid_where = "T: num::Bounded")]
+#[semigroup_op(idempotent, monoid, commutative, identity = Self(T::max_value()), monoid_where = "T: num::Bounded")]
+#[properties_priv(idempotent, monoid, commutative, monoid_where = "T: num::Bounded")]
 pub struct Min<T: Ord>(pub T);
-impl<T: Ord, A> AnnotatedOp<T, A> for Min<T> {
-    fn lift_annotated_op_assign(mut base: Annotated<&mut T, &mut A>, mut other: Annotated<T, A>) {
-        if base.value() > &other.value_mut() {
-            base.replace(other);
+impl<T: Ord> IdempotentOp<T> for Min<T> {
+    fn lift_select(base: &T, other: &T) -> Selected {
+        if base > other {
+            Selected::Other
+        } else {
+            Selected::Base
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{Construction, Semigroup};
+    use crate::{Annotate, Construction, Semigroup};
 
     use super::*;
 
@@ -58,5 +60,17 @@ mod tests {
         let (a, b) = (Min(1), Min(2));
         assert_eq!(a.semigroup(b).into_inner(), 1);
         assert_eq!(b.semigroup(a).into_inner(), 1);
+    }
+
+    #[test]
+    fn test_min_annotated() {
+        let a = Min(1).annotated("first");
+        let b = Min(2).annotated("second");
+        let ab = a.semigroup(b);
+        assert_eq!(ab.value(), &Min(1));
+        assert_eq!(ab.annotation(), &"first");
+        let ba = b.semigroup(a);
+        assert_eq!(ba.value(), &Min(1));
+        assert_eq!(ba.annotation(), &"first");
     }
 }

@@ -1,7 +1,9 @@
 mod coalesce;
 mod concat;
+mod first;
+mod last;
 mod overwrite;
-pub use {coalesce::*, concat::*, overwrite::*};
+pub use {coalesce::*, concat::*, first::*, last::*, overwrite::*};
 
 mod all;
 mod any;

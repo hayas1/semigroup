@@ -10,25 +10,25 @@ pub struct NamedStruct<T> {
 #[test]
 fn test_named_struct_semigroup() {
     let a = NamedStruct {
-        name: semigroup::op::Overwrite("A".to_string()),
+        name: semigroup::op::Last("A".to_string()),
         value: Some(10),
     };
     let b = NamedStruct {
-        name: semigroup::op::Overwrite("B".to_string()),
+        name: semigroup::op::Last("B".to_string()),
         value: None,
     };
 
     assert_eq!(
         NamedStruct::op(a.clone(), b.clone()),
         NamedStruct {
-            name: semigroup::op::Overwrite("B".to_string()),
+            name: semigroup::op::Last("B".to_string()),
             value: Some(10),
         }
     );
     assert_eq!(
         NamedStruct::op(b.clone(), a.clone()),
         NamedStruct {
-            name: semigroup::op::Overwrite("A".to_string()),
+            name: semigroup::op::Last("A".to_string()),
             value: Some(10),
         }
     );
@@ -42,15 +42,15 @@ pub struct UnnamedStruct<T>(
 
 #[test]
 fn test_unnamed_struct_semigroup() {
-    let a = UnnamedStruct(semigroup::op::Overwrite("A".to_string()), Some(10));
-    let b = UnnamedStruct(semigroup::op::Overwrite("B".to_string()), None);
+    let a = UnnamedStruct(semigroup::op::Last("A".to_string()), Some(10));
+    let b = UnnamedStruct(semigroup::op::Last("B".to_string()), None);
 
     assert_eq!(
         UnnamedStruct::op(a.clone(), b.clone()),
-        UnnamedStruct(semigroup::op::Overwrite("B".to_string()), Some(10))
+        UnnamedStruct(semigroup::op::Last("B".to_string()), Some(10))
     );
     assert_eq!(
         UnnamedStruct::op(b.clone(), a.clone()),
-        UnnamedStruct(semigroup::op::Overwrite("A".to_string()), Some(10))
+        UnnamedStruct(semigroup::op::Last("A".to_string()), Some(10))
     );
 }

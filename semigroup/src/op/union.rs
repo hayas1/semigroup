@@ -3,11 +3,11 @@ use std::{
     hash::Hash,
 };
 
-use semigroup_derive::{OpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, properties_priv};
 
-use crate::Op;
+use crate::SemigroupOp;
 
-/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that union two sets.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::SemigroupOp) that union two sets.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -20,12 +20,12 @@ use crate::Op;
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), vec![1, 2, 3, 4].into_iter().collect());
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Default, OpPriv)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[op(monoid, identity = Self(HashSet::new()))]
+#[semigroup_op(monoid, identity = Self(HashSet::new()))]
 #[properties_priv(monoid)]
 pub struct Union<T: Eq + Hash>(pub HashSet<T>);
-impl<T: Eq + Hash> Op<HashSet<T>> for Union<T> {
+impl<T: Eq + Hash> SemigroupOp<HashSet<T>> for Union<T> {
     fn lift_op_assign(base: &mut HashSet<T>, other: HashSet<T>) {
         other.into_iter().for_each(|v| {
             base.insert(v);
@@ -33,7 +33,7 @@ impl<T: Eq + Hash> Op<HashSet<T>> for Union<T> {
     }
 }
 
-/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that union two maps.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::SemigroupOp) that union two maps.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -46,12 +46,12 @@ impl<T: Eq + Hash> Op<HashSet<T>> for Union<T> {
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), vec![("one", 1), ("two",2), ("three", 3), ("four", 44)].into_iter().collect());
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Default, OpPriv)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[op(monoid, identity = Self(HashMap::new()))]
+#[semigroup_op(monoid, identity = Self(HashMap::new()))]
 #[properties_priv(monoid)]
 pub struct UnionMap<K: Eq + Hash, V>(pub HashMap<K, V>);
-impl<K: Eq + Hash, V> Op<HashMap<K, V>> for UnionMap<K, V> {
+impl<K: Eq + Hash, V> SemigroupOp<HashMap<K, V>> for UnionMap<K, V> {
     fn lift_op_assign(base: &mut HashMap<K, V>, other: HashMap<K, V>) {
         other.into_iter().for_each(|(k, v)| {
             base.entry(k).or_insert(v);

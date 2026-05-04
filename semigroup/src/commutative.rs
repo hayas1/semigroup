@@ -35,12 +35,12 @@ use crate::Semigroup;
 /// ## Construction
 /// [`Commutative`] can be constructed like [`Semigroup`], use `commutative` attribute.
 /// ```
-/// use semigroup::{Op, Semigroup};
+/// use semigroup::{SemigroupOp, Semigroup};
 ///
-/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Op)]
-/// #[op(commutative)]
+/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
+/// #[semigroup_op(commutative)]
 /// pub struct Sum(u64);
-/// impl Op<u64> for Sum {
+/// impl SemigroupOp<u64> for Sum {
 ///     fn lift_op_assign(base: &mut u64, other: u64) {
 ///         *base += other;
 ///     }
@@ -82,7 +82,7 @@ impl_tuple_commutative!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I, 9:
 pub mod test_commutative {
     use std::fmt::Debug;
 
-    use crate::Reversible;
+    use crate::Dual;
 
     use super::*;
 
@@ -107,11 +107,11 @@ pub mod test_commutative {
     /// # Panics
     /// - If the given function does not satisfy the *commutative* property.
     /// ```should_panic
-    /// use semigroup::{assert_commutative, Op, Semigroup};
-    /// #[derive(Debug, Clone, PartialEq, Op)]
-    /// #[op(commutative)]
+    /// use semigroup::{assert_commutative, SemigroupOp, Semigroup};
+    /// #[derive(Debug, Clone, PartialEq, SemigroupOp)]
+    /// #[semigroup_op(commutative)]
     /// pub struct Sub(i32);
-    /// impl Op<i32> for Sub {
+    /// impl SemigroupOp<i32> for Sub {
     ///     fn lift_op_assign(base: &mut i32, other: i32) {
     ///         *base -= other;
     ///     }
@@ -153,7 +153,7 @@ pub mod test_commutative {
 
     pub fn assert_commutative_impl<T: Commutative + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
         assert_commutative_law(a.clone(), b.clone(), c.clone());
-        assert_commutative_reverse(a.clone(), b.clone(), c.clone());
+        assert_commutative_dual(a.clone(), b.clone(), c.clone());
         assert_commutative_tuple(a.clone(), b.clone(), c.clone());
     }
 
@@ -173,22 +173,21 @@ pub mod test_commutative {
         assert_eq!(cab, abc);
     }
 
-    pub fn assert_commutative_reverse<T: Commutative + Clone + PartialEq + Debug>(
-        a: T,
-        b: T,
-        c: T,
-    ) {
+    /// Verifies that for a [`Commutative`] semigroup, `op(a, b) == Dual::op(Dual(a), Dual(b))`
+    /// (i.e. reversing the arguments produces the same result).
+    pub fn assert_commutative_dual<T: Commutative + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
+        use crate::Construction;
         assert_eq!(
             Semigroup::op(a.clone(), b.clone()),
-            Reversible::rev_op(a.clone(), b.clone())
+            Semigroup::op(Dual(a.clone()), Dual(b.clone())).into_inner()
         );
         assert_eq!(
             Semigroup::op(b.clone(), c.clone()),
-            Reversible::rev_op(b.clone(), c.clone())
+            Semigroup::op(Dual(b.clone()), Dual(c.clone())).into_inner()
         );
         assert_eq!(
             Semigroup::op(c.clone(), a.clone()),
-            Reversible::rev_op(c.clone(), a.clone())
+            Semigroup::op(Dual(c.clone()), Dual(a.clone())).into_inner()
         );
     }
 

@@ -11,7 +11,7 @@ use crate::{
 #[derive(Debug, Clone)]
 pub enum ConstructionError {
     ExpectNewType,
-    OnlyAnnotated(Name),
+    OnlyIdempotent(Name),
     OnlyMonoid(Name),
     OnlyCommutative(Name),
 }
@@ -22,8 +22,8 @@ impl Display for ConstructionError {
             Self::ExpectNewType => {
                 write!(f, "derive {DERIVE_OP} only supports newtype structs",)
             }
-            Self::OnlyAnnotated(Name(name)) => {
-                write!(f, "attribute `{name}` are supported only with `annotated`")
+            Self::OnlyIdempotent(Name(name)) => {
+                write!(f, "attribute `{name}` are supported only with `idempotent`")
             }
             Self::OnlyMonoid(Name(name)) => {
                 write!(f, "attribute `{name}` are supported only with `monoid`")

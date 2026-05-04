@@ -1,6 +1,6 @@
 ---
 source: semigroup_derive/src/semigroup.rs
-assertion_line: 100
+assertion_line: 101
 expression: formatted
 ---
 #[automatically_derived]
@@ -10,7 +10,7 @@ where
     Vec<U>: crate::Semigroup,
 {
     fn op_assign(base: &mut Self, other: Self) {
-        use crate::Op;
+        use crate::SemigroupOp;
         crate::Semigroup::op_assign(&mut base.0, other.0);
         crate::Semigroup::op_assign(&mut base.1, other.1);
     }

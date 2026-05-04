@@ -1,5 +1,3 @@
-use crate::Annotated;
-
 /// [`Semigroup`] represents a binary operation that satisfies the following properties
 /// 1. *Closure*: `op: T × T → T`
 /// 2. *Associativity*: `op(op(a, b), c) = op(a, op(b, c))`
@@ -13,7 +11,7 @@ use crate::Annotated;
 /// #[semigroup(with = "semigroup::op::Coalesce")]
 /// pub struct ExampleStruct<'a> {
 ///     pub str: Option<&'a str>,
-///     #[semigroup(with = "semigroup::op::Overwrite")]
+///     #[semigroup(with = "semigroup::op::Last")]
 ///     pub boolean: bool,
 ///     #[semigroup(with = "semigroup::op::Sum")]
 ///     pub sum: u32,
@@ -29,15 +27,15 @@ use crate::Annotated;
 /// ```
 ///
 /// ## Construction
-/// [`Semigroup`] can be constructed as [`crate::Op`] by [`crate::Construction`].
+/// [`Semigroup`] can be constructed as [`crate::SemigroupOp`] by [`crate::Construction`].
 ///
 /// Some operations are already provided by [`crate::op`].
 /// ```
-/// use semigroup::{Construction, Op, Semigroup};
+/// use semigroup::{Construction, SemigroupOp, Semigroup};
 ///
-/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, Op)]
+/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
 /// pub struct Sum(u64);
-/// impl Op<u64> for Sum {
+/// impl SemigroupOp<u64> for Sum {
 ///     fn lift_op_assign(base: &mut u64, other: u64) {
 ///         *base += other;
 ///     }
@@ -68,15 +66,6 @@ pub trait Semigroup: Sized {
     }
 }
 
-/// [`AnnotatedSemigroup`] is a [`Semigroup`] that has an annotation, such as [`crate::Annotate`].
-pub trait AnnotatedSemigroup<A>: Sized + Semigroup {
-    fn annotated_op_assign(base: Annotated<&mut Self, &mut A>, other: Annotated<Self, A>);
-    fn annotated_op(mut base: Annotated<Self, A>, other: Annotated<Self, A>) -> Annotated<Self, A> {
-        AnnotatedSemigroup::annotated_op_assign(base.as_mut(), other);
-        base
-    }
-}
-
 macro_rules! impl_tuple_semigroup {
     ($($idx:tt: $t:tt),+) => {
         impl<$($t: $crate::Semigroup),+> $crate::Semigroup for ($($t,)+) {
@@ -102,6 +91,25 @@ impl_tuple_semigroup!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I, 9: J
 impl_tuple_semigroup!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I, 9: J, 10: K, 11: L);
 impl_tuple_semigroup!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I, 9: J, 10: K, 11: L, 12: M);
 
+/// [`Selected`] indicates which operand was chosen by an [`Idempotent`] operation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Selected {
+    Base,
+    Other,
+}
+
+/// [`Idempotent`] represents a binary operation that satisfies the following properties
+/// 1. *Idempotency*: `op(a, a) = a`
+///
+/// This means that the result always equals one of the two operands unchanged,
+/// i.e. `op(a, b) ∈ {a, b}` for all `a`, `b`.
+///
+/// When a type is both a [`Semigroup`] and [`Idempotent`],
+/// [`Annotated`](crate::Annotated) can track which operand was selected.
+pub trait Idempotent {
+    fn select(base: &Self, other: &Self) -> Selected;
+}
+
 #[cfg(feature = "test")]
 pub mod test_semigroup {
     use std::fmt::Debug;
@@ -109,7 +117,7 @@ pub mod test_semigroup {
     use rand::seq::IndexedRandom;
 
     use crate::{
-        combine::test_combine::{assert_combine_iter, assert_semigroup_reverse},
+        combine::test_combine::{assert_combine_iter, assert_semigroup_dual},
         lazy::test_lazy::assert_lazy,
     };
 
@@ -141,10 +149,10 @@ pub mod test_semigroup {
     /// # Panics
     /// - If the given function does not satisfy the *semigroup* property.
     /// ```should_panic
-    /// use semigroup::{assert_semigroup, Construction, Op, Semigroup};
-    /// #[derive(Debug, Clone, PartialEq, Op)]
+    /// use semigroup::{assert_semigroup, Construction, SemigroupOp, Semigroup};
+    /// #[derive(Debug, Clone, PartialEq, SemigroupOp)]
     /// pub struct Sub(i32);
-    /// impl Op<i32> for Sub {
+    /// impl SemigroupOp<i32> for Sub {
     ///     fn lift_op_assign(base: &mut i32, other: i32) {
     ///         *base -= other;
     ///     }
@@ -192,8 +200,8 @@ pub mod test_semigroup {
 
     pub fn assert_semigroup_impl<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
         assert_associative_law(a.clone(), b.clone(), c.clone());
-        assert_semigroup_reverse(a.clone(), b.clone(), c.clone());
         assert_combine_iter(a.clone(), b.clone(), c.clone());
+        assert_semigroup_dual(a.clone(), b.clone(), c.clone());
         assert_lazy(a.clone(), b.clone(), c.clone());
         assert_semigroup_tuple(a.clone(), b.clone(), c.clone());
         #[cfg(feature = "monoid")]

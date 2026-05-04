@@ -1,9 +1,9 @@
 use num::{Integer, Unsigned};
-use semigroup_derive::{OpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, properties_priv};
 
-use crate::Op;
+use crate::SemigroupOp;
 
-/// A [`Semigroup`](crate::Semigroup) [op construction](crate::Op) that returns the greatest common divisor.
+/// A [`Semigroup`](crate::Semigroup) [op construction](crate::SemigroupOp) that returns the greatest common divisor.
 /// # Properties
 /// <!-- properties -->
 ///
@@ -16,12 +16,12 @@ use crate::Op;
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), 6);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, OpPriv)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[op(monoid, commutative, identity = Self(T::zero()))]
+#[semigroup_op(monoid, commutative, identity = Self(T::zero()))]
 #[properties_priv(monoid, commutative)]
 pub struct Gcd<T: Unsigned + Integer + Clone>(pub T);
-impl<T: Unsigned + Integer + Clone> Op<T> for Gcd<T> {
+impl<T: Unsigned + Integer + Clone> SemigroupOp<T> for Gcd<T> {
     fn lift_op_assign(base: &mut T, other: T) {
         *base = num::integer::gcd(base.clone(), other);
     }

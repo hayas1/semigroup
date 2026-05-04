@@ -1,6 +1,6 @@
 use std::{ops::Index, slice::SliceIndex};
 
-use semigroup_derive::{OpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, properties_priv};
 
 use crate::{Annotated, Semigroup};
 
@@ -34,7 +34,7 @@ use crate::{Annotated, Semigroup};
 /// struct ExampleStruct<'a> {
 ///     num: Option<u32>,
 ///     str: Option<&'a str>,
-///     #[semigroup(with = "semigroup::op::Overwrite")]
+///     #[semigroup(with = "semigroup::op::Last")]
 ///     boolean: bool,
 /// }
 ///
@@ -46,8 +46,8 @@ use crate::{Annotated, Semigroup};
 /// assert_eq!(lazy.clone().map_combine(|x| Coalesce(x.num)), Coalesce(Some(1)));
 /// assert_eq!(lazy.map_combine_rev(|x| Coalesce(x.str)), Coalesce(Some("ten")));
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, OpPriv)]
-#[op(commutative, commutative_where = "T: crate::Commutative", hidden_inner)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, SemigroupOpPriv)]
+#[semigroup_op(commutative, commutative_where = "T: crate::Commutative", hidden_inner)]
 #[properties_priv(commutative, commutative_where = "T: crate::Commutative")]
 pub struct Lazy<T>(Vec<T>);
 impl<T> Semigroup for Lazy<T> {

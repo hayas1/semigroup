@@ -33,14 +33,14 @@ mod tests {
         impl_properties::<Internal>,
         (
             syn::parse_quote! {
-                annotated, monoid
+                idempotent, monoid
             },
             syn::parse_quote! {
                 /// A semigroup construction that returns the first non-`None` value.
                 /// # Properties
                 /// <!-- properties -->
-                #[derive(Op)]
-                #[op(annotated, monoid)]
+                #[derive(SemigroupOp)]
+                #[semigroup_op(idempotent, monoid)]
                 pub struct Coalesce<T>(pub Option<T>);
             },
         ),
@@ -57,7 +57,7 @@ mod tests {
                 /// # Properties
                 /// <!-- properties -->
                 #[derive(SemigroupPriv)]
-                #[semigroup(with = "semigroup::op::Overwrite")]
+                #[semigroup(with = "semigroup::op::Last")]
                 pub struct UnnamedStruct<T: std::ops::Add> (
                     #[semigroup(with = "semigroup::op::Added")]
                     T,
@@ -77,8 +77,8 @@ mod tests {
                 /// A semigroup construction that returns the sum.
                 /// # Properties
                 /// <!-- properties -->
-                #[derive(OpPriv)]
-                #[op(monoid, commutative, identity = Self(T::zero()), monoid_where = "T: num::Zero")]
+                #[derive(SemigroupOpPriv)]
+                #[semigroup_op(monoid, commutative, identity = Self(T::zero()), monoid_where = "T: num::Zero")]
                 pub struct Sum<T: Add<Output = T>>(pub T);
             },
         )
