@@ -28,7 +28,7 @@ jobs:
     - name: Coverage
       run: >
         cargo install cargo-tarpaulin &&
-          cargo tarpaulin --all-features -p semigroup* --output-dir target/doc/semigroup --out Html
+          cargo tarpaulin --all-features -p semigroup* --output-dir target/doc --out Html
     - name: Benchmark
       run: cargo bench --all-features
     - name: Copy benchmark reports
