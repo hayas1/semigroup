@@ -17,18 +17,7 @@ jobs:
       expected-git-tag: ${{ steps.detect-version.outputs.expected-git-tag }}
     timeout-minutes: 30
     steps:
-    - uses: actions/checkout@v4
-    - uses: dtolnay/rust-toolchain@stable
-    - name: Cargo home
-      id: cargo-home
-      run: echo "path=${CARGO_HOME:-~/.cargo}" >>"$GITHUB_OUTPUT"
-    - uses: actions/cache@v4
-      with:
-        path: |
-          target
-          ${{ steps.cargo-home.outputs.path }}
-        key: cargo-${{ hashFiles('**/Cargo.toml') }}
-
+    - uses: ./.github/actions/cargo-setup
     - name: Release test
       run: cargo test --all --release
     - name: Release test with features
@@ -77,18 +66,7 @@ jobs:
       contents: write
     timeout-minutes: 30
     steps:
-    - uses: actions/checkout@v4
-    - uses: dtolnay/rust-toolchain@stable
-    - name: Cargo home
-      id: cargo-home
-      run: echo "path=${CARGO_HOME:-~/.cargo}" >>"$GITHUB_OUTPUT"
-    - uses: actions/cache@v4
-      with:
-        path: |
-          target
-          ${{ steps.cargo-home.outputs.path }}
-        key: cargo-${{ hashFiles('**/Cargo.toml') }}
-
+    - uses: ./.github/actions/cargo-setup
     - name: Release build
       run: cargo build --release
     - name: Push tag
