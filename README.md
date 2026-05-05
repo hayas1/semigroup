@@ -107,9 +107,9 @@ first / last, ...).
 
 ## Testing
 ### Benchmarks
-<https://hayas1.github.io/semigroup/semigroup/criterion/report/index.html>
+<https://hayas1.github.io/semigroup/criterion/report/index.html>
 
 ### Coverage
-<https://hayas1.github.io/semigroup/semigroup/tarpaulin-report.html>
+<https://hayas1.github.io/semigroup/tarpaulin-report.html>
 
 <!-- cargo-rdme end -->
