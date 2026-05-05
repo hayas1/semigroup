@@ -10,6 +10,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v4
     - uses: ./.github/actions/cargo-setup
       with:
         components: rustfmt, clippy
@@ -23,6 +24,7 @@ jobs:
   bench:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v4
     - uses: ./.github/actions/cargo-setup
     - run: cargo bench --all-features
 

@@ -17,6 +17,7 @@ jobs:
       expected-git-tag: ${{ steps.detect-version.outputs.expected-git-tag }}
     timeout-minutes: 30
     steps:
+    - uses: actions/checkout@v4
     - uses: ./.github/actions/cargo-setup
     - name: Release test
       run: cargo test --all --release
@@ -66,6 +67,7 @@ jobs:
       contents: write
     timeout-minutes: 30
     steps:
+    - uses: actions/checkout@v4
     - uses: ./.github/actions/cargo-setup
     - name: Release build
       run: cargo build --release
