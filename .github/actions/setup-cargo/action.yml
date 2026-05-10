@@ -1,4 +1,4 @@
-name: Cargo Setup
+name: Setup Cargo
 
 inputs:
   components:
