@@ -43,7 +43,7 @@ assert_eq!(config, Config { num: Some(1), str: Some("ten"), boolean: true });
 ```
 
 ### Coalesce with rich enum annotation and lazy evaluation
-More detail is in [`Annotate`] and [`Lazy`].
+More detail is in [`Annotate`](https://docs.rs/semigroup/latest/semigroup/annotate/trait.Annotate.html) and [`Lazy`](https://docs.rs/semigroup/latest/semigroup/lazy/struct.Lazy.html).
 ```rust
 use semigroup::{Annotate, AnnotateFields, Lazy, Semigroup};
 #[derive(Debug, Clone, PartialEq, Semigroup)]
@@ -79,24 +79,24 @@ assert_eq!(config.boolean.annotation(), &Source::Env);
 ```
 
 ## Use cases
-The crate ships practical operations under [`crate::op`] that you can use directly
+The crate ships practical operations under [`crate::op`](https://docs.rs/semigroup/latest/semigroup/op/) that you can use directly
 or compose into your own structs via `#[derive(Semigroup)]`. The two most common ones:
-- [`op::Coalesce`] — **layered configuration**: merge CLI / environment / file with
+- [`op::Coalesce`](https://docs.rs/semigroup/latest/semigroup/op/coalesce/struct.Coalesce.html) — **layered configuration**: merge CLI / environment / file with
   explicit precedence; see [Examples](#examples) for a worked use.
-- [`op::HdrHistogram`] — **statistical aggregation**: combine histograms over partitions
+- [`op::HdrHistogram`](https://docs.rs/semigroup/latest/semigroup/op/hdr_histogram/struct.HdrHistogram.html) — **statistical aggregation**: combine histograms over partitions
   or a `Stream` to compute mean, p99 latency, throughput, etc. (feature `histogram`).
 
-See [`crate::op`] for the full catalog (numeric, boolean, set / map merging, concat,
+See [`crate::op`](https://docs.rs/semigroup/latest/semigroup/op/) for the full catalog (numeric, boolean, set / map merging, concat,
 first / last, ...).
 
 ## Concepts at a glance
-| | [`Semigroup`] | [`Annotate`] | [`Monoid`] | [`Commutative`] |
+| | [`Semigroup`](https://docs.rs/semigroup/latest/semigroup/semigroup/trait.Semigroup.html) | [`Annotate`](https://docs.rs/semigroup/latest/semigroup/annotate/trait.Annotate.html) | [`Monoid`](https://docs.rs/semigroup/latest/semigroup/monoid/trait.Monoid.html) | [`Commutative`](https://docs.rs/semigroup/latest/semigroup/commutative/trait.Commutative.html) |
 | :---: | :---: | :---: | :---: | :---: |
 | **property** | *associativity* | *annotation* | *identity element* | *commutativity* |
 | **`#[derive(Semigroup)]`** <br> **`#[semigroup(...)]`** | | `annotated` | `monoid` | `commutative` |
 | **`#[derive(SemigroupOp)]`** <br> **`#[semigroup_op(...)]`** | | `idempotent` | `monoid` | `commutative` |
-| **testing** | [`assert_semigroup!`] |  | [`assert_monoid!`] | [`assert_commutative!`] |
-| **typical combiner** | [`CombineIterator`] | [`Lazy`] | [`SegmentTree`](`segment_tree::SegmentTree`) | [`CombineStream`] |
+| **testing** | [`assert_semigroup!`](https://docs.rs/semigroup/latest/semigroup/macro.assert_semigroup.html) |  | [`assert_monoid!`](https://docs.rs/semigroup/latest/semigroup/macro.assert_monoid.html) | [`assert_commutative!`](https://docs.rs/semigroup/latest/semigroup/macro.assert_commutative.html) |
+| **typical combiner** | [`CombineIterator`](https://docs.rs/semigroup/latest/semigroup/combine/trait.CombineIterator.html) | [`Lazy`](https://docs.rs/semigroup/latest/semigroup/lazy/struct.Lazy.html) | [`SegmentTree`](https://docs.rs/semigroup/latest/semigroup/segment_tree/struct.SegmentTree.html) | [`CombineStream`](https://docs.rs/semigroup/latest/semigroup/concurrent/trait.CombineStream.html) |
 
 ## Links
 - GitHub: <https://github.com/hayas1/semigroup>
