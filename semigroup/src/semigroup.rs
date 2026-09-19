@@ -193,7 +193,7 @@ pub mod test_semigroup {
     }
 
     pub fn pick3<T: Clone>(data: &[T]) -> (T, T, T) {
-        data.choose_multiple_array(&mut rand::rng())
+        data.sample_array(&mut rand::rng())
             .map(|[a, b, c]| (a, b, c))
             .expect("failed to pick 3 items")
     }

@@ -47,7 +47,7 @@ impl<'a> Content<'a> {
         let (start, end) = ("<!-- properties start -->", "<!-- properties end -->");
         self.doc = self
             .doc
-            .replace(marker, &format!("{start}\n{}\n{end}", &self.table.table()));
+            .replace(marker, &format!("{start}\n{}\n{end}", self.table.table()));
     }
     pub fn to_attributes(&self) -> Vec<Attribute> {
         self.doc
