@@ -18,17 +18,7 @@ jobs:
     timeout-minutes: 30
     steps:
     - uses: actions/checkout@v4
-    - uses: dtolnay/rust-toolchain@stable
-    - name: Cargo home
-      id: cargo-home
-      run: echo "path=${CARGO_HOME:-~/.cargo}" >>"$GITHUB_OUTPUT"
-    - uses: actions/cache@v4
-      with:
-        path: |
-          target
-          ${{ steps.cargo-home.outputs.path }}
-        key: cargo-${{ hashFiles('**/Cargo.toml') }}
-
+    - uses: ./.github/actions/setup-cargo
     - name: Release test
       run: cargo test --all --release
     - name: Release test with features
@@ -38,7 +28,7 @@ jobs:
     - name: Coverage
       run: >
         cargo install cargo-tarpaulin &&
-          cargo tarpaulin --all-features -p semigroup* --output-dir target/doc/semigroup --out Html
+          cargo tarpaulin --all-features -p semigroup* --output-dir target/doc --out Html
     - name: Benchmark
       run: cargo bench --all-features
     - name: Copy benchmark reports
@@ -78,17 +68,7 @@ jobs:
     timeout-minutes: 30
     steps:
     - uses: actions/checkout@v4
-    - uses: dtolnay/rust-toolchain@stable
-    - name: Cargo home
-      id: cargo-home
-      run: echo "path=${CARGO_HOME:-~/.cargo}" >>"$GITHUB_OUTPUT"
-    - uses: actions/cache@v4
-      with:
-        path: |
-          target
-          ${{ steps.cargo-home.outputs.path }}
-        key: cargo-${{ hashFiles('**/Cargo.toml') }}
-
+    - uses: ./.github/actions/setup-cargo
     - name: Release build
       run: cargo build --release
     - name: Push tag

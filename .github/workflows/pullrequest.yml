@@ -11,19 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: dtolnay/rust-toolchain@stable
+    - uses: ./.github/actions/setup-cargo
       with:
         components: rustfmt, clippy
-    - name: Cargo home
-      id: cargo-home
-      run: echo "path=${CARGO_HOME:-~/.cargo}" >>"$GITHUB_OUTPUT"
-    - uses: actions/cache@v4
-      with:
-        path: |
-          target
-          ${{ steps.cargo-home.outputs.path }}
-        key: cargo-${{ hashFiles('**/Cargo.toml') }}
-
     - run: cargo test --all
     - run: cargo test --all --all-features
     - run: cargo fmt --check
@@ -35,16 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: dtolnay/rust-toolchain@stable
-    - name: Cargo home
-      id: cargo-home
-      run: echo "path=${CARGO_HOME:-~/.cargo}" >>"$GITHUB_OUTPUT"
-    - uses: actions/cache@v4
-      with:
-        path: |
-          target
-          ${{ steps.cargo-home.outputs.path }}
-        key: cargo-bench-${{ hashFiles('**/Cargo.toml') }}
+    - uses: ./.github/actions/setup-cargo
     - run: cargo bench --all-features
 
   version:
