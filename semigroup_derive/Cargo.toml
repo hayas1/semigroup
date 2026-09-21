@@ -14,14 +14,14 @@ proc-macro = true
 [features]
 
 [dependencies]
-comfy-table = { version = "7", default-features = false }
-darling = "0.23"
+comfy-table = { version = "8", default-features = false }
+darling = "0.24"
 heck = "0.5"
 proc-macro2 = "1"
 quote = "1"
-syn = { version = "2", features = ["full"] }
+syn = { version = "3", features = ["full"] }
 
 [dev-dependencies]
 insta = "1"
-prettyplease = "0.2" # rustfmt is cli only
-rstest = "0.26"
+prettyplease = "0.3" # rustfmt is cli only
+rstest = "0.27"
