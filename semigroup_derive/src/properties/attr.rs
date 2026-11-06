@@ -5,15 +5,15 @@ use darling::FromMeta;
 pub struct ContainerAttr {
     #[darling(default)]
     selective: bool,
-    selective_where: Option<String>, // TODO Vec
+    selective_where: Option<String>,
 
     #[darling(default)]
     monoid: bool,
-    monoid_where: Option<String>, // TODO Vec
+    monoid_where: Option<String>,
 
     #[darling(default)]
     commutative: bool,
-    commutative_where: Option<String>, // TODO Vec
+    commutative_where: Option<String>,
 }
 impl ContainerAttr {
     pub fn validate(self) -> darling::Result<Self> {

@@ -6,22 +6,26 @@ use crate::{error::ConstructionError, name::var_name};
 #[derive(Debug, Clone, PartialEq, FromDeriveInput)]
 #[darling(attributes(semigroup_op), and_then = Self::validate)]
 pub struct ContainerAttr {
-    semigroup_where: Option<String>, // TODO Vec
+    #[darling(default)]
+    semigroup_where: Vec<WherePredicate>,
 
     #[darling(default)]
     selective: bool,
-    selective_where: Option<String>, // TODO Vec
+    #[darling(default)]
+    selective_where: Vec<WherePredicate>,
 
     #[darling(default)]
     monoid: bool,
     identity: Option<Expr>,
-    monoid_where: Option<String>, // TODO Vec
     #[darling(default)]
-    without_monoid_impl: bool,
+    monoid_where: Vec<WherePredicate>,
+    #[darling(default)]
+    manual_monoid_impl: bool,
 
     #[darling(default)]
     commutative: bool,
-    commutative_where: Option<String>, // TODO Vec
+    #[darling(default)]
+    commutative_where: Vec<WherePredicate>,
 
     #[darling(default)]
     manual_op_impl: bool,
@@ -40,12 +44,12 @@ impl ContainerAttr {
             monoid,
             identity,
             monoid_where,
-            without_monoid_impl,
+            manual_monoid_impl,
             commutative,
             commutative_where,
             ..
         } = &self;
-        if !selective && let Some(_) = selective_where {
+        if !selective && !selective_where.is_empty() {
             return Err(darling::Error::custom(ConstructionError::OnlySelective(
                 var_name!(selective_where),
             )));
@@ -53,10 +57,10 @@ impl ContainerAttr {
         if !monoid {
             let err_attr_name = if identity.is_some() {
                 Some(var_name!(identity))
-            } else if monoid_where.is_some() {
+            } else if !monoid_where.is_empty() {
                 Some(var_name!(monoid_where))
-            } else if *without_monoid_impl {
-                Some(var_name!(without_monoid_impl))
+            } else if *manual_monoid_impl {
+                Some(var_name!(manual_monoid_impl))
             } else {
                 None
             };
@@ -65,7 +69,7 @@ impl ContainerAttr {
             })?;
         }
         if !commutative {
-            let err_attr_name = if commutative_where.is_some() {
+            let err_attr_name = if !commutative_where.is_empty() {
                 Some(var_name!(commutative_where))
             } else {
                 None
@@ -79,21 +83,15 @@ impl ContainerAttr {
         Ok(self)
     }
 
-    pub fn semigroup_where(&self) -> Option<WherePredicate> {
-        self.semigroup_where
-            .as_deref()
-            .map(syn::parse_str)
-            .map(|p| p.unwrap_or_else(|e| todo!("{e}")))
+    pub fn semigroup_where(&self) -> &[WherePredicate] {
+        &self.semigroup_where
     }
 
     pub fn is_selective(&self) -> bool {
         self.selective
     }
-    pub fn selective_where(&self) -> Option<WherePredicate> {
-        self.selective_where
-            .as_deref()
-            .map(syn::parse_str)
-            .map(|p| p.unwrap_or_else(|e| todo!("{e}")))
+    pub fn selective_where(&self) -> &[WherePredicate] {
+        &self.selective_where
     }
 
     pub fn is_monoid(&self) -> bool {
@@ -102,24 +100,18 @@ impl ContainerAttr {
     pub fn identity(&self) -> Option<&Expr> {
         self.identity.as_ref()
     }
-    pub fn monoid_where(&self) -> Option<WherePredicate> {
-        self.monoid_where
-            .as_deref()
-            .map(syn::parse_str)
-            .map(|p| p.unwrap_or_else(|e| todo!("{e}")))
+    pub fn monoid_where(&self) -> &[WherePredicate] {
+        &self.monoid_where
     }
-    pub fn with_monoid_impl(&self) -> bool {
-        !self.without_monoid_impl
+    pub fn gen_monoid_impl(&self) -> bool {
+        !self.manual_monoid_impl
     }
 
     pub fn is_commutative(&self) -> bool {
         self.commutative
     }
-    pub fn commutative_where(&self) -> Option<WherePredicate> {
-        self.commutative_where
-            .as_deref()
-            .map(syn::parse_str)
-            .map(|p| p.unwrap_or_else(|e| todo!("{e}")))
+    pub fn commutative_where(&self) -> &[WherePredicate] {
+        &self.commutative_where
     }
 
     pub fn gen_op_impl(&self) -> bool {
@@ -165,6 +157,34 @@ mod tests {
             pub struct Construct<T>(T);
         },
         Err("attribute `identity` are supported only with `monoid`"),
+    )]
+    #[case::multiple_where(
+        syn::parse_quote! {
+            #[derive(SemigroupOp)]
+            #[semigroup_op(monoid, monoid_where = "T: Default, T: Copy")]
+            pub struct Construct<T>(T);
+        },
+        Ok(ContainerAttr {
+            monoid: true,
+            monoid_where: vec![parse_quote!(T: Default), parse_quote!(T: Copy)],
+            ..default_container_attr()
+        }),
+    )]
+    #[case::invalid_where(
+        syn::parse_quote! {
+            #[derive(SemigroupOp)]
+            #[semigroup_op(monoid, monoid_where = "T Default")]
+            pub struct Construct<T>(T);
+        },
+        Err("Unknown value: `where T Default`"),
+    )]
+    #[case::manual_monoid_impl_without_monoid(
+        syn::parse_quote! {
+            #[derive(SemigroupOp)]
+            #[semigroup_op(manual_monoid_impl)]
+            pub struct Construct<T>(T);
+        },
+        Err("attribute `manual_monoid_impl` are supported only with `monoid`"),
     )]
     fn test_op_container_attr(
         #[case] input: DeriveInput,

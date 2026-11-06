@@ -44,6 +44,22 @@ mod tests {
             pub struct Sum<T: std::ops::Add>(pub T);
         },
     )]
+    #[case::op_where(
+        "op_where",
+        impl_op::<External>,
+        syn::parse_quote! {
+            #[derive(SemigroupOp)]
+            #[semigroup_op(
+                semigroup_where = "T: Clone",
+                monoid,
+                identity = Self(T::default()),
+                monoid_where = "T: Default, T: Copy",
+                commutative,
+                commutative_where = "T: Ord, T: Eq",
+            )]
+            pub struct Larger<T: PartialOrd>(pub T);
+        },
+    )]
     fn test_derive_op_snapshot(
         #[case] case: &str,
         #[case] f: impl Fn(&DeriveInput) -> syn::Result<TokenStream>,

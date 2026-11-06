@@ -15,13 +15,15 @@ pub struct ContainerAttr {
     #[darling(default)]
     monoid: bool,
     identity: Option<Expr>,
-    monoid_where: Option<String>, // TODO Vec
     #[darling(default)]
-    without_monoid_impl: bool,
+    monoid_where: Vec<WherePredicate>,
+    #[darling(default)]
+    manual_monoid_impl: bool,
 
     #[darling(default)]
     commutative: bool,
-    commutative_where: Option<String>, // TODO Vec
+    #[darling(default)]
+    commutative_where: Vec<WherePredicate>,
 
     with: Option<Expr>,
     annotation_param: Option<Ident>,
@@ -37,7 +39,7 @@ impl ContainerAttr {
             monoid,
             identity,
             monoid_where,
-            without_monoid_impl,
+            manual_monoid_impl,
             commutative,
             commutative_where,
             ..
@@ -55,10 +57,10 @@ impl ContainerAttr {
         if !monoid {
             let err_attr_name = if identity.is_some() {
                 Some(var_name!(identity))
-            } else if monoid_where.is_some() {
+            } else if !monoid_where.is_empty() {
                 Some(var_name!(monoid_where))
-            } else if *without_monoid_impl {
-                Some(var_name!(without_monoid_impl))
+            } else if *manual_monoid_impl {
+                Some(var_name!(manual_monoid_impl))
             } else {
                 None
             };
@@ -67,7 +69,7 @@ impl ContainerAttr {
             })?;
         }
         if !commutative {
-            let err_attr_name = if commutative_where.is_some() {
+            let err_attr_name = if !commutative_where.is_empty() {
                 Some(var_name!(commutative_where))
             } else {
                 None
@@ -89,24 +91,18 @@ impl ContainerAttr {
     pub fn identity(&self) -> Option<&Expr> {
         self.identity.as_ref()
     }
-    pub fn monoid_where(&self) -> Option<WherePredicate> {
-        self.monoid_where
-            .as_deref()
-            .map(syn::parse_str)
-            .map(|p| p.unwrap_or_else(|e| todo!("{e}")))
+    pub fn monoid_where(&self) -> &[WherePredicate] {
+        &self.monoid_where
     }
-    pub fn with_monoid_impl(&self) -> bool {
-        !self.without_monoid_impl
+    pub fn gen_monoid_impl(&self) -> bool {
+        !self.manual_monoid_impl
     }
 
     pub fn is_commutative(&self) -> bool {
         self.commutative
     }
-    pub fn commutative_where(&self) -> Option<WherePredicate> {
-        self.commutative_where
-            .as_deref()
-            .map(syn::parse_str)
-            .map(|p| p.unwrap_or_else(|e| todo!("{e}")))
+    pub fn commutative_where(&self) -> &[WherePredicate] {
+        &self.commutative_where
     }
 }
 

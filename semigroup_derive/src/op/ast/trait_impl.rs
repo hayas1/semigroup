@@ -46,7 +46,8 @@ impl<'a> TraitImpl<'a> {
         attr.open_inner().then(|| {
             let mut g = generics.clone();
             attr.semigroup_where()
-                .into_iter()
+                .iter()
+                .cloned()
                 .for_each(|w| g.make_where_clause().predicates.push(w));
             let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
             parse_quote! {
@@ -79,7 +80,8 @@ impl<'a> TraitImpl<'a> {
         attr.is_selective().then(|| {
             let mut g = generics.clone();
             attr.selective_where()
-                .into_iter()
+                .iter()
+                .cloned()
                 .for_each(|w| g.make_where_clause().predicates.push(w));
             let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
             parse_quote! {
@@ -110,9 +112,10 @@ impl<'a> TraitImpl<'a> {
         } = derive;
         let mut g = generics.clone();
         attr.monoid_where()
-            .into_iter()
+            .iter()
+            .cloned()
             .for_each(|w| g.make_where_clause().predicates.push(w));
-        (attr.is_monoid() && attr.with_monoid_impl()).then(|| {
+        (attr.is_monoid() && attr.gen_monoid_impl()).then(|| {
             attr.identity()
                 .map(|expr| {
                     let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
@@ -158,7 +161,8 @@ impl<'a> TraitImpl<'a> {
         } = derive;
         let mut g = generics.clone();
         attr.commutative_where()
-            .into_iter()
+            .iter()
+            .cloned()
             .for_each(|w| g.make_where_clause().predicates.push(w));
         let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
         attr.is_commutative().then(|| {
