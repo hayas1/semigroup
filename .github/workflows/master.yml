@@ -1,5 +1,4 @@
 name: Master
-run-name: ${{ github.event_name == 'workflow_dispatch' && format('[recovery] {0}', inputs.reason) || github.event.head_commit.message }}
 
 on:
   push:
