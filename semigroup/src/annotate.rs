@@ -1,6 +1,6 @@
 use std::ops::{Deref, DerefMut};
 
-use semigroup_derive::{SemigroupOpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, semigroup_properties_doc_priv};
 
 use crate::{Selected, Selective, Semigroup};
 
@@ -88,7 +88,7 @@ pub trait AnnotateFields<A>: Sized {
     bound(commutative = "T: crate::Selective + crate::Commutative"),
     hidden_inner
 )]
-#[properties_priv]
+#[semigroup_properties_doc_priv]
 pub struct Annotated<T, A> {
     value: T,
     annotation: A,

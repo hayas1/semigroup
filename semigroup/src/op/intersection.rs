@@ -3,7 +3,7 @@ use std::{
     hash::Hash,
 };
 
-use semigroup_derive::{SemigroupOpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, semigroup_properties_doc_priv};
 
 use crate::SemigroupOp;
 
@@ -22,7 +22,7 @@ use crate::SemigroupOp;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Default, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[properties_priv]
+#[semigroup_properties_doc_priv]
 pub struct Intersection<T: Eq + Hash>(pub HashSet<T>);
 impl<T: Eq + Hash> SemigroupOp<HashSet<T>> for Intersection<T> {
     fn lift_op_assign(base: &mut HashSet<T>, other: HashSet<T>) {
@@ -45,7 +45,7 @@ impl<T: Eq + Hash> SemigroupOp<HashSet<T>> for Intersection<T> {
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Default, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[properties_priv]
+#[semigroup_properties_doc_priv]
 pub struct IntersectionMap<K: Eq + Hash, V>(pub HashMap<K, V>);
 impl<K: Eq + Hash, V> SemigroupOp<HashMap<K, V>> for IntersectionMap<K, V> {
     fn lift_op_assign(base: &mut HashMap<K, V>, other: HashMap<K, V>) {

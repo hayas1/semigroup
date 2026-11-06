@@ -1,4 +1,4 @@
-//! Attributes shared by `#[derive(Semigroup)]` and `#[derive(SemigroupOp)]`, also read by `#[properties]`.
+//! Attributes shared by `#[derive(Semigroup)]` and `#[derive(SemigroupOp)]`, also read by `#[semigroup_properties_doc]`.
 //!
 //! ```text
 //! properties(semigroup, annotated(param = A), selective, monoid(identity = ..), commutative),

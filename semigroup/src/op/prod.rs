@@ -1,6 +1,6 @@
 use std::ops::MulAssign;
 
-use semigroup_derive::{SemigroupOpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, semigroup_properties_doc_priv};
 
 use crate::SemigroupOp;
 
@@ -23,7 +23,7 @@ use crate::SemigroupOp;
     properties(monoid(identity = Self(T::one())), commutative),
     bound(monoid = "T: num::One"),
 )]
-#[properties_priv]
+#[semigroup_properties_doc_priv]
 pub struct Prod<T: MulAssign>(pub T);
 impl<T: MulAssign> SemigroupOp<T> for Prod<T> {
     fn lift_op_assign(base: &mut T, other: T) {

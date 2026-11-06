@@ -134,4 +134,4 @@ pub use self::{annotate::*, combine::*, commutative::*, construction::*, lazy::*
 
 #[cfg(feature = "derive")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "derive")))]
-pub use semigroup_derive::{Semigroup, SemigroupOp, properties};
+pub use semigroup_derive::{Semigroup, SemigroupOp, semigroup_properties_doc};

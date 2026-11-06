@@ -1,4 +1,4 @@
-//! `#[properties]` takes no arguments: it reads the `#[semigroup_op(..)]` or `#[semigroup(..)]`
+//! `#[semigroup_properties_doc]` takes no arguments: it reads the `#[semigroup_op(..)]` or `#[semigroup(..)]`
 //! of the same item, see [`crate::attr`].
 use syn::{DeriveInput, ItemStruct};
 

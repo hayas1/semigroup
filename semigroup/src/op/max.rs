@@ -1,4 +1,4 @@
-use semigroup_derive::{SemigroupOpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, semigroup_properties_doc_priv};
 
 use crate::{Selected, SelectiveOp};
 
@@ -21,7 +21,7 @@ use crate::{Selected, SelectiveOp};
     properties(selective, monoid(identity = Self(T::min_value())), commutative),
     bound(monoid = "T: num::Bounded"),
 )]
-#[properties_priv]
+#[semigroup_properties_doc_priv]
 pub struct Max<T: Ord>(pub T);
 impl<T: Ord> SelectiveOp<T> for Max<T> {
     fn lift_select(base: &T, other: &T) -> Selected {

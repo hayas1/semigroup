@@ -1,4 +1,4 @@
-use semigroup_derive::{SemigroupOpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, semigroup_properties_doc_priv};
 
 use crate::{Semigroup, SemigroupOp};
 
@@ -123,7 +123,7 @@ pub trait Monoid: Semigroup {
     properties(monoid(identity = Self(None)), commutative),
     bound(commutative = "T: crate::Commutative"),
 )]
-#[properties_priv]
+#[semigroup_properties_doc_priv]
 pub struct OptionMonoid<T: Semigroup>(pub Option<T>);
 impl<T: Semigroup> From<T> for OptionMonoid<T> {
     fn from(value: T) -> Self {

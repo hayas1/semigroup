@@ -70,17 +70,12 @@ impl Display for SemigroupError {
 #[derive(Debug, Clone)]
 pub enum PropertiesError {
     InvalidDocAttr,
-    Arguments,
 }
 impl Error for PropertiesError {}
 impl Display for PropertiesError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::InvalidDocAttr => write!(f, "invalid doc attribute"),
-            Self::Arguments => write!(
-                f,
-                "`properties` takes no arguments: it reads the `#[semigroup_op(..)]` or `#[semigroup(..)]` of the item"
-            ),
         }
     }
 }

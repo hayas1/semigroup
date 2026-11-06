@@ -1,4 +1,4 @@
-use semigroup_derive::{SemigroupOpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, semigroup_properties_doc_priv};
 
 use crate::{Construction, Lazy, Selected, Selective, SelectiveOp, Semigroup, SemigroupOp};
 
@@ -215,7 +215,7 @@ impl<I: Iterator> CombineIterator for I {}
         commutative = "T: crate::Commutative",
     ),
 )]
-#[properties_priv]
+#[semigroup_properties_doc_priv]
 pub struct Dual<T>(pub T);
 
 impl<T: Selective> SelectiveOp<T> for Dual<T> {

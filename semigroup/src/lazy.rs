@@ -1,6 +1,6 @@
 use std::{ops::Index, slice::SliceIndex};
 
-use semigroup_derive::{SemigroupOpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, semigroup_properties_doc_priv};
 
 use crate::{Annotated, Semigroup};
 
@@ -52,7 +52,7 @@ use crate::{Annotated, Semigroup};
     bound(commutative = "T: crate::Commutative"),
     hidden_inner
 )]
-#[properties_priv]
+#[semigroup_properties_doc_priv]
 pub struct Lazy<T>(Vec<T>);
 impl<T> Semigroup for Lazy<T> {
     fn op_assign(base: &mut Self, other: Self) {

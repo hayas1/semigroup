@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use hdrhistogram::{Counter, Histogram};
-use semigroup_derive::{SemigroupOpPriv, SemigroupPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, SemigroupPriv, semigroup_properties_doc_priv};
 
 use crate::Semigroup;
 
@@ -124,7 +124,7 @@ use crate::Semigroup;
 /// ```
 #[derive(Debug, Clone, PartialEq, SemigroupPriv)]
 #[semigroup(properties(monoid, commutative))]
-#[properties_priv]
+#[semigroup_properties_doc_priv]
 pub struct HdrHistogram<C: Counter>(HdrHistogramInner<C>);
 impl<C: Counter, T: Into<HdrHistogramInner<C>>> From<T> for HdrHistogram<C> {
     fn from(value: T) -> Self {

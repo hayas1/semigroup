@@ -4,20 +4,13 @@ use syn::ItemStruct;
 
 use crate::{
     constant::ConstantExt,
-    error::PropertiesError,
     properties::{attr::ContainerAttr, documented::Documented},
 };
 
 mod attr;
 mod documented;
 
-pub fn impl_properties<C: ConstantExt>(
-    args: &TokenStream,
-    item: &ItemStruct,
-) -> syn::Result<TokenStream> {
-    if !args.is_empty() {
-        return Err(syn::Error::new_spanned(args, PropertiesError::Arguments));
-    }
+pub fn impl_properties<C: ConstantExt>(item: &ItemStruct) -> syn::Result<TokenStream> {
     let constant = C::constant();
     let attr = ContainerAttr::from_item(item);
     let documented = Documented::new(&constant, &attr, item)?;
@@ -93,23 +86,13 @@ mod tests {
     )]
     fn test_derive_properties_snapshot(
         #[case] case: &str,
-        #[case] f: impl Fn(&TokenStream, &ItemStruct) -> syn::Result<TokenStream>,
+        #[case] f: impl Fn(&ItemStruct) -> syn::Result<TokenStream>,
         #[case] input: ItemStruct,
     ) {
-        let generated = f(&TokenStream::new(), &input).unwrap();
+        let generated = f(&input).unwrap();
         let formatted = prettyplease::unparse(&syn::parse2(generated).unwrap());
         insta::with_settings!({ snapshot_path => "../tests/snapshots", prepend_module_to_snapshot => false }, {
             insta::assert_snapshot!(case, formatted);
         });
-    }
-
-    #[test]
-    fn test_properties_takes_no_arguments() {
-        let item: ItemStruct = syn::parse_quote! { pub struct Unit; };
-        let err = impl_properties::<External>(&quote::quote! { monoid }, &item).unwrap_err();
-        assert_eq!(
-            err.to_string(),
-            "`properties` takes no arguments: it reads the `#[semigroup_op(..)]` or `#[semigroup(..)]` of the item"
-        );
     }
 }
