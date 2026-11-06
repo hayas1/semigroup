@@ -19,8 +19,8 @@ use crate::SemigroupOp;
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[semigroup_op(monoid, commutative, identity = Self(T::one()), monoid_where = "T: num::One")]
-#[properties_priv(monoid, commutative, monoid_where = "T: num::One")]
+#[semigroup_op(properties(monoid(identity = Self(T::one()), bound = "T: num::One"), commutative))]
+#[properties_priv(monoid(bound = "T: num::One"), commutative)]
 pub struct Prod<T: MulAssign>(pub T);
 impl<T: MulAssign> SemigroupOp<T> for Prod<T> {
     fn lift_op_assign(base: &mut T, other: T) {

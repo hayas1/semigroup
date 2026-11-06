@@ -1,35 +1,19 @@
 use darling::FromDeriveInput;
 use syn::{DeriveInput, Expr, WherePredicate};
 
-use crate::{error::ConstructionError, name::var_name};
+use crate::{
+    attr::{Bound, PropertiesAttr, resolve_bound},
+    error::ConstructionError,
+    name::Name,
+};
 
+/// `#[semigroup_op(properties(..), bound = "..", hidden_inner)]`
 #[derive(Debug, Clone, PartialEq, FromDeriveInput)]
 #[darling(attributes(semigroup_op), and_then = Self::validate)]
 pub struct ContainerAttr {
     #[darling(default)]
-    semigroup_where: Vec<WherePredicate>,
-
-    #[darling(default)]
-    selective: bool,
-    #[darling(default)]
-    selective_where: Vec<WherePredicate>,
-
-    #[darling(default)]
-    monoid: bool,
-    identity: Option<Expr>,
-    #[darling(default)]
-    monoid_where: Vec<WherePredicate>,
-    #[darling(default)]
-    manual_monoid_impl: bool,
-
-    #[darling(default)]
-    commutative: bool,
-    #[darling(default)]
-    commutative_where: Vec<WherePredicate>,
-
-    #[darling(default)]
-    manual_op_impl: bool,
-
+    properties: PropertiesAttr,
+    bound: Option<Bound>,
     #[darling(default)]
     hidden_inner: bool,
 }
@@ -38,84 +22,58 @@ impl ContainerAttr {
         Ok(Self::from_derive_input(derive)?)
     }
     pub fn validate(self) -> darling::Result<Self> {
-        let Self {
-            selective,
-            selective_where,
-            monoid,
-            identity,
-            monoid_where,
-            manual_monoid_impl,
-            commutative,
-            commutative_where,
-            ..
-        } = &self;
-        if !selective && !selective_where.is_empty() {
-            return Err(darling::Error::custom(ConstructionError::OnlySelective(
-                var_name!(selective_where),
-            )));
+        let Self { properties, .. } = &self;
+        if properties.annotated().is_some() {
+            return Err(darling::Error::custom(
+                ConstructionError::UnsupportedProperty(Name("annotated")),
+            ));
         }
-        if !monoid {
-            let err_attr_name = if identity.is_some() {
-                Some(var_name!(identity))
-            } else if !monoid_where.is_empty() {
-                Some(var_name!(monoid_where))
-            } else if *manual_monoid_impl {
-                Some(var_name!(manual_monoid_impl))
-            } else {
-                None
-            };
-            err_attr_name.map_or(Ok(()), |a| {
-                Err(darling::Error::custom(ConstructionError::OnlyMonoid(a)))
-            })?;
-        }
-        if !commutative {
-            let err_attr_name = if !commutative_where.is_empty() {
-                Some(var_name!(commutative_where))
-            } else {
-                None
-            };
-            err_attr_name.map_or(Ok(()), |a| {
-                Err(darling::Error::custom(ConstructionError::OnlyCommutative(
-                    a,
-                )))
-            })?;
+        if properties.semigroup().is_some_and(|p| p.manual_impl) && !self.is_selective() {
+            return Err(darling::Error::custom(
+                ConstructionError::ManualSemigroupWithoutSelective,
+            ));
         }
         Ok(self)
     }
 
-    pub fn semigroup_where(&self) -> &[WherePredicate] {
-        &self.semigroup_where
+    /// Bounds of the `Semigroup` impl, and of the `SemigroupOp` impl derived from `SelectiveOp`.
+    pub fn semigroup_bound(&self) -> &[WherePredicate] {
+        resolve_bound(self.properties.semigroup_bound(), self.bound.as_ref()).unwrap_or_default()
+    }
+    /// `SemigroupOp` is derived from `SelectiveOp` unless `semigroup(manual_impl)`.
+    pub fn gen_semigroup_op_impl(&self) -> bool {
+        !self.properties.semigroup().is_some_and(|p| p.manual_impl)
     }
 
     pub fn is_selective(&self) -> bool {
-        self.selective
+        self.properties.selective().is_some()
     }
-    pub fn selective_where(&self) -> &[WherePredicate] {
-        &self.selective_where
+    pub fn selective_bound(&self) -> &[WherePredicate] {
+        resolve_bound(self.properties.selective_bound(), self.bound.as_ref()).unwrap_or_default()
+    }
+    pub fn gen_selective_impl(&self) -> bool {
+        !self.properties.selective().is_some_and(|p| p.manual_impl)
     }
 
     pub fn is_monoid(&self) -> bool {
-        self.monoid
+        self.properties.monoid().is_some()
     }
     pub fn identity(&self) -> Option<&Expr> {
-        self.identity.as_ref()
+        self.properties.monoid().and_then(|p| p.identity.as_ref())
     }
-    pub fn monoid_where(&self) -> &[WherePredicate] {
-        &self.monoid_where
+    /// `None` when nothing is given, so that the derive infers the bounds.
+    pub fn monoid_bound(&self) -> Option<&[WherePredicate]> {
+        resolve_bound(self.properties.monoid_bound(), self.bound.as_ref())
     }
     pub fn gen_monoid_impl(&self) -> bool {
-        !self.manual_monoid_impl
+        !self.properties.monoid().is_some_and(|p| p.manual_impl)
     }
 
     pub fn is_commutative(&self) -> bool {
-        self.commutative
+        self.properties.commutative().is_some()
     }
-    pub fn commutative_where(&self) -> &[WherePredicate] {
-        &self.commutative_where
-    }
-
-    pub fn gen_op_impl(&self) -> bool {
-        !self.manual_op_impl
+    pub fn commutative_bound(&self) -> &[WherePredicate] {
+        resolve_bound(self.properties.commutative_bound(), self.bound.as_ref()).unwrap_or_default()
     }
 
     pub fn open_inner(&self) -> bool {
@@ -142,49 +100,41 @@ mod tests {
     #[case::ok(
         syn::parse_quote! {
             #[derive(SemigroupOp)]
-            #[semigroup_op(selective)]
+            #[semigroup_op(properties(selective), bound = "T: Clone")]
             pub struct Coalesce<T>(pub Option<T>);
         },
         Ok(ContainerAttr {
-            selective: true,
+            properties: PropertiesAttr {
+                selective: Some(Default::default()),
+                ..Default::default()
+            },
+            bound: Some(<Bound as darling::FromMeta>::from_value(&parse_quote!("T: Clone")).unwrap()),
             ..default_container_attr()
         }),
     )]
-    #[case::invalid_monoid_attr(
+    #[case::property_at_top_level(
         syn::parse_quote! {
             #[derive(SemigroupOp)]
-            #[semigroup_op(identity = ())]
+            #[semigroup_op(monoid)]
             pub struct Construct<T>(T);
         },
-        Err("attribute `identity` are supported only with `monoid`"),
+        Err("Unknown field: `monoid`. Available values: `bound`, `hidden_inner`, `properties`"),
     )]
-    #[case::multiple_where(
+    #[case::annotated(
         syn::parse_quote! {
             #[derive(SemigroupOp)]
-            #[semigroup_op(monoid, monoid_where = "T: Default, T: Copy")]
+            #[semigroup_op(properties(annotated))]
             pub struct Construct<T>(T);
         },
-        Ok(ContainerAttr {
-            monoid: true,
-            monoid_where: vec![parse_quote!(T: Default), parse_quote!(T: Copy)],
-            ..default_container_attr()
-        }),
+        Err("derive SemigroupOp does not support property `annotated`"),
     )]
-    #[case::invalid_where(
+    #[case::manual_semigroup_without_selective(
         syn::parse_quote! {
             #[derive(SemigroupOp)]
-            #[semigroup_op(monoid, monoid_where = "T Default")]
+            #[semigroup_op(properties(semigroup(manual_impl)))]
             pub struct Construct<T>(T);
         },
-        Err("Unknown value: `where T Default`"),
-    )]
-    #[case::manual_monoid_impl_without_monoid(
-        syn::parse_quote! {
-            #[derive(SemigroupOp)]
-            #[semigroup_op(manual_monoid_impl)]
-            pub struct Construct<T>(T);
-        },
-        Err("attribute `manual_monoid_impl` are supported only with `monoid`"),
+        Err("`semigroup(manual_impl)` of derive SemigroupOp only skips the `SemigroupOp` impl derived from `SelectiveOp`, so it requires `selective`"),
     )]
     fn test_op_container_attr(
         #[case] input: DeriveInput,

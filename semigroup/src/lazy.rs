@@ -30,7 +30,7 @@ use crate::{Annotated, Semigroup};
 /// use semigroup::{op::Coalesce, Lazy, Semigroup};
 ///
 /// #[derive(Debug, Clone, Copy, PartialEq, Semigroup)]
-/// #[semigroup(annotated, with = "semigroup::op::Coalesce")]
+/// #[semigroup(properties(annotated), with = "semigroup::op::Coalesce")]
 /// struct ExampleStruct<'a> {
 ///     num: Option<u32>,
 ///     str: Option<&'a str>,
@@ -47,8 +47,8 @@ use crate::{Annotated, Semigroup};
 /// assert_eq!(lazy.map_combine_rev(|x| Coalesce(x.str)), Coalesce(Some("ten")));
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, SemigroupOpPriv)]
-#[semigroup_op(commutative, commutative_where = "T: crate::Commutative", hidden_inner)]
-#[properties_priv(commutative, commutative_where = "T: crate::Commutative")]
+#[semigroup_op(properties(commutative(bound = "T: crate::Commutative")), hidden_inner)]
+#[properties_priv(commutative(bound = "T: crate::Commutative"))]
 pub struct Lazy<T>(Vec<T>);
 impl<T> Semigroup for Lazy<T> {
     fn op_assign(base: &mut Self, other: Self) {

@@ -40,7 +40,7 @@ mod tests {
                 /// # Properties
                 /// <!-- properties -->
                 #[derive(SemigroupOp)]
-                #[semigroup_op(selective, monoid)]
+                #[semigroup_op(properties(selective, monoid))]
                 pub struct Coalesce<T>(pub Option<T>);
             },
         ),
@@ -71,14 +71,14 @@ mod tests {
         impl_properties::<Internal>,
         (
             syn::parse_quote! {
-                monoid, commutative, monoid_where = "T: num::Zero"
+                monoid(bound = "T: num::Zero"), commutative
             },
             syn::parse_quote! {
                 /// A semigroup construction that returns the sum.
                 /// # Properties
                 /// <!-- properties -->
                 #[derive(SemigroupOpPriv)]
-                #[semigroup_op(monoid, commutative, identity = Self(T::zero()), monoid_where = "T: num::Zero")]
+                #[semigroup_op(properties(monoid(identity = Self(T::zero()), bound = "T: num::Zero"), commutative))]
                 pub struct Sum<T: Add<Output = T>>(pub T);
             },
         )

@@ -50,8 +50,13 @@ impl<'a> OpTrait<'a> {
             ..
         } = self;
 
-        (attr.is_selective() && attr.gen_op_impl()).then(|| {
-            let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+        (attr.is_selective() && attr.gen_semigroup_op_impl()).then(|| {
+            let mut g = generics.clone();
+            attr.semigroup_bound()
+                .iter()
+                .cloned()
+                .for_each(|w| g.make_where_clause().predicates.push(w));
+            let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
             parse_quote! {
                 #[automatically_derived]
                 impl #impl_generics #path_semigroup_op<#ty> for #ident #ty_generics #where_clause {
@@ -82,7 +87,7 @@ impl<'a> OpTrait<'a> {
 
         attr.is_monoid().then(|| {
             let mut g = generics.clone();
-            attr.semigroup_where()
+            attr.semigroup_bound()
                 .iter()
                 .cloned()
                 .for_each(|w| g.make_where_clause().predicates.push(w));

@@ -1,0 +1,41 @@
+---
+source: semigroup_derive/src/op.rs
+expression: formatted
+---
+#[automatically_derived]
+impl<T> From<T> for Larger<T> {
+    fn from(value: T) -> Self {
+        Larger(value)
+    }
+}
+#[automatically_derived]
+impl<T> std::ops::Deref for Larger<T> {
+    type Target = T;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+#[automatically_derived]
+impl<T> std::ops::DerefMut for Larger<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+#[automatically_derived]
+impl<T> ::semigroup::Construction<T> for Larger<T> {
+    fn into_inner(self) -> T {
+        self.0
+    }
+}
+#[automatically_derived]
+impl<T> ::semigroup::SemigroupOp<T> for Larger<T> {
+    fn lift_op_assign(base: &mut T, other: T) {
+        <Self as ::semigroup::SelectiveOp<T>>::lift_select_assign(base, other);
+    }
+}
+#[automatically_derived]
+impl<T> ::semigroup::Semigroup for Larger<T> {
+    fn op_assign(base: &mut Self, other: Self) {
+        <Self as ::semigroup::SemigroupOp<_>>::lift_op_assign(&mut base.0, other.0);
+    }
+}

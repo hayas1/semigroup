@@ -1,7 +1,7 @@
 use semigroup::{AnnotateFields, Semigroup};
 
 #[derive(Debug, Clone, PartialEq, Semigroup)]
-#[semigroup(annotated)]
+#[semigroup(properties(annotated))]
 pub struct Container {
     #[semigroup(with = "semigroup::op::Sum")]
     pub value: u32,

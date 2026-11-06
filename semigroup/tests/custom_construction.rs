@@ -7,7 +7,7 @@ use semigroup::{
 /// # Properties
 /// <!-- properties -->
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
-#[semigroup_op(monoid, identity = Self(String::new()))]
+#[semigroup_op(properties(monoid(identity = Self(String::new()))))]
 #[properties(monoid)]
 pub struct Join(pub String);
 impl SemigroupOp<String> for Join {

@@ -147,7 +147,7 @@ impl<'a> FieldSemigroupOp<'a> {
     }
 }
 
-/// Per-field code generation for `#[semigroup(annotated)]`.
+/// Per-field code generation for `#[semigroup(properties(annotated))]`.
 ///
 /// Each field of the original struct becomes an `Annotated<FieldType, A>` field in the generated
 /// `XxxAnnotated<A>` struct (storing the raw field type, not the op-wrapper type). The semigroup

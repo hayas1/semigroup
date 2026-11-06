@@ -11,9 +11,8 @@ use crate::{
 #[derive(Debug, Clone)]
 pub enum ConstructionError {
     ExpectNewType,
-    OnlySelective(Name),
-    OnlyMonoid(Name),
-    OnlyCommutative(Name),
+    UnsupportedProperty(Name),
+    ManualSemigroupWithoutSelective,
 }
 impl Error for ConstructionError {}
 impl Display for ConstructionError {
@@ -22,16 +21,13 @@ impl Display for ConstructionError {
             Self::ExpectNewType => {
                 write!(f, "derive {DERIVE_OP} only supports newtype structs",)
             }
-            Self::OnlySelective(Name(name)) => {
-                write!(f, "attribute `{name}` are supported only with `selective`")
+            Self::UnsupportedProperty(Name(name)) => {
+                write!(f, "derive {DERIVE_OP} does not support property `{name}`")
             }
-            Self::OnlyMonoid(Name(name)) => {
-                write!(f, "attribute `{name}` are supported only with `monoid`")
-            }
-            Self::OnlyCommutative(Name(name)) => {
+            Self::ManualSemigroupWithoutSelective => {
                 write!(
                     f,
-                    "attribute `{name}` are supported only with `commutative`"
+                    "`semigroup(manual_impl)` of derive {DERIVE_OP} only skips the `SemigroupOp` impl derived from `SelectiveOp`, so it requires `selective`"
                 )
             }
         }
@@ -42,9 +38,8 @@ impl Display for ConstructionError {
 pub enum SemigroupError {
     UnsupportedEnum,
     UnsupportedUnion,
-    OnlyAnnotated(Name),
-    OnlyMonoid(Name),
-    OnlyCommutative(Name),
+    UnsupportedProperty(Name),
+    ManualSemigroupImpl,
 }
 impl Error for SemigroupError {}
 impl Display for SemigroupError {
@@ -56,16 +51,16 @@ impl Display for SemigroupError {
             Self::UnsupportedUnion => {
                 write!(f, "derive {DERIVE_SEMIGROUP} does not support unions")
             }
-            Self::OnlyAnnotated(Name(name)) => {
-                write!(f, "attribute `{name}` are supported only with `annotated`")
-            }
-            Self::OnlyMonoid(Name(name)) => {
-                write!(f, "attribute `{name}` are supported only with `monoid`")
-            }
-            Self::OnlyCommutative(Name(name)) => {
+            Self::UnsupportedProperty(Name(name)) => {
                 write!(
                     f,
-                    "attribute `{name}` are supported only with `commutative`"
+                    "derive {DERIVE_SEMIGROUP} does not support property `{name}`"
+                )
+            }
+            Self::ManualSemigroupImpl => {
+                write!(
+                    f,
+                    "derive {DERIVE_SEMIGROUP} does not support `semigroup(manual_impl)`: deriving the `Semigroup` impl is what it does"
                 )
             }
         }

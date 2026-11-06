@@ -17,7 +17,7 @@ use crate::{Selected, SelectiveOp};
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[semigroup_op(selective, monoid, commutative, identity = Self(true))]
+#[semigroup_op(properties(selective, monoid(identity = Self(true)), commutative))]
 #[properties_priv(selective, monoid, commutative)]
 pub struct All(pub bool);
 impl SelectiveOp<bool> for All {

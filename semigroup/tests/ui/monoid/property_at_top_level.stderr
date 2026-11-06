@@ -1,0 +1,5 @@
+error: Unknown field: `monoid`. Available values: `bound`, `properties`, `with`
+ --> tests/ui/monoid/property_at_top_level.rs:4:13
+  |
+4 | #[semigroup(monoid, with = "semigroup::op::Coalesce")]
+  |             ^^^^^^

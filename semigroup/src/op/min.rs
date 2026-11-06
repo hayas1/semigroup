@@ -17,8 +17,8 @@ use crate::{Selected, SelectiveOp};
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[semigroup_op(selective, monoid, commutative, identity = Self(T::max_value()), monoid_where = "T: num::Bounded")]
-#[properties_priv(selective, monoid, commutative, monoid_where = "T: num::Bounded")]
+#[semigroup_op(properties(selective, monoid(identity = Self(T::max_value()), bound = "T: num::Bounded"), commutative))]
+#[properties_priv(selective, monoid(bound = "T: num::Bounded"), commutative)]
 pub struct Min<T: Ord>(pub T);
 impl<T: Ord> SelectiveOp<T> for Min<T> {
     fn lift_select(base: &T, other: &T) -> Selected {

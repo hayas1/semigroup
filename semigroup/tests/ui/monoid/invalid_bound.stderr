@@ -1,0 +1,5 @@
+error: expected `:`
+ --> tests/ui/monoid/invalid_bound.rs:4:73
+  |
+4 | #[semigroup_op(properties(monoid(identity = Self(T::default()), bound = "T Default")))]
+  |                                                                         ^^^^^^^^^^^

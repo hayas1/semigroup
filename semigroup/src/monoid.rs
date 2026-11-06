@@ -13,7 +13,7 @@ use crate::{Semigroup, SemigroupOp};
 /// ```
 /// use semigroup::{Semigroup, Monoid};
 /// #[derive(Debug, Clone, PartialEq, Default, Semigroup)]
-/// #[semigroup(monoid, with = "semigroup::op::Coalesce")]
+/// #[semigroup(properties(monoid), with = "semigroup::op::Coalesce")]
 /// pub struct ExampleStruct<'a> {
 ///     pub str: Option<&'a str>,
 ///     #[semigroup(with = "semigroup::op::Sum")]
@@ -37,7 +37,7 @@ use crate::{Semigroup, SemigroupOp};
 /// use semigroup::{Semigroup, SemigroupOp, Monoid};
 ///
 /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
-/// #[semigroup_op(monoid, identity = Self(0))]
+/// #[semigroup_op(properties(monoid(identity = Self(0))))]
 /// pub struct Sum(u64);
 /// impl SemigroupOp<u64> for Sum {
 ///     fn lift_op_assign(base: &mut u64, other: u64) {
@@ -74,7 +74,7 @@ pub trait Monoid: Semigroup {
 /// use semigroup::{Semigroup, Monoid, OptionMonoid};
 ///
 /// #[derive(Debug, Clone, PartialEq, Semigroup)]
-/// #[semigroup(monoid, commutative)]
+/// #[semigroup(properties(monoid, commutative))]
 /// pub struct BoundingDuration {
 ///     #[semigroup(with = "semigroup::op::Min")]
 ///     start: Instant,
@@ -94,7 +94,7 @@ pub trait Monoid: Semigroup {
 /// use semigroup::{Semigroup, Monoid, OptionMonoid};
 ///
 /// #[derive(Debug, Clone, PartialEq, Semigroup)]
-/// #[semigroup(commutative)]
+/// #[semigroup(properties(commutative))]
 /// pub struct BoundingDuration {
 ///     #[semigroup(with = "semigroup::op::Min")]
 ///     start: Instant,
@@ -119,8 +119,8 @@ pub trait Monoid: Semigroup {
 /// assert_eq!(bd.as_ref().unwrap().duration(), Duration::from_millis(250));
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
-#[semigroup_op(monoid, commutative, identity = Self(None), commutative_where = "T: crate::Commutative")]
-#[properties_priv(monoid, commutative, commutative_where = "T: crate::Commutative")]
+#[semigroup_op(properties(monoid(identity = Self(None)), commutative(bound = "T: crate::Commutative")))]
+#[properties_priv(monoid, commutative(bound = "T: crate::Commutative"))]
 pub struct OptionMonoid<T: Semigroup>(pub Option<T>);
 impl<T: Semigroup> From<T> for OptionMonoid<T> {
     fn from(value: T) -> Self {
@@ -194,7 +194,7 @@ pub mod test_monoid {
     /// ```should_panic
     /// use semigroup::{assert_monoid, SemigroupOp, Semigroup};
     /// #[derive(Debug, Clone, PartialEq, SemigroupOp)]
-    /// #[semigroup_op(monoid, identity = Self(0))]
+    /// #[semigroup_op(properties(monoid(identity = Self(0))))]
     /// pub struct Sub(i32);
     /// impl SemigroupOp<i32> for Sub {
     ///     fn lift_op_assign(base: &mut i32, other: i32) {

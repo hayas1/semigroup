@@ -22,7 +22,7 @@ use crate::SemigroupOp;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Default, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[semigroup_op(monoid, identity = Self(HashSet::new()))]
+#[semigroup_op(properties(monoid(identity = Self(HashSet::new()))))]
 #[properties_priv(monoid)]
 pub struct Union<T: Eq + Hash>(pub HashSet<T>);
 impl<T: Eq + Hash> SemigroupOp<HashSet<T>> for Union<T> {
@@ -48,7 +48,7 @@ impl<T: Eq + Hash> SemigroupOp<HashSet<T>> for Union<T> {
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Default, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[semigroup_op(monoid, identity = Self(HashMap::new()))]
+#[semigroup_op(properties(monoid(identity = Self(HashMap::new()))))]
 #[properties_priv(monoid)]
 pub struct UnionMap<K: Eq + Hash, V>(pub HashMap<K, V>);
 impl<K: Eq + Hash, V> SemigroupOp<HashMap<K, V>> for UnionMap<K, V> {

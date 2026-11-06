@@ -4,105 +4,74 @@ use syn::{
     PathArguments, Type, TypePath, WherePredicate, parse_quote,
 };
 
-use crate::{error::SemigroupError, name::var_name};
+use crate::{
+    attr::{Bound, PropertiesAttr, resolve_bound},
+    error::SemigroupError,
+    name::Name,
+};
 
+/// `#[semigroup(properties(..), bound = "..", with = "..")]`
 #[derive(Debug, Clone, PartialEq, FromDeriveInput)]
 #[darling(attributes(semigroup), and_then = Self::validate)]
 pub struct ContainerAttr {
     #[darling(default)]
-    annotated: bool,
-
-    #[darling(default)]
-    monoid: bool,
-    identity: Option<Expr>,
-    #[darling(default)]
-    monoid_where: Vec<WherePredicate>,
-    #[darling(default)]
-    manual_monoid_impl: bool,
-
-    #[darling(default)]
-    commutative: bool,
-    #[darling(default)]
-    commutative_where: Vec<WherePredicate>,
-
+    properties: PropertiesAttr,
+    bound: Option<Bound>,
     with: Option<Expr>,
-    annotation_param: Option<Ident>,
 }
 impl ContainerAttr {
     pub fn new(derive: &DeriveInput) -> syn::Result<Self> {
         Ok(Self::from_derive_input(derive)?)
     }
     pub fn validate(self) -> darling::Result<Self> {
-        let Self {
-            annotated,
-            annotation_param,
-            monoid,
-            identity,
-            monoid_where,
-            manual_monoid_impl,
-            commutative,
-            commutative_where,
-            ..
-        } = &self;
-        if !annotated {
-            let err_attr_name = if annotation_param.is_some() {
-                Some(var_name!(annotation_param))
-            } else {
-                None
-            };
-            err_attr_name.map_or(Ok(()), |a| {
-                Err(darling::Error::custom(SemigroupError::OnlyAnnotated(a)))
-            })?;
+        let Self { properties, .. } = &self;
+        if properties.selective().is_some() {
+            return Err(darling::Error::custom(SemigroupError::UnsupportedProperty(
+                Name("selective"),
+            )));
         }
-        if !monoid {
-            let err_attr_name = if identity.is_some() {
-                Some(var_name!(identity))
-            } else if !monoid_where.is_empty() {
-                Some(var_name!(monoid_where))
-            } else if *manual_monoid_impl {
-                Some(var_name!(manual_monoid_impl))
-            } else {
-                None
-            };
-            err_attr_name.map_or(Ok(()), |a| {
-                Err(darling::Error::custom(SemigroupError::OnlyMonoid(a)))
-            })?;
-        }
-        if !commutative {
-            let err_attr_name = if !commutative_where.is_empty() {
-                Some(var_name!(commutative_where))
-            } else {
-                None
-            };
-            err_attr_name.map_or(Ok(()), |a| {
-                Err(darling::Error::custom(SemigroupError::OnlyCommutative(a)))
-            })?;
+        if properties.semigroup().is_some_and(|p| p.manual_impl) {
+            return Err(darling::Error::custom(SemigroupError::ManualSemigroupImpl));
         }
         Ok(self)
     }
 
+    /// `None` when nothing is given, so that the derive infers the bounds from the fields.
+    pub fn semigroup_bound(&self) -> Option<&[WherePredicate]> {
+        resolve_bound(self.properties.semigroup_bound(), self.bound.as_ref())
+    }
+
     pub fn is_annotated(&self) -> bool {
-        self.annotated
+        self.properties.annotated().is_some()
+    }
+    /// The type parameter of the annotation of `XxxAnnotated`, `A` unless given.
+    pub fn annotation_param(&self) -> Ident {
+        self.properties
+            .annotated()
+            .map(|p| p.param())
+            .unwrap_or_else(|| parse_quote! { A })
     }
 
     pub fn is_monoid(&self) -> bool {
-        self.monoid
+        self.properties.monoid().is_some()
     }
     pub fn identity(&self) -> Option<&Expr> {
-        self.identity.as_ref()
+        self.properties.monoid().and_then(|p| p.identity.as_ref())
     }
-    pub fn monoid_where(&self) -> &[WherePredicate] {
-        &self.monoid_where
+    /// `None` when nothing is given, so that the derive infers the bounds from the fields.
+    pub fn monoid_bound(&self) -> Option<&[WherePredicate]> {
+        resolve_bound(self.properties.monoid_bound(), self.bound.as_ref())
     }
     pub fn gen_monoid_impl(&self) -> bool {
-        !self.manual_monoid_impl
+        !self.properties.monoid().is_some_and(|p| p.manual_impl)
     }
 
     pub fn is_commutative(&self) -> bool {
-        self.commutative
+        self.properties.commutative().is_some()
     }
-    pub fn commutative_where(&self) -> &[WherePredicate] {
-        &self.commutative_where
+    /// `None` when nothing is given, so that the derive infers the bounds from the fields.
+    pub fn commutative_bound(&self) -> Option<&[WherePredicate]> {
+        resolve_bound(self.properties.commutative_bound(), self.bound.as_ref())
     }
 }
 
@@ -256,21 +225,33 @@ mod tests {
     #[case::ok(
         syn::parse_quote! {
             #[derive(Semigroup)]
-            #[semigroup(annotated)]
+            #[semigroup(properties(annotated(param = B), monoid))]
             pub struct NamedStruct {}
         },
         Ok(ContainerAttr {
-            annotated: true,
+            properties: PropertiesAttr {
+                annotated: Some(crate::attr::AnnotatedProp { param: Some(parse_quote! { B }) }),
+                monoid: Some(Default::default()),
+                ..Default::default()
+            },
             ..default_container_attr()
         }),
     )]
-    #[case::invalid_monoid_attr(
+    #[case::identity_at_top_level(
         syn::parse_quote! {
             #[derive(Semigroup)]
             #[semigroup(identity = ())]
             pub struct UnnamedStruct();
         },
-        Err("attribute `identity` are supported only with `monoid`"),
+        Err("Unknown field: `identity`. Available values: `bound`, `properties`, `with`"),
+    )]
+    #[case::selective(
+        syn::parse_quote! {
+            #[derive(Semigroup)]
+            #[semigroup(properties(selective))]
+            pub struct UnnamedStruct();
+        },
+        Err("derive Semigroup does not support property `selective`"),
     )]
     fn test_semigroup_container_attr(
         #[case] input: DeriveInput,

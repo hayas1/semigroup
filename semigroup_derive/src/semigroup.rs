@@ -31,7 +31,7 @@ mod tests {
         impl_semigroup::<External>,
         syn::parse_quote! {
             #[derive(Semigroup)]
-            #[semigroup(annotated, with = "semigroup::op::Coalesce")]
+            #[semigroup(properties(annotated), with = "semigroup::op::Coalesce")]
             pub struct NamedStruct {
                 #[semigroup(with = "semigroup::op::Last")]
                 pub foo: String,
@@ -72,7 +72,7 @@ mod tests {
         impl_semigroup::<External>,
         syn::parse_quote! {
             #[derive(Semigroup)]
-            #[semigroup(monoid, commutative)]
+            #[semigroup(properties(monoid, commutative))]
             pub struct MonoidStruct{
                 #[semigroup(with = "semigroup::op::Sum")]
                 pub sum: u32,
@@ -88,6 +88,22 @@ mod tests {
                 T,
                 Vec<U>,
             );
+        },
+    )]
+    #[case::semigroup_bound(
+        "semigroup_bound",
+        impl_semigroup::<Internal>,
+        syn::parse_quote! {
+            #[derive(SemigroupPriv)]
+            #[semigroup(
+                properties(annotated(param = B), monoid, commutative(bound = "T: Commutative")),
+                bound = "T: Semigroup + Clone",
+            )]
+            pub struct Tagged<T> {
+                pub value: T,
+                #[semigroup(with = "semigroup::op::Sum")]
+                pub count: u32,
+            }
         },
     )]
     fn test_derive_semigroup_snapshot(

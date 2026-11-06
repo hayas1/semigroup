@@ -46,8 +46,8 @@ impl<'a> StructSemigroup<'a> {
         let Self {
             constant,
             derive,
+            attr,
             field_ops,
-            ..
         } = self;
         let Constant {
             path_semigroup,
@@ -59,13 +59,16 @@ impl<'a> StructSemigroup<'a> {
         } = derive;
         let mut g = generics.clone();
         let where_clause = g.make_where_clause();
-        field_ops
-            .iter()
-            .flat_map(|op| {
-                op.where_ty()
-                    .map(|ty| parse_quote! { #ty: #path_semigroup })
-            })
-            .for_each(|w| where_clause.predicates.push(w));
+        match attr.semigroup_bound() {
+            Some(bound) => where_clause.predicates.extend(bound.iter().cloned()),
+            None => field_ops
+                .iter()
+                .flat_map(|op| {
+                    op.where_ty()
+                        .map(|ty| parse_quote! { #ty: #path_semigroup })
+                })
+                .for_each(|w| where_clause.predicates.push(w)),
+        }
         let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
         let fields_op_assign = field_ops
             .iter()
@@ -100,14 +103,13 @@ impl<'a> StructSemigroup<'a> {
         (attr.is_monoid() && attr.gen_monoid_impl()).then(|| {
             let mut g = generics.clone();
             let where_clause = g.make_where_clause();
-            field_ops
-                .iter()
-                .flat_map(|op| op.where_ty().map(|ty| parse_quote! { #ty: #path_monoid }))
-                .for_each(|w| where_clause.predicates.push(w));
-            attr.monoid_where()
-                .iter()
-                .cloned()
-                .for_each(|w| where_clause.predicates.push(w));
+            match attr.monoid_bound() {
+                Some(bound) => where_clause.predicates.extend(bound.iter().cloned()),
+                None => field_ops
+                    .iter()
+                    .flat_map(|op| op.where_ty().map(|ty| parse_quote! { #ty: #path_monoid }))
+                    .for_each(|w| where_clause.predicates.push(w)),
+            }
 
             let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
 
@@ -159,17 +161,16 @@ impl<'a> StructSemigroup<'a> {
         } = derive;
         let mut g = generics.clone();
         let where_clause = g.make_where_clause();
-        field_ops
-            .iter()
-            .flat_map(|op| {
-                op.where_ty()
-                    .map(|ty| parse_quote! { #ty: #path_commutative })
-            })
-            .for_each(|w| where_clause.predicates.push(w));
-        attr.commutative_where()
-            .iter()
-            .cloned()
-            .for_each(|w| where_clause.predicates.push(w));
+        match attr.commutative_bound() {
+            Some(bound) => where_clause.predicates.extend(bound.iter().cloned()),
+            None => field_ops
+                .iter()
+                .flat_map(|op| {
+                    op.where_ty()
+                        .map(|ty| parse_quote! { #ty: #path_commutative })
+                })
+                .for_each(|w| where_clause.predicates.push(w)),
+        }
 
         let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
         attr.is_commutative().then(|| {
@@ -181,7 +182,7 @@ impl<'a> StructSemigroup<'a> {
     }
 }
 
-/// Generates the `XxxAnnotated<A>` struct and related impls for `#[semigroup(annotated)]`.
+/// Generates the `XxxAnnotated<A>` struct and related impls for `#[semigroup(properties(annotated))]`.
 ///
 /// For each field in the original struct, the annotated struct has a corresponding field of type
 /// `Annotated<OpWrapper<FieldType>, A>`.  The `Semigroup` impl is generated via the blanket
@@ -190,8 +191,10 @@ impl<'a> StructSemigroup<'a> {
 pub struct StructAnnotated<'a> {
     constant: &'a Constant,
     derive: &'a DeriveInput,
+    attr: &'a ContainerAttr,
     data_struct: &'a DataStruct,
     annotated_ident: Ident,
+    annotation_param: Ident,
     field_annotated: Vec<FieldAnnotated<'a>>,
 }
 impl ToTokens for StructAnnotated<'_> {
@@ -215,8 +218,10 @@ impl<'a> StructAnnotated<'a> {
         Ok(Self {
             constant,
             derive,
+            attr,
             data_struct,
             annotated_ident,
+            annotation_param: attr.annotation_param(),
             field_annotated,
         })
     }
@@ -225,10 +230,12 @@ impl<'a> StructAnnotated<'a> {
         format_ident!("{}Annotated", ident)
     }
 
-    /// Returns a clone of the original generics extended with `A: Clone` type parameter.
+    /// Returns a clone of the original generics extended with the `A: Clone` annotation parameter.
     fn generics_with_a(&self) -> syn::Generics {
+        let a = &self.annotation_param;
         let mut g = self.derive.generics.clone();
-        g.params.push(GenericParam::Type(parse_quote! { A: Clone }));
+        g.params
+            .push(GenericParam::Type(parse_quote! { #a: Clone }));
         g
     }
 
@@ -239,12 +246,12 @@ impl<'a> StructAnnotated<'a> {
             derive: DeriveInput { vis, generics, .. },
             data_struct,
             annotated_ident,
+            annotation_param: a_ident,
             field_annotated,
             ..
         } = self;
 
-        let a_param: GenericParam = parse_quote! { A };
-        let a_ident: Ident = parse_quote! { A };
+        let a_param: GenericParam = parse_quote! { #a_ident };
 
         let mut g = generics.clone();
         g.params.push(a_param);
@@ -252,7 +259,7 @@ impl<'a> StructAnnotated<'a> {
 
         let field_defs: Vec<syn::Field> = field_annotated
             .iter()
-            .map(|f| f.struct_field_tokens(&a_ident, path_annotated))
+            .map(|f| f.struct_field_tokens(a_ident, path_annotated))
             .collect();
 
         match &data_struct.fields {
@@ -285,12 +292,18 @@ impl<'a> StructAnnotated<'a> {
                     path_selected,
                     ..
                 },
+            attr,
             annotated_ident,
             field_annotated,
             ..
         } = self;
 
-        let g = self.generics_with_a();
+        let mut g = self.generics_with_a();
+        attr.semigroup_bound()
+            .unwrap_or_default()
+            .iter()
+            .cloned()
+            .for_each(|w| g.make_where_clause().predicates.push(w));
         let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
 
         let fields_op_assign: Vec<Block> = field_annotated
@@ -327,6 +340,7 @@ impl<'a> StructAnnotated<'a> {
             },
             data_struct,
             annotated_ident,
+            annotation_param: a,
             field_annotated,
             ..
         } = self;
@@ -348,9 +362,9 @@ impl<'a> StructAnnotated<'a> {
 
         parse_quote! {
             #[automatically_derived]
-            impl #impl_generics #path_annotate_fields<A> for #ident #ty_generics #where_clause {
+            impl #impl_generics #path_annotate_fields<#a> for #ident #ty_generics #where_clause {
                 type Annotated = #annotated_ident #ret_ty_generics;
-                fn annotated(self, annotation: A) -> Self::Annotated {
+                fn annotated(self, annotation: #a) -> Self::Annotated {
                     #struct_init
                 }
             }
@@ -365,12 +379,15 @@ impl<'a> StructAnnotated<'a> {
             },
             data_struct,
             annotated_ident,
+            annotation_param: a,
             field_annotated,
             ..
         } = self;
 
         let mut g_with_a = generics.clone();
-        g_with_a.params.push(GenericParam::Type(parse_quote! { A }));
+        g_with_a
+            .params
+            .push(GenericParam::Type(parse_quote! { #a }));
         let (impl_generics, ret_ty_generics, where_clause) = g_with_a.split_for_impl();
         let (_, ty_generics, _) = generics.split_for_impl();
 

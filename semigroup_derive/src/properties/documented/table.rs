@@ -50,7 +50,12 @@ impl<'a> PropertiesTable<'a> {
     }
     pub fn impl_row(&self) -> [&str; 3] {
         let Self { attr, .. } = self;
-        [attr.is_selective(), attr.is_monoid(), attr.is_commutative()].map(Self::impl_cell)
+        [
+            attr.selective().is_some() || attr.annotated().is_some(),
+            attr.monoid().is_some(),
+            attr.commutative().is_some(),
+        ]
+        .map(Self::impl_cell)
     }
     pub fn impl_cell(is: bool) -> &'a str {
         if is { "✅" } else { "❌" }
@@ -59,12 +64,12 @@ impl<'a> PropertiesTable<'a> {
     pub fn where_row(&self) -> [String; 3] {
         let Self { attr, .. } = self;
         [
-            attr.selective_where(),
-            attr.monoid_where(),
-            attr.commutative_where(),
+            attr.selective_bound(),
+            attr.monoid_bound(),
+            attr.commutative_bound(),
         ]
-        .map(|w| match w {
-            Some(w) => format!("`{w}`"),
+        .map(|b| match b {
+            Some(b) => format!("`{}`", b.raw()),
             None => String::new(),
         })
     }

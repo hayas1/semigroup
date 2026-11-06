@@ -26,7 +26,7 @@ pub mod iter;
 /// ```
 /// use semigroup::{Semigroup, SemigroupOp, segment_tree::SegmentTree, Monoid};
 /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
-/// #[semigroup_op(monoid, commutative, identity = Self(i32::MIN))]
+/// #[semigroup_op(properties(monoid(identity = Self(i32::MIN)), commutative))]
 /// struct Max(pub i32);
 /// impl SemigroupOp<i32> for Max {
 ///     fn lift_op_assign(base: &mut i32, other: i32) {

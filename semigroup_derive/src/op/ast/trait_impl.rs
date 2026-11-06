@@ -45,7 +45,7 @@ impl<'a> TraitImpl<'a> {
 
         attr.open_inner().then(|| {
             let mut g = generics.clone();
-            attr.semigroup_where()
+            attr.semigroup_bound()
                 .iter()
                 .cloned()
                 .for_each(|w| g.make_where_clause().predicates.push(w));
@@ -77,9 +77,9 @@ impl<'a> TraitImpl<'a> {
             ..
         } = self;
 
-        attr.is_selective().then(|| {
+        (attr.is_selective() && attr.gen_selective_impl()).then(|| {
             let mut g = generics.clone();
-            attr.selective_where()
+            attr.selective_bound()
                 .iter()
                 .cloned()
                 .for_each(|w| g.make_where_clause().predicates.push(w));
@@ -110,39 +110,32 @@ impl<'a> TraitImpl<'a> {
         let DeriveInput {
             ident, generics, ..
         } = derive;
-        let mut g = generics.clone();
-        attr.monoid_where()
-            .iter()
-            .cloned()
-            .for_each(|w| g.make_where_clause().predicates.push(w));
         (attr.is_monoid() && attr.gen_monoid_impl()).then(|| {
-            attr.identity()
-                .map(|expr| {
-                    let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
-                    parse_quote! {
-                        #[automatically_derived]
-                        #attr_feature_monoid
-                        impl #impl_generics #path_monoid for #ident #ty_generics #where_clause {
-                            fn identity() -> Self {
-                                #expr
-                            }
-                        }
+            let mut g = generics.clone();
+            let identity = attr.identity().cloned().unwrap_or_else(|| {
+                // inferred: without `identity`, the identity is `Default::default()`
+                if attr.monoid_bound().is_none() {
+                    g.make_where_clause()
+                        .predicates
+                        .push(parse_quote! { Self: Default });
+                }
+                parse_quote! { Default::default() }
+            });
+            attr.monoid_bound()
+                .unwrap_or_default()
+                .iter()
+                .cloned()
+                .for_each(|w| g.make_where_clause().predicates.push(w));
+            let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
+            parse_quote! {
+                #[automatically_derived]
+                #attr_feature_monoid
+                impl #impl_generics #path_monoid for #ident #ty_generics #where_clause {
+                    fn identity() -> Self {
+                        #identity
                     }
-                })
-                .unwrap_or_else(|| {
-                    let where_default = parse_quote! { Self: Default };
-                    g.make_where_clause().predicates.push(where_default);
-                    let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
-                    parse_quote! {
-                        #[automatically_derived]
-                        #attr_feature_monoid
-                        impl #impl_generics #path_monoid for #ident #ty_generics #where_clause {
-                            fn identity() -> Self {
-                                Default::default()
-                            }
-                        }
-                    }
-                })
+                }
+            }
         })
     }
 
@@ -160,7 +153,7 @@ impl<'a> TraitImpl<'a> {
             ident, generics, ..
         } = derive;
         let mut g = generics.clone();
-        attr.commutative_where()
+        attr.commutative_bound()
             .iter()
             .cloned()
             .for_each(|w| g.make_where_clause().predicates.push(w));
