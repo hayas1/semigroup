@@ -16,7 +16,7 @@ impl<'a> PropertiesTable<'a> {
     pub fn table(&self) -> Table {
         let mut table = Table::new();
         table
-            .load_preset(ASCII_MARKDOWN)
+            .load_style(ASCII_MARKDOWN)
             .set_header(Self::labeled_row("", self.header()))
             .add_row(Self::labeled_row("impl", self.impl_row()))
             .add_row(Self::labeled_row("where", self.where_row()));

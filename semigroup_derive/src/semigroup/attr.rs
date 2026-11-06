@@ -190,6 +190,7 @@ impl With<'_> {
             match expr {
                 Expr::Infer(_) => Ok(parse_quote! { _ }),
                 Expr::Path(p) => Ok(Type::Path(TypePath {
+                    attrs: Vec::new(),
                     qself: p.qself.clone(),
                     path: p.path.clone(),
                 })),
@@ -227,6 +228,7 @@ impl With<'_> {
 
         match self {
             With::Path(p) => Ok(Type::Path(TypePath {
+                attrs: Vec::new(),
                 qself: p.qself.clone(),
                 path: p.path.clone(),
             })),
