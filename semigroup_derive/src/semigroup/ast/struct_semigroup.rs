@@ -183,7 +183,7 @@ impl<'a> StructSemigroup<'a> {
 ///
 /// For each field in the original struct, the annotated struct has a corresponding field of type
 /// `Annotated<OpWrapper<FieldType>, A>`.  The `Semigroup` impl is generated via the blanket
-/// `impl<T: Semigroup + Idempotent, A> Semigroup for Annotated<T, A>`.
+/// `impl<T: Semigroup + Selective, A> Semigroup for Annotated<T, A>`.
 #[derive(Debug, Clone)]
 pub struct StructAnnotated<'a> {
     constant: &'a Constant,
@@ -279,7 +279,7 @@ impl<'a> StructAnnotated<'a> {
                 Constant {
                     path_semigroup,
                     path_semigroup_op,
-                    path_idempotent_op,
+                    path_selective_op,
                     path_selected,
                     ..
                 },
@@ -303,7 +303,7 @@ impl<'a> StructAnnotated<'a> {
             #[automatically_derived]
             impl #impl_generics #path_semigroup for #annotated_ident #ty_generics #where_clause {
                 fn op_assign(base: &mut Self, other: Self) {
-                    use #path_idempotent_op;
+                    use #path_selective_op;
                     use #path_semigroup_op;
                     #( #fields_op_assign )*
                 }

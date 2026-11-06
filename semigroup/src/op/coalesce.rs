@@ -1,6 +1,6 @@
 use semigroup_derive::{SemigroupOpPriv, properties_priv};
 
-use crate::{IdempotentOp, Selected};
+use crate::{Selected, SelectiveOp};
 
 /// A [`Semigroup`](crate::Semigroup) [op construction](crate::SemigroupOp) that returns the first non-`None` value.
 /// # Properties
@@ -17,10 +17,10 @@ use crate::{IdempotentOp, Selected};
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[semigroup_op(idempotent, monoid, identity = Self(None))]
-#[properties_priv(idempotent, monoid)]
+#[semigroup_op(selective, monoid, identity = Self(None))]
+#[properties_priv(selective, monoid)]
 pub struct Coalesce<T>(pub Option<T>);
-impl<T> IdempotentOp<Option<T>> for Coalesce<T> {
+impl<T> SelectiveOp<Option<T>> for Coalesce<T> {
     fn lift_select(base: &Option<T>, other: &Option<T>) -> Selected {
         match (base, other) {
             (None, Some(_)) => Selected::Other,

@@ -91,22 +91,26 @@ impl_tuple_semigroup!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I, 9: J
 impl_tuple_semigroup!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I, 9: J, 10: K, 11: L);
 impl_tuple_semigroup!(0: A, 1: B, 2: C, 3: D, 4: E, 5: F, 6: G, 7: H, 8: I, 9: J, 10: K, 11: L, 12: M);
 
-/// [`Selected`] indicates which operand was chosen by an [`Idempotent`] operation.
+/// [`Selected`] indicates which operand was chosen by a [`Selective`] operation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Selected {
     Base,
     Other,
 }
 
-/// [`Idempotent`] represents a binary operation that satisfies the following properties
-/// 1. *Idempotency*: `op(a, a) = a`
+/// [`Selective`] represents a binary operation that satisfies the following properties
+/// 1. *Selectivity*: `op(a, b) ∈ {a, b}` for all `a`, `b`
 ///
-/// This means that the result always equals one of the two operands unchanged,
-/// i.e. `op(a, b) ∈ {a, b}` for all `a`, `b`.
+/// That is, the result always equals one of the two operands unchanged.
 ///
-/// When a type is both a [`Semigroup`] and [`Idempotent`],
+/// Selectivity implies *idempotency* (`op(a, a) = a`), but idempotency does not imply
+/// selectivity, even together with associativity. For example, [`Union`](crate::op::Union)
+/// is an idempotent semigroup, but `{1} ∪ {2} = {1, 2}` is neither operand, so it does not
+/// implement [`Selective`]. A selective semigroup is also called *quasitrivial*.
+///
+/// When a type is both a [`Semigroup`] and [`Selective`],
 /// [`Annotated`](crate::Annotated) can track which operand was selected.
-pub trait Idempotent {
+pub trait Selective {
     fn select(base: &Self, other: &Self) -> Selected;
 }
 

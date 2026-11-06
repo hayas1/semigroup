@@ -1,6 +1,6 @@
 use semigroup_derive::{SemigroupOpPriv, properties_priv};
 
-use crate::{IdempotentOp, Selected};
+use crate::{Selected, SelectiveOp};
 
 /// A [`Semigroup`](crate::Semigroup) [op construction](crate::SemigroupOp) that returns `true` if either value is `true`.
 /// # Properties
@@ -17,10 +17,10 @@ use crate::{IdempotentOp, Selected};
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[semigroup_op(idempotent, monoid, commutative, identity = Self(false))]
-#[properties_priv(idempotent, monoid, commutative)]
+#[semigroup_op(selective, monoid, commutative, identity = Self(false))]
+#[properties_priv(selective, monoid, commutative)]
 pub struct Any(pub bool);
-impl IdempotentOp<bool> for Any {
+impl SelectiveOp<bool> for Any {
     fn lift_select(base: &bool, other: &bool) -> Selected {
         if !base && *other {
             Selected::Other

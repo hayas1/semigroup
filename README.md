@@ -94,7 +94,7 @@ first / last, ...).
 | :---: | :---: | :---: | :---: | :---: |
 | **property** | *associativity* | *annotation* | *identity element* | *commutativity* |
 | **`#[derive(Semigroup)]`** <br> **`#[semigroup(...)]`** | | `annotated` | `monoid` | `commutative` |
-| **`#[derive(SemigroupOp)]`** <br> **`#[semigroup_op(...)]`** | | `idempotent` | `monoid` | `commutative` |
+| **`#[derive(SemigroupOp)]`** <br> **`#[semigroup_op(...)]`** | | `selective` | `monoid` | `commutative` |
 | **testing** | [`assert_semigroup!`](https://docs.rs/semigroup/latest/semigroup/macro.assert_semigroup.html) |  | [`assert_monoid!`](https://docs.rs/semigroup/latest/semigroup/macro.assert_monoid.html) | [`assert_commutative!`](https://docs.rs/semigroup/latest/semigroup/macro.assert_commutative.html) |
 | **typical combiner** | [`CombineIterator`](https://docs.rs/semigroup/latest/semigroup/combine/trait.CombineIterator.html) | [`Lazy`](https://docs.rs/semigroup/latest/semigroup/lazy/struct.Lazy.html) | [`SegmentTree`](https://docs.rs/semigroup/latest/semigroup/segment_tree/struct.SegmentTree.html) | [`CombineStream`](https://docs.rs/semigroup/latest/semigroup/concurrent/trait.CombineStream.html) |
 

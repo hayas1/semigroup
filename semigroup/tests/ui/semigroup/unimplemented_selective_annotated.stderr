@@ -1,5 +1,5 @@
 error[E0599]: no associated function or constant named `lift_select` found for struct `semigroup::op::Sum<_>` in the current scope
- --> tests/ui/semigroup/unimplemented_idempotent_annotated.rs:3:35
+ --> tests/ui/semigroup/unimplemented_selective_annotated.rs:3:35
   |
 3 | #[derive(Debug, Clone, PartialEq, Semigroup)]
   |                                   ^^^^^^^^^ associated function or constant not found in `semigroup::op::Sum<_>`

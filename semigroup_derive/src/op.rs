@@ -26,12 +26,12 @@ mod tests {
     use super::*;
 
     #[rstest]
-    #[case::op_idempotent(
-        "op_idempotent",
+    #[case::op_selective(
+        "op_selective",
         impl_op::<External>,
         syn::parse_quote! {
             #[derive(SemigroupOp)]
-            #[semigroup_op(idempotent)]
+            #[semigroup_op(selective)]
             pub struct Coalesce<T>(pub Option<T>);
         },
     )]

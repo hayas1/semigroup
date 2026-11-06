@@ -33,14 +33,14 @@ mod tests {
         impl_properties::<Internal>,
         (
             syn::parse_quote! {
-                idempotent, monoid
+                selective, monoid
             },
             syn::parse_quote! {
                 /// A semigroup construction that returns the first non-`None` value.
                 /// # Properties
                 /// <!-- properties -->
                 #[derive(SemigroupOp)]
-                #[semigroup_op(idempotent, monoid)]
+                #[semigroup_op(selective, monoid)]
                 pub struct Coalesce<T>(pub Option<T>);
             },
         ),

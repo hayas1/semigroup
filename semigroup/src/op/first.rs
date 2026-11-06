@@ -1,6 +1,6 @@
 use semigroup_derive::{SemigroupOpPriv, properties_priv};
 
-use crate::{IdempotentOp, Selected};
+use crate::{Selected, SelectiveOp};
 
 /// A [`Semigroup`](crate::Semigroup) [op construction](crate::SemigroupOp) that returns the first value.
 ///
@@ -19,10 +19,10 @@ use crate::{IdempotentOp, Selected};
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[semigroup_op(idempotent)]
-#[properties_priv(idempotent)]
+#[semigroup_op(selective)]
+#[properties_priv(selective)]
 pub struct First<T>(pub T);
-impl<T> IdempotentOp<T> for First<T> {
+impl<T> SelectiveOp<T> for First<T> {
     fn lift_select(_base: &T, _other: &T) -> Selected {
         Selected::Base
     }

@@ -1,6 +1,6 @@
 use semigroup_derive::{SemigroupOpPriv, properties_priv};
 
-use crate::{IdempotentOp, Selected};
+use crate::{Selected, SelectiveOp};
 
 /// A [`Semigroup`](crate::Semigroup) [op construction](crate::SemigroupOp) that returns the maximum value.
 /// # Properties
@@ -17,10 +17,10 @@ use crate::{IdempotentOp, Selected};
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[semigroup_op(idempotent, monoid, commutative, identity = Self(T::min_value()), monoid_where = "T: num::Bounded")]
-#[properties_priv(idempotent, monoid, commutative, monoid_where = "T: num::Bounded")]
+#[semigroup_op(selective, monoid, commutative, identity = Self(T::min_value()), monoid_where = "T: num::Bounded")]
+#[properties_priv(selective, monoid, commutative, monoid_where = "T: num::Bounded")]
 pub struct Max<T: Ord>(pub T);
-impl<T: Ord> IdempotentOp<T> for Max<T> {
+impl<T: Ord> SelectiveOp<T> for Max<T> {
     fn lift_select(base: &T, other: &T) -> Selected {
         if base < other {
             Selected::Other
