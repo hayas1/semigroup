@@ -30,7 +30,7 @@ where
 #[automatically_derived]
 impl<T> crate::Commutative for Tagged<T>
 where
-    T: Commutative,
+    T: crate::Commutative,
 {}
 #[derive(Debug, Clone, PartialEq)]
 pub struct TaggedAnnotated<T, B> {

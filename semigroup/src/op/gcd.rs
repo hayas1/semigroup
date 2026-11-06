@@ -19,7 +19,7 @@ use crate::SemigroupOp;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[semigroup_op(properties(monoid(identity = Self(T::zero())), commutative))]
-#[properties_priv(monoid, commutative)]
+#[properties_priv]
 pub struct Gcd<T: Unsigned + Integer + Clone>(pub T);
 impl<T: Unsigned + Integer + Clone> SemigroupOp<T> for Gcd<T> {
     fn lift_op_assign(base: &mut T, other: T) {

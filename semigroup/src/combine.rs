@@ -205,17 +205,17 @@ impl<I: Iterator> CombineIterator for I {}
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[semigroup_op(properties(
-    semigroup(manual_impl, bound = "T: crate::Semigroup"),
-    selective(bound = "T: crate::Selective"),
-    monoid(identity = Self(T::identity()), bound = "T: crate::Monoid"),
-    commutative(bound = "T: crate::Commutative"),
-))]
-#[properties_priv(
-    selective(bound = "T: crate::Selective"),
-    monoid(bound = "T: crate::Monoid"),
-    commutative(bound = "T: crate::Commutative")
+#[semigroup_op(
+    properties(selective, monoid(identity = Self(T::identity())), commutative),
+    manual_impl(semigroup),
+    bound(
+        semigroup = "T: crate::Semigroup",
+        selective = "T: crate::Selective",
+        monoid = "T: crate::Monoid",
+        commutative = "T: crate::Commutative",
+    ),
 )]
+#[properties_priv]
 pub struct Dual<T>(pub T);
 
 impl<T: Selective> SelectiveOp<T> for Dual<T> {

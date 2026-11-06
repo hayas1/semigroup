@@ -84,10 +84,11 @@ pub trait AnnotateFields<A>: Sized {
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[semigroup_op(
-    properties(commutative(bound = "T: crate::Selective + crate::Commutative")),
+    properties(commutative),
+    bound(commutative = "T: crate::Selective + crate::Commutative"),
     hidden_inner
 )]
-#[properties_priv(commutative(bound = "T: crate::Selective + crate::Commutative"))]
+#[properties_priv]
 pub struct Annotated<T, A> {
     value: T,
     annotation: A,

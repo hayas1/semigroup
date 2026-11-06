@@ -20,7 +20,7 @@ use crate::{Selected, SelectiveOp};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[semigroup_op(properties(selective))]
-#[properties_priv(selective)]
+#[properties_priv]
 pub struct First<T>(pub T);
 impl<T> SelectiveOp<T> for First<T> {
     fn lift_select(_base: &T, _other: &T) -> Selected {

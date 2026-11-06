@@ -1,0 +1,13 @@
+---
+source: semigroup_derive/src/properties.rs
+expression: formatted
+---
+/// A semigroup construction that returns the greater.
+/// # Properties
+/// <!-- properties start -->
+///|       |   [`crate::Annotate`]   |    [`crate::Monoid`]    |  [`crate::Commutative`] |
+///|-------|-------------------------|-------------------------|-------------------------|
+///|  impl |            ✅           |            ✅           |            ✅           |
+///| where | `T: Ord + num::Bounded` | `T: Ord + num::Bounded` | `T: Ord + num::Bounded` |
+///<!-- properties end -->
+pub struct Max<T>(pub T);

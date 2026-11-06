@@ -119,8 +119,11 @@ pub trait Monoid: Semigroup {
 /// assert_eq!(bd.as_ref().unwrap().duration(), Duration::from_millis(250));
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
-#[semigroup_op(properties(monoid(identity = Self(None)), commutative(bound = "T: crate::Commutative")))]
-#[properties_priv(monoid, commutative(bound = "T: crate::Commutative"))]
+#[semigroup_op(
+    properties(monoid(identity = Self(None)), commutative),
+    bound(commutative = "T: crate::Commutative"),
+)]
+#[properties_priv]
 pub struct OptionMonoid<T: Semigroup>(pub Option<T>);
 impl<T: Semigroup> From<T> for OptionMonoid<T> {
     fn from(value: T) -> Self {

@@ -18,7 +18,7 @@ use crate::{Selected, SelectiveOp};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[semigroup_op(properties(selective, monoid(identity = Self(None))))]
-#[properties_priv(selective, monoid)]
+#[properties_priv]
 pub struct Coalesce<T>(pub Option<T>);
 impl<T> SelectiveOp<Option<T>> for Coalesce<T> {
     fn lift_select(base: &Option<T>, other: &Option<T>) -> Selected {

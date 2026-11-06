@@ -8,7 +8,7 @@ use crate::{
 };
 
 mod ast;
-mod attr;
+pub mod attr;
 
 pub fn impl_semigroup<C: ConstantExt>(derive: &DeriveInput) -> syn::Result<TokenStream> {
     let constant = C::constant();
@@ -96,8 +96,12 @@ mod tests {
         syn::parse_quote! {
             #[derive(SemigroupPriv)]
             #[semigroup(
-                properties(annotated(param = B), monoid, commutative(bound = "T: Commutative")),
-                bound = "T: Semigroup + Clone",
+                properties(annotated(param = B), monoid, commutative),
+                bound(
+                    semigroup = "T: Semigroup + Clone",
+                    annotated = "T: Semigroup + Clone",
+                    monoid = "T: Semigroup + Clone",
+                ),
             )]
             pub struct Tagged<T> {
                 pub value: T,

@@ -8,7 +8,7 @@ use crate::{
 };
 
 mod ast;
-mod attr;
+pub mod attr;
 
 pub fn impl_op<C: ConstantExt>(derive: &DeriveInput) -> syn::Result<TokenStream> {
     let constant = C::constant();
@@ -49,11 +49,14 @@ mod tests {
         impl_op::<External>,
         syn::parse_quote! {
             #[derive(SemigroupOp)]
-            #[semigroup_op(properties(
-                semigroup(bound = "T: Clone"),
-                monoid(identity = Self(T::default()), bound = "T: Default, T: Copy"),
-                commutative(bound = "T: Ord, T: Eq"),
-            ))]
+            #[semigroup_op(
+                properties(monoid(identity = Self(T::default())), commutative),
+                bound(
+                    semigroup = "T: Clone",
+                    monoid = "T: Default, T: Copy",
+                    commutative = "T: Ord, T: Eq",
+                ),
+            )]
             pub struct Larger<T: PartialOrd>(pub T);
         },
     )]
@@ -62,7 +65,11 @@ mod tests {
         impl_op::<External>,
         syn::parse_quote! {
             #[derive(SemigroupOp)]
-            #[semigroup_op(properties(selective(manual_impl, bound = "T: Ord")))]
+            #[semigroup_op(
+                properties(selective),
+                manual_impl(selective),
+                bound(selective = "T: Ord"),
+            )]
             pub struct Larger<T>(pub T);
         },
     )]

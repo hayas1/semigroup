@@ -16,7 +16,7 @@ use semigroup_derive::{SemigroupOpPriv, properties_priv};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[semigroup_op(properties(monoid(identity = Self(Default::default()))))]
-#[properties_priv(monoid)]
+#[properties_priv]
 pub struct Concat<T: Default + Extend<T::Item> + IntoIterator>(pub T);
 impl<T: Default + Extend<T::Item> + IntoIterator> crate::SemigroupOp<T> for Concat<T> {
     fn lift_op_assign(base: &mut T, other: T) {

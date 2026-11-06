@@ -47,8 +47,12 @@ use crate::{Annotated, Semigroup};
 /// assert_eq!(lazy.map_combine_rev(|x| Coalesce(x.str)), Coalesce(Some("ten")));
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, SemigroupOpPriv)]
-#[semigroup_op(properties(commutative(bound = "T: crate::Commutative")), hidden_inner)]
-#[properties_priv(commutative(bound = "T: crate::Commutative"))]
+#[semigroup_op(
+    properties(commutative),
+    bound(commutative = "T: crate::Commutative"),
+    hidden_inner
+)]
+#[properties_priv]
 pub struct Lazy<T>(Vec<T>);
 impl<T> Semigroup for Lazy<T> {
     fn op_assign(base: &mut Self, other: Self) {

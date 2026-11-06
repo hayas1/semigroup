@@ -50,10 +50,11 @@ impl<'a> PropertiesTable<'a> {
     }
     pub fn impl_row(&self) -> [&str; 3] {
         let Self { attr, .. } = self;
+        let attr = attr.common();
         [
-            attr.selective().is_some() || attr.annotated().is_some(),
-            attr.monoid().is_some(),
-            attr.commutative().is_some(),
+            attr.is_selective() || attr.is_annotated(),
+            attr.is_monoid(),
+            attr.is_commutative(),
         ]
         .map(Self::impl_cell)
     }
@@ -64,9 +65,9 @@ impl<'a> PropertiesTable<'a> {
     pub fn where_row(&self) -> [String; 3] {
         let Self { attr, .. } = self;
         [
-            attr.selective_bound(),
-            attr.monoid_bound(),
-            attr.commutative_bound(),
+            attr.common().selective_bound(),
+            attr.common().monoid_bound(),
+            attr.common().commutative_bound(),
         ]
         .map(|b| match b {
             Some(b) => format!("`{}`", b.raw()),

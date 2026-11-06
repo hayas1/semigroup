@@ -5,18 +5,17 @@ use syn::{
 };
 
 use crate::{
-    attr::{Bound, PropertiesAttr, resolve_bound},
+    attr::{CommonAttr, predicates},
     error::SemigroupError,
     name::Name,
 };
 
-/// `#[semigroup(properties(..), bound = "..", with = "..")]`
+/// `#[semigroup(properties(..), manual_impl(..), bound(..), with = "..")]`, see [`crate::attr`].
 #[derive(Debug, Clone, PartialEq, FromDeriveInput)]
 #[darling(attributes(semigroup), and_then = Self::validate)]
 pub struct ContainerAttr {
-    #[darling(default)]
-    properties: PropertiesAttr,
-    bound: Option<Bound>,
+    #[darling(flatten)]
+    common: CommonAttr,
     with: Option<Expr>,
 }
 impl ContainerAttr {
@@ -24,54 +23,58 @@ impl ContainerAttr {
         Ok(Self::from_derive_input(derive)?)
     }
     pub fn validate(self) -> darling::Result<Self> {
-        let Self { properties, .. } = &self;
-        if properties.selective().is_some() {
+        let Self { common, .. } = &self;
+        if common.is_selective() {
             return Err(darling::Error::custom(SemigroupError::UnsupportedProperty(
                 Name("selective"),
             )));
         }
-        if properties.semigroup().is_some_and(|p| p.manual_impl) {
+        if common.manual_semigroup_impl() {
             return Err(darling::Error::custom(SemigroupError::ManualSemigroupImpl));
         }
         Ok(self)
     }
+    pub fn common(&self) -> &CommonAttr {
+        &self.common
+    }
 
     /// `None` when nothing is given, so that the derive infers the bounds from the fields.
     pub fn semigroup_bound(&self) -> Option<&[WherePredicate]> {
-        resolve_bound(self.properties.semigroup_bound(), self.bound.as_ref())
+        predicates(self.common.semigroup_bound())
     }
 
     pub fn is_annotated(&self) -> bool {
-        self.properties.annotated().is_some()
+        self.common.is_annotated()
     }
     /// The type parameter of the annotation of `XxxAnnotated`, `A` unless given.
     pub fn annotation_param(&self) -> Ident {
-        self.properties
-            .annotated()
-            .map(|p| p.param())
-            .unwrap_or_else(|| parse_quote! { A })
+        self.common.annotation_param()
+    }
+    /// Bounds of the `Semigroup` impl of `XxxAnnotated`, which infers none.
+    pub fn annotated_bound(&self) -> &[WherePredicate] {
+        predicates(self.common.annotated_bound()).unwrap_or_default()
     }
 
     pub fn is_monoid(&self) -> bool {
-        self.properties.monoid().is_some()
+        self.common.is_monoid()
     }
     pub fn identity(&self) -> Option<&Expr> {
-        self.properties.monoid().and_then(|p| p.identity.as_ref())
+        self.common.identity()
     }
     /// `None` when nothing is given, so that the derive infers the bounds from the fields.
     pub fn monoid_bound(&self) -> Option<&[WherePredicate]> {
-        resolve_bound(self.properties.monoid_bound(), self.bound.as_ref())
+        predicates(self.common.monoid_bound())
     }
     pub fn gen_monoid_impl(&self) -> bool {
-        !self.properties.monoid().is_some_and(|p| p.manual_impl)
+        !self.common.manual_monoid_impl()
     }
 
     pub fn is_commutative(&self) -> bool {
-        self.properties.commutative().is_some()
+        self.common.is_commutative()
     }
     /// `None` when nothing is given, so that the derive infers the bounds from the fields.
     pub fn commutative_bound(&self) -> Option<&[WherePredicate]> {
-        resolve_bound(self.properties.commutative_bound(), self.bound.as_ref())
+        predicates(self.common.commutative_bound())
     }
 }
 
@@ -213,28 +216,22 @@ mod tests {
 
     use super::*;
 
-    fn default_container_attr() -> ContainerAttr {
-        ContainerAttr::new(&parse_quote! {
-            #[derive(Semigroup)]
-            pub struct NamedStruct {}
-        })
-        .unwrap()
-    }
-
     #[rstest]
     #[case::ok(
         syn::parse_quote! {
             #[derive(Semigroup)]
-            #[semigroup(properties(annotated(param = B), monoid))]
+            #[semigroup(properties(annotated(param = B), monoid), with = "semigroup::op::Coalesce")]
             pub struct NamedStruct {}
         },
         Ok(ContainerAttr {
-            properties: PropertiesAttr {
-                annotated: Some(crate::attr::AnnotatedProp { param: Some(parse_quote! { B }) }),
-                monoid: Some(Default::default()),
-                ..Default::default()
-            },
-            ..default_container_attr()
+            common: <crate::attr::CommonAttr as darling::FromMeta>::from_list(
+                &darling::ast::NestedMeta::parse_meta_list(quote::quote! {
+                    properties(annotated(param = B), monoid)
+                })
+                .unwrap(),
+            )
+            .unwrap(),
+            with: Some(parse_quote! { semigroup::op::Coalesce }),
         }),
     )]
     #[case::identity_at_top_level(
@@ -243,7 +240,7 @@ mod tests {
             #[semigroup(identity = ())]
             pub struct UnnamedStruct();
         },
-        Err("Unknown field: `identity`. Available values: `bound`, `properties`, `with`"),
+        Err("Unknown field: `identity`. Available values: `bound`, `manual_impl`, `properties`, `with`"),
     )]
     #[case::selective(
         syn::parse_quote! {

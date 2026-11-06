@@ -2,18 +2,17 @@ use darling::FromDeriveInput;
 use syn::{DeriveInput, Expr, WherePredicate};
 
 use crate::{
-    attr::{Bound, PropertiesAttr, resolve_bound},
+    attr::{CommonAttr, predicates},
     error::ConstructionError,
     name::Name,
 };
 
-/// `#[semigroup_op(properties(..), bound = "..", hidden_inner)]`
+/// `#[semigroup_op(properties(..), manual_impl(..), bound(..), hidden_inner)]`, see [`crate::attr`].
 #[derive(Debug, Clone, PartialEq, FromDeriveInput)]
 #[darling(attributes(semigroup_op), and_then = Self::validate)]
 pub struct ContainerAttr {
-    #[darling(default)]
-    properties: PropertiesAttr,
-    bound: Option<Bound>,
+    #[darling(flatten)]
+    common: CommonAttr,
     #[darling(default)]
     hidden_inner: bool,
 }
@@ -22,58 +21,61 @@ impl ContainerAttr {
         Ok(Self::from_derive_input(derive)?)
     }
     pub fn validate(self) -> darling::Result<Self> {
-        let Self { properties, .. } = &self;
-        if properties.annotated().is_some() {
+        let Self { common, .. } = &self;
+        if common.is_annotated() {
             return Err(darling::Error::custom(
                 ConstructionError::UnsupportedProperty(Name("annotated")),
             ));
         }
-        if properties.semigroup().is_some_and(|p| p.manual_impl) && !self.is_selective() {
+        if common.manual_semigroup_impl() && !common.is_selective() {
             return Err(darling::Error::custom(
                 ConstructionError::ManualSemigroupWithoutSelective,
             ));
         }
         Ok(self)
     }
+    pub fn common(&self) -> &CommonAttr {
+        &self.common
+    }
 
     /// Bounds of the `Semigroup` impl, and of the `SemigroupOp` impl derived from `SelectiveOp`.
     pub fn semigroup_bound(&self) -> &[WherePredicate] {
-        resolve_bound(self.properties.semigroup_bound(), self.bound.as_ref()).unwrap_or_default()
+        predicates(self.common.semigroup_bound()).unwrap_or_default()
     }
-    /// `SemigroupOp` is derived from `SelectiveOp` unless `semigroup(manual_impl)`.
+    /// `SemigroupOp` is derived from `SelectiveOp` unless `manual_impl(semigroup)`.
     pub fn gen_semigroup_op_impl(&self) -> bool {
-        !self.properties.semigroup().is_some_and(|p| p.manual_impl)
+        !self.common.manual_semigroup_impl()
     }
 
     pub fn is_selective(&self) -> bool {
-        self.properties.selective().is_some()
+        self.common.is_selective()
     }
     pub fn selective_bound(&self) -> &[WherePredicate] {
-        resolve_bound(self.properties.selective_bound(), self.bound.as_ref()).unwrap_or_default()
+        predicates(self.common.selective_bound()).unwrap_or_default()
     }
     pub fn gen_selective_impl(&self) -> bool {
-        !self.properties.selective().is_some_and(|p| p.manual_impl)
+        !self.common.manual_selective_impl()
     }
 
     pub fn is_monoid(&self) -> bool {
-        self.properties.monoid().is_some()
+        self.common.is_monoid()
     }
     pub fn identity(&self) -> Option<&Expr> {
-        self.properties.monoid().and_then(|p| p.identity.as_ref())
+        self.common.identity()
     }
     /// `None` when nothing is given, so that the derive infers the bounds.
     pub fn monoid_bound(&self) -> Option<&[WherePredicate]> {
-        resolve_bound(self.properties.monoid_bound(), self.bound.as_ref())
+        predicates(self.common.monoid_bound())
     }
     pub fn gen_monoid_impl(&self) -> bool {
-        !self.properties.monoid().is_some_and(|p| p.manual_impl)
+        !self.common.manual_monoid_impl()
     }
 
     pub fn is_commutative(&self) -> bool {
-        self.properties.commutative().is_some()
+        self.common.is_commutative()
     }
     pub fn commutative_bound(&self) -> &[WherePredicate] {
-        resolve_bound(self.properties.commutative_bound(), self.bound.as_ref()).unwrap_or_default()
+        predicates(self.common.commutative_bound()).unwrap_or_default()
     }
 
     pub fn open_inner(&self) -> bool {
@@ -84,32 +86,25 @@ impl ContainerAttr {
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
-    use syn::parse_quote;
 
     use super::*;
-
-    fn default_container_attr() -> ContainerAttr {
-        ContainerAttr::new(&parse_quote! {
-            #[derive(SemigroupOp)]
-            pub struct Construct<T>(T);
-        })
-        .unwrap()
-    }
 
     #[rstest]
     #[case::ok(
         syn::parse_quote! {
             #[derive(SemigroupOp)]
-            #[semigroup_op(properties(selective), bound = "T: Clone")]
+            #[semigroup_op(properties(selective), bound = "T: Clone", hidden_inner)]
             pub struct Coalesce<T>(pub Option<T>);
         },
         Ok(ContainerAttr {
-            properties: PropertiesAttr {
-                selective: Some(Default::default()),
-                ..Default::default()
-            },
-            bound: Some(<Bound as darling::FromMeta>::from_value(&parse_quote!("T: Clone")).unwrap()),
-            ..default_container_attr()
+            common: <CommonAttr as darling::FromMeta>::from_list(
+                &darling::ast::NestedMeta::parse_meta_list(quote::quote! {
+                    properties(selective), bound = "T: Clone"
+                })
+                .unwrap(),
+            )
+            .unwrap(),
+            hidden_inner: true,
         }),
     )]
     #[case::property_at_top_level(
@@ -118,7 +113,7 @@ mod tests {
             #[semigroup_op(monoid)]
             pub struct Construct<T>(T);
         },
-        Err("Unknown field: `monoid`. Available values: `bound`, `hidden_inner`, `properties`"),
+        Err("Unknown field: `monoid`. Available values: `bound`, `hidden_inner`, `manual_impl`, `properties`"),
     )]
     #[case::annotated(
         syn::parse_quote! {
@@ -131,10 +126,10 @@ mod tests {
     #[case::manual_semigroup_without_selective(
         syn::parse_quote! {
             #[derive(SemigroupOp)]
-            #[semigroup_op(properties(semigroup(manual_impl)))]
+            #[semigroup_op(manual_impl(semigroup))]
             pub struct Construct<T>(T);
         },
-        Err("`semigroup(manual_impl)` of derive SemigroupOp only skips the `SemigroupOp` impl derived from `SelectiveOp`, so it requires `selective`"),
+        Err("`manual_impl(semigroup)` of derive SemigroupOp only skips the `SemigroupOp` impl derived from `SelectiveOp`, so it requires `selective`"),
     )]
     fn test_op_container_attr(
         #[case] input: DeriveInput,

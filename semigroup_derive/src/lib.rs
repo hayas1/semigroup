@@ -12,28 +12,24 @@ mod semigroup;
 /// ```text
 /// #[semigroup_op(
 ///     properties(selective, monoid(identity = Self(None)), commutative),
-///     bound = "T: Clone",  // optional, every impl
-///     hidden_inner,        // optional, the type is not a newtype: no `Construction` or `SemigroupOp` glue
+///     manual_impl(selective),           // optional
+///     bound(monoid = "T: num::Zero"),   // optional
+///     hidden_inner,                     // optional, the type is not a newtype: no `Construction` or `SemigroupOp` glue
 /// )]
 /// ```
 ///
-/// # `properties(..)`
-/// Each property groups everything about it, and a bare word enables it with its defaults:
+/// | attribute | content |
+/// | --- | --- |
+/// | `properties(..)` | the properties to derive besides `Semigroup`: `annotated(param = A)`, `selective`, `monoid(identity = <expr>)`, `commutative`; a bare word takes the defaults |
+/// | `manual_impl(..)` | the impls to leave out so that they can be written by hand: `semigroup`, `selective`, `monoid` |
+/// | `bound = ".."` | where predicates for every impl, such as `bound = "T: Default, T: Copy"` |
+/// | `bound(..)` | where predicates for each impl: `semigroup`, `annotated`, `selective`, `monoid`, `commutative` |
 ///
-/// | property | arguments | generates |
-/// | --- | --- | --- |
-/// | `semigroup` | `bound = ".."`, `manual_impl` | `Semigroup` |
-/// | `annotated` | `param = A` | `XxxAnnotated<.., A>` and `AnnotateFields<A>` |
-/// | `selective` | `bound = ".."`, `manual_impl` | `Selective` |
-/// | `monoid` | `identity = <expr>`, `bound = ".."`, `manual_impl` | `Monoid` |
-/// | `commutative` | `bound = ".."` | `Commutative` |
+/// As in serde, a bound *replaces* the bounds the derive would infer for that impl,
+/// and `bound` takes one of its two forms.
+/// `manual_impl(..)` and `bound(..)` may name only properties listed in `properties(..)`; `semigroup` is always derived.
 ///
-/// - `bound` takes where predicates as a string, such as `bound = "T: Default, T: Copy"`.
-///   As in serde, a bound *replaces* the bounds the derive would infer for that impl.
-///   A property's own `bound` takes precedence over the container's `bound`, which applies to every impl.
-/// - `manual_impl` skips generating the impl, so that it can be written by hand.
-///
-/// Specific to `#[semigroup_op]`: `semigroup(manual_impl)` skips the `SemigroupOp` impl derived from
+/// Specific to `#[semigroup_op]`: `manual_impl(semigroup)` skips the `SemigroupOp` impl derived from
 /// `SelectiveOp`, so it requires `selective`; `annotated` is not supported.
 #[proc_macro_derive(SemigroupOp, attributes(semigroup_op))]
 pub fn derive_semigroup_op(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -57,7 +53,7 @@ pub fn derive_semigroup_op_internal(input: proc_macro::TokenStream) -> proc_macr
 /// #[semigroup(
 ///     properties(annotated, monoid, commutative),
 ///     with = "semigroup::op::Coalesce",  // optional, the op of every field without its own `with`
-///     bound = "T: Clone",                // optional, every impl
+///     bound = "T: Clone",                // optional
 /// )]
 /// struct Config {
 ///     #[semigroup(with = "semigroup::op::Last")]
@@ -66,25 +62,20 @@ pub fn derive_semigroup_op_internal(input: proc_macro::TokenStream) -> proc_macr
 /// }
 /// ```
 ///
-/// # `properties(..)`
-/// Each property groups everything about it, and a bare word enables it with its defaults:
+/// | attribute | content |
+/// | --- | --- |
+/// | `properties(..)` | the properties to derive besides `Semigroup`: `annotated(param = A)`, `selective`, `monoid(identity = <expr>)`, `commutative`; a bare word takes the defaults |
+/// | `manual_impl(..)` | the impls to leave out so that they can be written by hand: `semigroup`, `selective`, `monoid` |
+/// | `bound = ".."` | where predicates for every impl, such as `bound = "T: Default, T: Copy"` |
+/// | `bound(..)` | where predicates for each impl: `semigroup`, `annotated`, `selective`, `monoid`, `commutative` |
 ///
-/// | property | arguments | generates |
-/// | --- | --- | --- |
-/// | `semigroup` | `bound = ".."`, `manual_impl` | `Semigroup` |
-/// | `annotated` | `param = A` | `XxxAnnotated<.., A>` and `AnnotateFields<A>` |
-/// | `selective` | `bound = ".."`, `manual_impl` | `Selective` |
-/// | `monoid` | `identity = <expr>`, `bound = ".."`, `manual_impl` | `Monoid` |
-/// | `commutative` | `bound = ".."` | `Commutative` |
+/// As in serde, a bound *replaces* the bounds the derive would infer for that impl,
+/// and `bound` takes one of its two forms.
+/// `manual_impl(..)` and `bound(..)` may name only properties listed in `properties(..)`; `semigroup` is always derived.
 ///
-/// - `bound` takes where predicates as a string, such as `bound = "T: Default, T: Copy"`.
-///   As in serde, a bound *replaces* the bounds the derive would infer for that impl.
-///   A property's own `bound` takes precedence over the container's `bound`, which applies to every impl.
-/// - `manual_impl` skips generating the impl, so that it can be written by hand.
-///
-/// Specific to `#[semigroup]`: without `bound`, each impl requires its trait of every field type
+/// Specific to `#[semigroup]`: without a bound, each impl requires its trait of every field type
 /// combined without `with` (neither its own nor the container's);
-/// `selective` and `semigroup(manual_impl)` are not supported.
+/// `selective` and `manual_impl(semigroup)` are not supported.
 #[proc_macro_derive(Semigroup, attributes(semigroup))]
 pub fn derive_semigroup(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let derive = syn::parse_macro_input!(input);
@@ -103,17 +94,17 @@ pub fn derive_semigroup_internal(input: proc_macro::TokenStream) -> proc_macro::
 
 /// Embed the properties table into the `<!-- properties -->` placeholder of the doc comment.
 ///
-/// It takes the content of `properties(..)` of the derives, such as
-/// `#[properties(selective, monoid(bound = "T: num::Bounded"), commutative)]`,
-/// so the same arguments can be copied from `#[semigroup_op(properties(..))]`.
+/// It takes no arguments: the properties and bounds come from the `#[semigroup_op(..)]` or
+/// `#[semigroup(..)]` of the same item, so nothing is written twice. Without either, the table
+/// lists no property beyond `Semigroup`.
 #[proc_macro_attribute]
 pub fn properties(
     attr: proc_macro::TokenStream,
     item: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    let meta = syn::parse_macro_input!(attr);
+    let args = proc_macro2::TokenStream::from(attr);
     let item_struct = syn::parse_macro_input!(item);
-    properties::impl_properties::<constant::External>(&meta, &item_struct)
+    properties::impl_properties::<constant::External>(&args, &item_struct)
         .unwrap_or_else(syn::Error::into_compile_error)
         .into()
 }
@@ -123,9 +114,9 @@ pub fn properties_priv(
     attr: proc_macro::TokenStream,
     item: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    let meta = syn::parse_macro_input!(attr);
+    let args = proc_macro2::TokenStream::from(attr);
     let item_struct = syn::parse_macro_input!(item);
-    properties::impl_properties::<constant::Internal>(&meta, &item_struct)
+    properties::impl_properties::<constant::Internal>(&args, &item_struct)
         .unwrap_or_else(syn::Error::into_compile_error)
         .into()
 }

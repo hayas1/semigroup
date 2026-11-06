@@ -18,8 +18,11 @@ use crate::SemigroupOp;
 /// assert_eq!(a.semigroup(b).into_inner(), 0b001);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[semigroup_op(properties(monoid(identity = Self(T::zero()), bound = "T: num::Zero"), commutative))]
-#[properties_priv(monoid(bound = "T: num::Zero"), commutative)]
+#[semigroup_op(
+    properties(monoid(identity = Self(T::zero())), commutative),
+    bound(monoid = "T: num::Zero"),
+)]
+#[properties_priv]
 pub struct Xor<T: BitXorAssign>(pub T);
 impl<T: BitXorAssign> SemigroupOp<T> for Xor<T> {
     fn lift_op_assign(base: &mut T, other: T) {

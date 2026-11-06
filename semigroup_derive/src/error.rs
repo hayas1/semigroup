@@ -27,7 +27,7 @@ impl Display for ConstructionError {
             Self::ManualSemigroupWithoutSelective => {
                 write!(
                     f,
-                    "`semigroup(manual_impl)` of derive {DERIVE_OP} only skips the `SemigroupOp` impl derived from `SelectiveOp`, so it requires `selective`"
+                    "`manual_impl(semigroup)` of derive {DERIVE_OP} only skips the `SemigroupOp` impl derived from `SelectiveOp`, so it requires `selective`"
                 )
             }
         }
@@ -60,7 +60,7 @@ impl Display for SemigroupError {
             Self::ManualSemigroupImpl => {
                 write!(
                     f,
-                    "derive {DERIVE_SEMIGROUP} does not support `semigroup(manual_impl)`: deriving the `Semigroup` impl is what it does"
+                    "derive {DERIVE_SEMIGROUP} does not support `manual_impl(semigroup)`: deriving the `Semigroup` impl is what it does"
                 )
             }
         }
@@ -70,12 +70,42 @@ impl Display for SemigroupError {
 #[derive(Debug, Clone)]
 pub enum PropertiesError {
     InvalidDocAttr,
+    Arguments,
 }
 impl Error for PropertiesError {}
 impl Display for PropertiesError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::InvalidDocAttr => write!(f, "invalid doc attribute"),
+            Self::Arguments => write!(
+                f,
+                "`properties` takes no arguments: it reads the `#[semigroup_op(..)]` or `#[semigroup(..)]` of the item"
+            ),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum AttrError {
+    ManualImplWithoutProperty(Name),
+    BoundWithoutProperty(Name),
+}
+impl Error for AttrError {}
+impl Display for AttrError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::ManualImplWithoutProperty(Name(name)) => {
+                write!(
+                    f,
+                    "`manual_impl({name})` requires `{name}` in `properties(..)`"
+                )
+            }
+            Self::BoundWithoutProperty(Name(name)) => {
+                write!(
+                    f,
+                    "`bound({name} = ..)` requires `{name}` in `properties(..)`"
+                )
+            }
         }
     }
 }

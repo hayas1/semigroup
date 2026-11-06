@@ -124,7 +124,7 @@ use crate::Semigroup;
 /// ```
 #[derive(Debug, Clone, PartialEq, SemigroupPriv)]
 #[semigroup(properties(monoid, commutative))]
-#[properties_priv(monoid, commutative)]
+#[properties_priv]
 pub struct HdrHistogram<C: Counter>(HdrHistogramInner<C>);
 impl<C: Counter, T: Into<HdrHistogramInner<C>>> From<T> for HdrHistogram<C> {
     fn from(value: T) -> Self {

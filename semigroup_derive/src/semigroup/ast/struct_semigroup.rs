@@ -299,8 +299,7 @@ impl<'a> StructAnnotated<'a> {
         } = self;
 
         let mut g = self.generics_with_a();
-        attr.semigroup_bound()
-            .unwrap_or_default()
+        attr.annotated_bound()
             .iter()
             .cloned()
             .for_each(|w| g.make_where_clause().predicates.push(w));

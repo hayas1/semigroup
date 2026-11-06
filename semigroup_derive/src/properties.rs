@@ -4,6 +4,7 @@ use syn::ItemStruct;
 
 use crate::{
     constant::ConstantExt,
+    error::PropertiesError,
     properties::{attr::ContainerAttr, documented::Documented},
 };
 
@@ -11,11 +12,15 @@ mod attr;
 mod documented;
 
 pub fn impl_properties<C: ConstantExt>(
-    attr: &ContainerAttr,
+    args: &TokenStream,
     item: &ItemStruct,
 ) -> syn::Result<TokenStream> {
+    if !args.is_empty() {
+        return Err(syn::Error::new_spanned(args, PropertiesError::Arguments));
+    }
     let constant = C::constant();
-    let documented = Documented::new(&constant, attr, item)?;
+    let attr = ContainerAttr::from_item(item);
+    let documented = Documented::new(&constant, &attr, item)?;
     Ok(documented.to_token_stream())
 }
 
@@ -31,67 +36,80 @@ mod tests {
     #[case::properties_annotated(
         "properties_annotated",
         impl_properties::<Internal>,
-        (
-            syn::parse_quote! {
-                selective, monoid
-            },
-            syn::parse_quote! {
-                /// A semigroup construction that returns the first non-`None` value.
-                /// # Properties
-                /// <!-- properties -->
-                #[derive(SemigroupOp)]
-                #[semigroup_op(properties(selective, monoid))]
-                pub struct Coalesce<T>(pub Option<T>);
-            },
-        ),
+        syn::parse_quote! {
+            /// A semigroup construction that returns the first non-`None` value.
+            /// # Properties
+            /// <!-- properties -->
+            #[derive(SemigroupOp)]
+            #[semigroup_op(properties(selective, monoid))]
+            pub struct Coalesce<T>(pub Option<T>);
+        },
     )]
     #[case::properties_not_annotated(
         "properties_not_annotated",
         impl_properties::<External>,
-        (
-            syn::parse_quote! {
-
-            },
-            syn::parse_quote! {
-                /// A semigroup struct that returns the sum and overwrite.
-                /// # Properties
-                /// <!-- properties -->
-                #[derive(SemigroupPriv)]
-                #[semigroup(with = "semigroup::op::Last")]
-                pub struct UnnamedStruct<T: std::ops::Add> (
-                    #[semigroup(with = "semigroup::op::Added")]
-                    T,
-                    u64
-                );
-            },
-        )
+        syn::parse_quote! {
+            /// A semigroup struct that returns the sum and overwrite.
+            /// # Properties
+            /// <!-- properties -->
+            #[derive(SemigroupPriv)]
+            #[semigroup(with = "semigroup::op::Last")]
+            pub struct UnnamedStruct<T: std::ops::Add> (
+                #[semigroup(with = "semigroup::op::Added")]
+                T,
+                u64
+            );
+        },
     )]
     #[case::properties_where(
         "properties_where",
         impl_properties::<Internal>,
-        (
-            syn::parse_quote! {
-                monoid(bound = "T: num::Zero"), commutative
-            },
-            syn::parse_quote! {
-                /// A semigroup construction that returns the sum.
-                /// # Properties
-                /// <!-- properties -->
-                #[derive(SemigroupOpPriv)]
-                #[semigroup_op(properties(monoid(identity = Self(T::zero()), bound = "T: num::Zero"), commutative))]
-                pub struct Sum<T: Add<Output = T>>(pub T);
-            },
-        )
+        syn::parse_quote! {
+            /// A semigroup construction that returns the sum.
+            /// # Properties
+            /// <!-- properties -->
+            #[derive(SemigroupOpPriv)]
+            #[semigroup_op(
+                properties(monoid(identity = Self(T::zero())), commutative),
+                bound(monoid = "T: num::Zero"),
+            )]
+            pub struct Sum<T: Add<Output = T>>(pub T);
+        },
+    )]
+    #[case::properties_bound_for_every_impl(
+        "properties_bound_for_every_impl",
+        impl_properties::<Internal>,
+        syn::parse_quote! {
+            /// A semigroup construction that returns the greater.
+            /// # Properties
+            /// <!-- properties -->
+            #[derive(SemigroupOpPriv)]
+            #[semigroup_op(
+                properties(selective, monoid(identity = Self(T::min_value())), commutative),
+                bound = "T: Ord + num::Bounded",
+            )]
+            pub struct Max<T>(pub T);
+        },
     )]
     fn test_derive_properties_snapshot(
         #[case] case: &str,
-        #[case] f: impl Fn(&ContainerAttr, &ItemStruct) -> syn::Result<TokenStream>,
-        #[case] (attr, input): (ContainerAttr, ItemStruct),
+        #[case] f: impl Fn(&TokenStream, &ItemStruct) -> syn::Result<TokenStream>,
+        #[case] input: ItemStruct,
     ) {
-        let generated = f(&attr, &input).unwrap();
+        let generated = f(&TokenStream::new(), &input).unwrap();
         let formatted = prettyplease::unparse(&syn::parse2(generated).unwrap());
         insta::with_settings!({ snapshot_path => "../tests/snapshots", prepend_module_to_snapshot => false }, {
             insta::assert_snapshot!(case, formatted);
         });
+    }
+
+    #[test]
+    fn test_properties_takes_no_arguments() {
+        let item: ItemStruct = syn::parse_quote! { pub struct Unit; };
+        let err = impl_properties::<External>(&quote::quote! { monoid }, &item).unwrap_err();
+        assert_eq!(
+            err.to_string(),
+            "`properties` takes no arguments: it reads the `#[semigroup_op(..)]` or `#[semigroup(..)]` of the item"
+        );
     }
 }

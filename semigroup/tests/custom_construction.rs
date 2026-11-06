@@ -8,7 +8,7 @@ use semigroup::{
 /// <!-- properties -->
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
 #[semigroup_op(properties(monoid(identity = Self(String::new()))))]
-#[properties(monoid)]
+#[properties]
 pub struct Join(pub String);
 impl SemigroupOp<String> for Join {
     fn lift_op_assign(base: &mut String, other: String) {
