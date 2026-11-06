@@ -1,8 +1,18 @@
 name: Master
+run-name: ${{ github.event_name == 'workflow_dispatch' && format('[recovery] {0}', inputs.reason) || github.event.head_commit.message }}
 
 on:
   push:
     branches: [ "master" ]
+  # Recovery only: normally this workflow runs on push to master.
+  # Use manual dispatch only when the push-triggered run was not started
+  # (e.g. GitHub returned 5xx on merge) and must be re-run on master.
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Recovery only. Why is the push-triggered run being replaced? (e.g. run was not triggered on merge of #NNN)'
+        required: true
+        type: string
 
 env:
   CARGO_TERM_COLOR: always
@@ -17,6 +27,16 @@ jobs:
       expected-git-tag: ${{ steps.detect-version.outputs.expected-git-tag }}
     timeout-minutes: 30
     steps:
+    - name: Manual dispatch guard
+      if: github.event_name == 'workflow_dispatch'
+      env:
+        REASON: ${{ inputs.reason }}
+      run: |
+        if [ "${{ github.ref }}" != "refs/heads/master" ]; then
+          echo "::error::Manual dispatch is allowed only on master (got ${{ github.ref }})"
+          exit 1
+        fi
+        echo "::warning::Manually dispatched for recovery by ${{ github.actor }}: ${REASON}"
     - uses: actions/checkout@v4
     - uses: ./.github/actions/setup-cargo
     - name: Release test
