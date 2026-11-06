@@ -9,8 +9,8 @@ pub struct ContainerAttr {
     semigroup_where: Option<String>, // TODO Vec
 
     #[darling(default)]
-    idempotent: bool,
-    idempotent_where: Option<String>, // TODO Vec
+    selective: bool,
+    selective_where: Option<String>, // TODO Vec
 
     #[darling(default)]
     monoid: bool,
@@ -35,8 +35,8 @@ impl ContainerAttr {
     }
     pub fn validate(self) -> darling::Result<Self> {
         let Self {
-            idempotent,
-            idempotent_where,
+            selective,
+            selective_where,
             monoid,
             identity,
             monoid_where,
@@ -45,9 +45,9 @@ impl ContainerAttr {
             commutative_where,
             ..
         } = &self;
-        if !idempotent && let Some(_) = idempotent_where {
-            return Err(darling::Error::custom(ConstructionError::OnlyIdempotent(
-                var_name!(idempotent_where),
+        if !selective && let Some(_) = selective_where {
+            return Err(darling::Error::custom(ConstructionError::OnlySelective(
+                var_name!(selective_where),
             )));
         }
         if !monoid {
@@ -86,11 +86,11 @@ impl ContainerAttr {
             .map(|p| p.unwrap_or_else(|e| todo!("{e}")))
     }
 
-    pub fn is_idempotent(&self) -> bool {
-        self.idempotent
+    pub fn is_selective(&self) -> bool {
+        self.selective
     }
-    pub fn idempotent_where(&self) -> Option<WherePredicate> {
-        self.idempotent_where
+    pub fn selective_where(&self) -> Option<WherePredicate> {
+        self.selective_where
             .as_deref()
             .map(syn::parse_str)
             .map(|p| p.unwrap_or_else(|e| todo!("{e}")))
@@ -150,11 +150,11 @@ mod tests {
     #[case::ok(
         syn::parse_quote! {
             #[derive(SemigroupOp)]
-            #[semigroup_op(idempotent)]
+            #[semigroup_op(selective)]
             pub struct Coalesce<T>(pub Option<T>);
         },
         Ok(ContainerAttr {
-            idempotent: true,
+            selective: true,
             ..default_container_attr()
         }),
     )]

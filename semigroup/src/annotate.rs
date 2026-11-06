@@ -2,12 +2,12 @@ use std::ops::{Deref, DerefMut};
 
 use semigroup_derive::{SemigroupOpPriv, properties_priv};
 
-use crate::{Idempotent, Selected, Semigroup};
+use crate::{Selected, Selective, Semigroup};
 
 /// Some [`Semigroup`] such as [`crate::op::Coalesce`] can have an annotation.
 ///
-/// A blanket implementation is provided for every [`Idempotent`] type, so any type that
-/// implements [`Idempotent`] automatically gains the `.annotated(annotation)` method.
+/// A blanket implementation is provided for every [`Selective`] type, so any type that
+/// implements [`Selective`] automatically gains the `.annotated(annotation)` method.
 ///
 /// # Examples
 /// ```
@@ -22,7 +22,7 @@ use crate::{Idempotent, Selected, Semigroup};
 pub trait Annotate<A>: Sized {
     fn annotated(self, annotation: A) -> Annotated<Self, A>;
 }
-impl<T: Idempotent, A> Annotate<A> for T {
+impl<T: Selective, A> Annotate<A> for T {
     fn annotated(self, annotation: A) -> Annotated<Self, A> {
         Annotated::new(self, annotation)
     }
@@ -58,7 +58,7 @@ pub trait AnnotateFields<A>: Sized {
 
 /// [`Annotated`] wraps a value together with an annotation.
 ///
-/// When `T` implements [`Idempotent`], `Annotated<T, A>` implements [`Semigroup`]:
+/// When `T` implements [`Selective`], `Annotated<T, A>` implements [`Semigroup`]:
 /// the annotation always follows the selected operand.
 ///
 /// # Properties
@@ -85,20 +85,20 @@ pub trait AnnotateFields<A>: Sized {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[semigroup_op(
     commutative,
-    commutative_where = "T: crate::Idempotent + crate::Commutative",
+    commutative_where = "T: crate::Selective + crate::Commutative",
     hidden_inner
 )]
 #[properties_priv(
     commutative,
-    commutative_where = "T: crate::Idempotent + crate::Commutative"
+    commutative_where = "T: crate::Selective + crate::Commutative"
 )]
 pub struct Annotated<T, A> {
     value: T,
     annotation: A,
 }
-impl<T: Semigroup + Idempotent, A> Semigroup for Annotated<T, A> {
+impl<T: Semigroup + Selective, A> Semigroup for Annotated<T, A> {
     fn op_assign(base: &mut Self, other: Self) {
-        let selected = Idempotent::select(&base.value, &other.value);
+        let selected = Selective::select(&base.value, &other.value);
         let (other_value, other_annotation) = other.into_parts();
         Semigroup::op_assign(&mut base.value, other_value);
         if let Selected::Other = selected {
@@ -107,9 +107,9 @@ impl<T: Semigroup + Idempotent, A> Semigroup for Annotated<T, A> {
     }
 }
 // do not impl Annotated<T, A>: Annotate<A>
-// impl<T: Idempotent, A> Idempotent for Annotated<T, A> {
+// impl<T: Selective, A> Selective for Annotated<T, A> {
 //     fn select(base: &Self, other: &Self) -> Selected {
-//         Idempotent::select(&base.value, &other.value)
+//         Selective::select(&base.value, &other.value)
 //     }
 // }
 

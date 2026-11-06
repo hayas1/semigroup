@@ -246,12 +246,12 @@ impl<'a> FieldAnnotated<'a> {
         Ok(match with {
             None => {
                 let Constant {
-                    path_idempotent,
+                    path_selective,
                     path_semigroup,
                     ..
                 } = constant;
                 parse_quote! {{
-                    let #selected_var = <#ty as #path_idempotent>::select(base.#member.value(), other.#member.value());
+                    let #selected_var = <#ty as #path_selective>::select(base.#member.value(), other.#member.value());
                     let (#other_val_var, #other_ann_var) = other.#member.into_parts();
                     #path_semigroup::op_assign(base.#member.value_mut(), #other_val_var);
                     if let #path_selected::Other = #selected_var { *base.#member.annotation_mut() = #other_ann_var; }
@@ -270,7 +270,7 @@ impl<'a> FieldAnnotated<'a> {
                 let Constant {
                     path_semigroup,
                     path_construction_trait,
-                    path_idempotent,
+                    path_selective,
                     ..
                 } = constant;
                 let wrapped_ty = with.as_type()?;
@@ -291,7 +291,7 @@ impl<'a> FieldAnnotated<'a> {
                     let __annotated_base_owned = unsafe { ::core::ptr::read(&raw const *base.#member.value()) };
                     let (#other_val_var, #other_ann_var) = other.#member.into_parts();
                     let (mut __semigroup_base, __semigroup_other) = (#base_wrapped, #other_wrapped);
-                    let #selected_var = <#wrapped_ty as #path_idempotent>::select(&__semigroup_base, &__semigroup_other);
+                    let #selected_var = <#wrapped_ty as #path_selective>::select(&__semigroup_base, &__semigroup_other);
                     #path_semigroup::op_assign(&mut __semigroup_base, __semigroup_other);
                     let __annotated_result = #chain_into_inner;
                     unsafe { ::core::ptr::write(&raw mut *base.#member.value_mut(), __annotated_result); }
