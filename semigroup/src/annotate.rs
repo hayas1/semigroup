@@ -61,6 +61,17 @@ pub trait AnnotateFields<A>: Sized {
 /// When `T` implements [`Selective`], `Annotated<T, A>` implements [`Semigroup`]:
 /// the annotation always follows the selected operand.
 ///
+/// `Annotated<T, A>` is not [`Commutative`](crate::Commutative) even when `T` is.
+/// When both operands are equal, the operation selects one of them by its position,
+/// so the annotation depends on the order:
+/// ```
+/// use semigroup::{op::Max, Annotate, Semigroup};
+///
+/// let (a, b) = (Max(1).annotated("a"), Max(1).annotated("b"));
+/// assert_eq!(a.semigroup(b).annotation(), &"a");
+/// assert_eq!(b.semigroup(a).annotation(), &"b");
+/// ```
+///
 /// # Properties
 /// <!-- properties -->
 ///
@@ -83,15 +94,8 @@ pub trait AnnotateFields<A>: Sized {
 /// assert_eq!(annotated.value().value(), &Coalesce(Some(1)));
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
-#[semigroup_op(
-    commutative,
-    commutative_where = "T: crate::Selective + crate::Commutative",
-    hidden_inner
-)]
-#[properties_priv(
-    commutative,
-    commutative_where = "T: crate::Selective + crate::Commutative"
-)]
+#[semigroup_op(hidden_inner)]
+#[properties_priv]
 pub struct Annotated<T, A> {
     value: T,
     annotation: A,
