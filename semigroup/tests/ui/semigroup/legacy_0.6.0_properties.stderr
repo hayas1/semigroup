@@ -1,0 +1,17 @@
+error: Unknown field: `selective_where`. Did you mean `selective`?
+ --> tests/ui/semigroup/legacy_0.6.0_properties.rs:7:25
+  |
+7 | #[properties(selective, selective_where = "T: Clone")]
+  |                         ^^^^^^^^^^^^^^^
+
+error: Unknown field: `monoid_where`. Did you mean `monoid`?
+  --> tests/ui/semigroup/legacy_0.6.0_properties.rs:12:22
+   |
+12 | #[properties(monoid, monoid_where = "T: Default")]
+   |                      ^^^^^^^^^^^^
+
+error: Unknown field: `commutative_where`. Did you mean `commutative`?
+  --> tests/ui/semigroup/legacy_0.6.0_properties.rs:17:27
+   |
+17 | #[properties(commutative, commutative_where = "T: Ord")]
+   |                           ^^^^^^^^^^^^^^^^^
