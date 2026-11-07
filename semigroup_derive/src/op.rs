@@ -8,7 +8,7 @@ use crate::{
 };
 
 mod ast;
-mod attr;
+pub mod attr;
 
 pub fn impl_op<C: ConstantExt>(derive: &DeriveInput) -> syn::Result<TokenStream> {
     let constant = C::constant();
@@ -31,7 +31,7 @@ mod tests {
         impl_op::<External>,
         syn::parse_quote! {
             #[derive(SemigroupOp)]
-            #[semigroup_op(selective)]
+            #[semigroup_op(properties(selective))]
             pub struct Coalesce<T>(pub Option<T>);
         },
     )]
@@ -40,8 +40,37 @@ mod tests {
         impl_op::<Internal>,
         syn::parse_quote! {
             #[derive(SemigroupOpPriv)]
-            #[semigroup_op(monoid, commutative, identity = Default::default())]
+            #[semigroup_op(properties(monoid(identity = Default::default()), commutative))]
             pub struct Sum<T: std::ops::Add>(pub T);
+        },
+    )]
+    #[case::op_where(
+        "op_where",
+        impl_op::<External>,
+        syn::parse_quote! {
+            #[derive(SemigroupOp)]
+            #[semigroup_op(
+                properties(monoid(identity = Self(T::default())), commutative),
+                bound(
+                    semigroup = "T: Clone",
+                    monoid = "T: Default, T: Copy",
+                    commutative = "T: Ord, T: Eq",
+                ),
+            )]
+            pub struct Larger<T: PartialOrd>(pub T);
+        },
+    )]
+    #[case::op_manual_selective(
+        "op_manual_selective",
+        impl_op::<External>,
+        syn::parse_quote! {
+            #[derive(SemigroupOp)]
+            #[semigroup_op(
+                properties(selective),
+                manual_impl(selective),
+                bound(selective = "T: Ord"),
+            )]
+            pub struct Larger<T>(pub T);
         },
     )]
     fn test_derive_op_snapshot(

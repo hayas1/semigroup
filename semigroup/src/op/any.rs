@@ -1,4 +1,4 @@
-use semigroup_derive::{SemigroupOpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, semigroup_properties_doc_priv};
 
 use crate::{Selected, SelectiveOp};
 
@@ -17,8 +17,8 @@ use crate::{Selected, SelectiveOp};
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[semigroup_op(selective, monoid, commutative, identity = Self(false))]
-#[properties_priv(selective, monoid, commutative)]
+#[semigroup_op(properties(selective, monoid(identity = Self(false)), commutative))]
+#[semigroup_properties_doc_priv]
 pub struct Any(pub bool);
 impl SelectiveOp<bool> for Any {
     fn lift_select(base: &bool, other: &bool) -> Selected {

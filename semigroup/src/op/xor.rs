@@ -1,6 +1,6 @@
 use std::ops::BitXorAssign;
 
-use semigroup_derive::{SemigroupOpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, semigroup_properties_doc_priv};
 
 use crate::SemigroupOp;
 
@@ -18,8 +18,11 @@ use crate::SemigroupOp;
 /// assert_eq!(a.semigroup(b).into_inner(), 0b001);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[semigroup_op(monoid, commutative, identity = Self(T::zero()), monoid_where = "T: num::Zero")]
-#[properties_priv(monoid, commutative, monoid_where = "T: num::Zero")]
+#[semigroup_op(
+    properties(monoid(identity = Self(T::zero())), commutative),
+    bound(monoid = "T: num::Zero"),
+)]
+#[semigroup_properties_doc_priv]
 pub struct Xor<T: BitXorAssign>(pub T);
 impl<T: BitXorAssign> SemigroupOp<T> for Xor<T> {
     fn lift_op_assign(base: &mut T, other: T) {

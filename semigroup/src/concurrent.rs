@@ -335,7 +335,7 @@ pub mod test_async_semigroup {
     /// ```should_panic
     /// use semigroup::{assert_async_semigroup, SemigroupOp, Semigroup};
     /// #[derive(Debug, Clone, PartialEq, SemigroupOp)]
-    /// #[semigroup_op(commutative)]
+    /// #[semigroup_op(properties(commutative))]
     /// pub struct Sub(i32);
     /// impl SemigroupOp<i32> for Sub {
     ///     fn lift_op_assign(base: &mut i32, other: i32) {
@@ -418,7 +418,7 @@ pub mod test_async_semigroup {
     /// ```should_panic
     /// use semigroup::{assert_async_commutative, SemigroupOp, Semigroup};
     /// #[derive(Debug, Clone, PartialEq, SemigroupOp)]
-    /// #[semigroup_op(commutative)]
+    /// #[semigroup_op(properties(commutative))]
     /// pub struct Sub(i32);
     /// impl SemigroupOp<i32> for Sub {
     ///     fn lift_op_assign(base: &mut i32, other: i32) {

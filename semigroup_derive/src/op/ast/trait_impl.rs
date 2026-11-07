@@ -1,8 +1,8 @@
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-use syn::{DeriveInput, ItemImpl, parse_quote};
+use syn::{DeriveInput, Expr, ItemImpl, WherePredicate, parse_quote};
 
-use crate::{constant::Constant, op::attr::ContainerAttr};
+use crate::{attr::Property, constant::Constant, op::attr::ContainerAttr};
 
 #[derive(Debug, Clone)]
 pub struct TraitImpl<'a> {
@@ -44,10 +44,9 @@ impl<'a> TraitImpl<'a> {
         } = self;
 
         attr.open_inner().then(|| {
-            let mut g = generics.clone();
-            attr.semigroup_where()
-                .into_iter()
-                .for_each(|w| g.make_where_clause().predicates.push(w));
+            let g = attr
+                .derive_attr()
+                .generics(Property::Semigroup, generics, Vec::new);
             let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
             parse_quote! {
                 #[automatically_derived]
@@ -76,11 +75,9 @@ impl<'a> TraitImpl<'a> {
             ..
         } = self;
 
-        attr.is_selective().then(|| {
-            let mut g = generics.clone();
-            attr.selective_where()
-                .into_iter()
-                .for_each(|w| g.make_where_clause().predicates.push(w));
+        let attr = attr.derive_attr();
+        attr.derives(Property::Selective).then(|| {
+            let g = attr.generics(Property::Selective, generics, Vec::new);
             let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
             parse_quote! {
                 #[automatically_derived]
@@ -108,38 +105,26 @@ impl<'a> TraitImpl<'a> {
         let DeriveInput {
             ident, generics, ..
         } = derive;
-        let mut g = generics.clone();
-        attr.monoid_where()
-            .into_iter()
-            .for_each(|w| g.make_where_clause().predicates.push(w));
-        (attr.is_monoid() && attr.with_monoid_impl()).then(|| {
-            attr.identity()
-                .map(|expr| {
-                    let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
-                    parse_quote! {
-                        #[automatically_derived]
-                        #attr_feature_monoid
-                        impl #impl_generics #path_monoid for #ident #ty_generics #where_clause {
-                            fn identity() -> Self {
-                                #expr
-                            }
-                        }
+        let attr = attr.derive_attr();
+        attr.derives(Property::Monoid).then(|| {
+            let (identity, inferred): (Expr, Vec<WherePredicate>) = match attr.identity() {
+                Some(identity) => (identity.clone(), Vec::new()),
+                None => (
+                    parse_quote! { Default::default() },
+                    vec![parse_quote! { Self: Default }],
+                ),
+            };
+            let g = attr.generics(Property::Monoid, generics, || inferred);
+            let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
+            parse_quote! {
+                #[automatically_derived]
+                #attr_feature_monoid
+                impl #impl_generics #path_monoid for #ident #ty_generics #where_clause {
+                    fn identity() -> Self {
+                        #identity
                     }
-                })
-                .unwrap_or_else(|| {
-                    let where_default = parse_quote! { Self: Default };
-                    g.make_where_clause().predicates.push(where_default);
-                    let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
-                    parse_quote! {
-                        #[automatically_derived]
-                        #attr_feature_monoid
-                        impl #impl_generics #path_monoid for #ident #ty_generics #where_clause {
-                            fn identity() -> Self {
-                                Default::default()
-                            }
-                        }
-                    }
-                })
+                }
+            }
         })
     }
 
@@ -156,12 +141,10 @@ impl<'a> TraitImpl<'a> {
         let DeriveInput {
             ident, generics, ..
         } = derive;
-        let mut g = generics.clone();
-        attr.commutative_where()
-            .into_iter()
-            .for_each(|w| g.make_where_clause().predicates.push(w));
-        let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
-        attr.is_commutative().then(|| {
+        let attr = attr.derive_attr();
+        attr.derives(Property::Commutative).then(|| {
+            let g = attr.generics(Property::Commutative, generics, Vec::new);
+            let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
             parse_quote! {
                 #[automatically_derived]
                 impl #impl_generics #path_commutative for #ident #ty_generics #where_clause {}

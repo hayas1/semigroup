@@ -1,6 +1,6 @@
 use std::ops::MulAssign;
 
-use semigroup_derive::{SemigroupOpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, semigroup_properties_doc_priv};
 
 use crate::SemigroupOp;
 
@@ -19,8 +19,11 @@ use crate::SemigroupOp;
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[semigroup_op(monoid, commutative, identity = Self(T::one()), monoid_where = "T: num::One")]
-#[properties_priv(monoid, commutative, monoid_where = "T: num::One")]
+#[semigroup_op(
+    properties(monoid(identity = Self(T::one())), commutative),
+    bound(monoid = "T: num::One"),
+)]
+#[semigroup_properties_doc_priv]
 pub struct Prod<T: MulAssign>(pub T);
 impl<T: MulAssign> SemigroupOp<T> for Prod<T> {
     fn lift_op_assign(base: &mut T, other: T) {

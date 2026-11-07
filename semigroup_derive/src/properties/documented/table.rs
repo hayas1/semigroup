@@ -1,15 +1,18 @@
 use comfy_table::{Cell, CellAlignment, Cells, Row, Table, presets::ASCII_MARKDOWN};
 use syn::ItemStruct;
 
-use crate::{constant::Constant, properties::attr::ContainerAttr};
+use crate::{
+    attr::{DeriveAttr, Property},
+    constant::Constant,
+};
 
 #[derive(Debug, Clone)]
 pub struct PropertiesTable<'a> {
     constant: &'a Constant,
-    attr: &'a ContainerAttr,
+    attr: &'a DeriveAttr,
 }
 impl<'a> PropertiesTable<'a> {
-    pub fn new(constant: &'a Constant, attr: &'a ContainerAttr, item: &'a ItemStruct) -> Self {
+    pub fn new(constant: &'a Constant, attr: &'a DeriveAttr, item: &'a ItemStruct) -> Self {
         let _ = item;
         Self { constant, attr }
     }
@@ -48,9 +51,18 @@ impl<'a> PropertiesTable<'a> {
             )
         })
     }
+    pub fn columns() -> [&'static [Property]; 3] {
+        [
+            &[Property::Selective, Property::Annotated],
+            &[Property::Monoid],
+            &[Property::Commutative],
+        ]
+    }
     pub fn impl_row(&self) -> [&str; 3] {
         let Self { attr, .. } = self;
-        [attr.is_selective(), attr.is_monoid(), attr.is_commutative()].map(Self::impl_cell)
+        Self::columns()
+            .map(|properties| properties.iter().any(|&p| attr.implements(p)))
+            .map(Self::impl_cell)
     }
     pub fn impl_cell(is: bool) -> &'a str {
         if is { "✅" } else { "❌" }
@@ -58,14 +70,11 @@ impl<'a> PropertiesTable<'a> {
 
     pub fn where_row(&self) -> [String; 3] {
         let Self { attr, .. } = self;
-        [
-            attr.selective_where(),
-            attr.monoid_where(),
-            attr.commutative_where(),
-        ]
-        .map(|w| match w {
-            Some(w) => format!("`{w}`"),
-            None => String::new(),
-        })
+        Self::columns()
+            .map(|properties| properties.iter().find_map(|&p| attr.bound(p)))
+            .map(|b| match b {
+                Some(b) => format!("`{}`", b.raw()),
+                None => String::new(),
+            })
     }
 }

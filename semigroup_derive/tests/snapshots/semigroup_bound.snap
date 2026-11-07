@@ -1,0 +1,93 @@
+---
+source: semigroup_derive/src/semigroup.rs
+expression: formatted
+---
+#[automatically_derived]
+impl<T> crate::Semigroup for Tagged<T>
+where
+    T: Semigroup + Clone,
+{
+    fn op_assign(base: &mut Self, other: Self) {
+        use crate::SemigroupOp;
+        crate::Semigroup::op_assign(&mut base.value, other.value);
+        semigroup::op::Sum::lift_op_assign(&mut base.count, other.count);
+    }
+}
+#[automatically_derived]
+#[cfg(feature = "monoid")]
+impl<T> crate::Monoid for Tagged<T>
+where
+    T: Semigroup + Clone,
+{
+    fn identity() -> Self {
+        use crate::MonoidOp;
+        Self {
+            value: crate::Monoid::identity(),
+            count: semigroup::op::Sum::lift_identity(),
+        }
+    }
+}
+#[automatically_derived]
+impl<T> crate::Commutative for Tagged<T>
+where
+    T: crate::Commutative,
+{}
+#[derive(Debug, Clone, PartialEq)]
+pub struct TaggedAnnotated<T, B> {
+    pub value: crate::Annotated<T, B>,
+    pub count: crate::Annotated<u32, B>,
+}
+#[automatically_derived]
+impl<T, B: Clone> crate::Semigroup for TaggedAnnotated<T, B>
+where
+    T: Semigroup + Clone,
+{
+    fn op_assign(base: &mut Self, other: Self) {
+        use crate::SelectiveOp;
+        use crate::SemigroupOp;
+        {
+            let __selected_value = <T as crate::Selective>::select(
+                base.value.value(),
+                other.value.value(),
+            );
+            let (__other_value_val, __other_value_ann) = other.value.into_parts();
+            crate::Semigroup::op_assign(base.value.value_mut(), __other_value_val);
+            if let crate::Selected::Other = __selected_value {
+                *base.value.annotation_mut() = __other_value_ann;
+            }
+        }
+        {
+            let __selected_count = semigroup::op::Sum::lift_select(
+                base.count.value(),
+                other.count.value(),
+            );
+            let (__other_count_val, __other_count_ann) = other.count.into_parts();
+            semigroup::op::Sum::lift_op_assign(
+                base.count.value_mut(),
+                __other_count_val,
+            );
+            if let crate::Selected::Other = __selected_count {
+                *base.count.annotation_mut() = __other_count_ann;
+            }
+        }
+    }
+}
+#[automatically_derived]
+impl<T, B: Clone> crate::AnnotateFields<B> for Tagged<T> {
+    type Annotated = TaggedAnnotated<T, B>;
+    fn annotated(self, annotation: B) -> Self::Annotated {
+        TaggedAnnotated {
+            value: crate::Annotated::new(self.value, annotation.clone()),
+            count: crate::Annotated::new(self.count, annotation.clone()),
+        }
+    }
+}
+#[automatically_derived]
+impl<T, B> From<TaggedAnnotated<T, B>> for Tagged<T> {
+    fn from(annotated: TaggedAnnotated<T, B>) -> Self {
+        Self {
+            value: annotated.value.into_value(),
+            count: annotated.count.into_value(),
+        }
+    }
+}

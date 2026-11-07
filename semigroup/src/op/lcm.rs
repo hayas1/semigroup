@@ -1,5 +1,5 @@
 use num::{Integer, Unsigned};
-use semigroup_derive::{SemigroupOpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, semigroup_properties_doc_priv};
 
 use crate::SemigroupOp;
 
@@ -18,8 +18,8 @@ use crate::SemigroupOp;
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[semigroup_op(monoid, commutative, identity = Self(T::one()))]
-#[properties_priv(monoid, commutative)]
+#[semigroup_op(properties(monoid(identity = Self(T::one())), commutative))]
+#[semigroup_properties_doc_priv]
 pub struct Lcm<T: Unsigned + Integer + Clone>(pub T);
 impl<T: Unsigned + Integer + Clone> SemigroupOp<T> for Lcm<T> {
     fn lift_op_assign(base: &mut T, other: T) {

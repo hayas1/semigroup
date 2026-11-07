@@ -4,16 +4,15 @@ use std::{
 };
 
 use crate::{
+    attr::Property,
     constant::{DERIVE_OP, DERIVE_SEMIGROUP},
-    name::Name,
 };
 
 #[derive(Debug, Clone)]
 pub enum ConstructionError {
     ExpectNewType,
-    OnlySelective(Name),
-    OnlyMonoid(Name),
-    OnlyCommutative(Name),
+    UnsupportedProperty(Property),
+    ManualSemigroupWithoutSelective,
 }
 impl Error for ConstructionError {}
 impl Display for ConstructionError {
@@ -22,16 +21,16 @@ impl Display for ConstructionError {
             Self::ExpectNewType => {
                 write!(f, "derive {DERIVE_OP} only supports newtype structs",)
             }
-            Self::OnlySelective(Name(name)) => {
-                write!(f, "attribute `{name}` are supported only with `selective`")
-            }
-            Self::OnlyMonoid(Name(name)) => {
-                write!(f, "attribute `{name}` are supported only with `monoid`")
-            }
-            Self::OnlyCommutative(Name(name)) => {
+            Self::UnsupportedProperty(property) => {
                 write!(
                     f,
-                    "attribute `{name}` are supported only with `commutative`"
+                    "derive {DERIVE_OP} does not support property `{property}`"
+                )
+            }
+            Self::ManualSemigroupWithoutSelective => {
+                write!(
+                    f,
+                    "`manual_impl(semigroup)` of derive {DERIVE_OP} only skips the `SemigroupOp` impl derived from `SelectiveOp`, so it requires `selective`"
                 )
             }
         }
@@ -42,9 +41,8 @@ impl Display for ConstructionError {
 pub enum SemigroupError {
     UnsupportedEnum,
     UnsupportedUnion,
-    OnlyAnnotated(Name),
-    OnlyMonoid(Name),
-    OnlyCommutative(Name),
+    UnsupportedProperty(Property),
+    ManualSemigroupImpl,
 }
 impl Error for SemigroupError {}
 impl Display for SemigroupError {
@@ -56,16 +54,16 @@ impl Display for SemigroupError {
             Self::UnsupportedUnion => {
                 write!(f, "derive {DERIVE_SEMIGROUP} does not support unions")
             }
-            Self::OnlyAnnotated(Name(name)) => {
-                write!(f, "attribute `{name}` are supported only with `annotated`")
-            }
-            Self::OnlyMonoid(Name(name)) => {
-                write!(f, "attribute `{name}` are supported only with `monoid`")
-            }
-            Self::OnlyCommutative(Name(name)) => {
+            Self::UnsupportedProperty(property) => {
                 write!(
                     f,
-                    "attribute `{name}` are supported only with `commutative`"
+                    "derive {DERIVE_SEMIGROUP} does not support property `{property}`"
+                )
+            }
+            Self::ManualSemigroupImpl => {
+                write!(
+                    f,
+                    "derive {DERIVE_SEMIGROUP} does not support `manual_impl(semigroup)`: deriving the `Semigroup` impl is what it does"
                 )
             }
         }
@@ -81,6 +79,31 @@ impl Display for PropertiesError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::InvalidDocAttr => write!(f, "invalid doc attribute"),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum AttrError {
+    ManualImplWithoutProperty(Property),
+    BoundWithoutProperty(Property),
+}
+impl Error for AttrError {}
+impl Display for AttrError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::ManualImplWithoutProperty(property) => {
+                write!(
+                    f,
+                    "`manual_impl({property})` requires `{property}` in `properties(..)`"
+                )
+            }
+            Self::BoundWithoutProperty(property) => {
+                write!(
+                    f,
+                    "`bound({property} = ..)` requires `{property}` in `properties(..)`"
+                )
+            }
         }
     }
 }

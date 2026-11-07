@@ -15,7 +15,7 @@ use crate::Semigroup;
 /// ```
 /// use semigroup::Semigroup;
 /// #[derive(Debug, Clone, PartialEq, Default, Semigroup)]
-/// #[semigroup(commutative)]
+/// #[semigroup(properties(commutative))]
 /// pub struct ExampleStruct {
 ///     #[semigroup(with = "semigroup::op::Sum")]
 ///     pub sum: u32,
@@ -38,7 +38,7 @@ use crate::Semigroup;
 /// use semigroup::{SemigroupOp, Semigroup};
 ///
 /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
-/// #[semigroup_op(commutative)]
+/// #[semigroup_op(properties(commutative))]
 /// pub struct Sum(u64);
 /// impl SemigroupOp<u64> for Sum {
 ///     fn lift_op_assign(base: &mut u64, other: u64) {
@@ -109,7 +109,7 @@ pub mod test_commutative {
     /// ```should_panic
     /// use semigroup::{assert_commutative, SemigroupOp, Semigroup};
     /// #[derive(Debug, Clone, PartialEq, SemigroupOp)]
-    /// #[semigroup_op(commutative)]
+    /// #[semigroup_op(properties(commutative))]
     /// pub struct Sub(i32);
     /// impl SemigroupOp<i32> for Sub {
     ///     fn lift_op_assign(base: &mut i32, other: i32) {

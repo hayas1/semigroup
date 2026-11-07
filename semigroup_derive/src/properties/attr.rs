@@ -1,41 +1,68 @@
-use darling::FromMeta;
+use syn::{DeriveInput, ItemStruct};
 
-#[derive(Debug, Clone, PartialEq, FromMeta)]
-#[darling(derive_syn_parse, and_then = Self::validate)]
-pub struct ContainerAttr {
-    #[darling(default)]
-    selective: bool,
-    selective_where: Option<String>, // TODO Vec
+use crate::{
+    attr::DeriveAttr,
+    constant::{ATTR_OP, ATTR_SEMIGROUP},
+    op, semigroup,
+};
 
-    #[darling(default)]
-    monoid: bool,
-    monoid_where: Option<String>, // TODO Vec
-
-    #[darling(default)]
-    commutative: bool,
-    commutative_where: Option<String>, // TODO Vec
+impl From<&ItemStruct> for DeriveAttr {
+    // An attribute the derive rejects is reported by the derive, so it reads as no properties here.
+    fn from(item: &ItemStruct) -> Self {
+        let derive = DeriveInput::from(item.clone());
+        let has = |name| item.attrs.iter().any(|a| a.path().is_ident(name));
+        let derive_attr = if has(ATTR_OP) {
+            op::attr::ContainerAttr::new(&derive)
+                .ok()
+                .map(|a| a.derive_attr().clone())
+        } else if has(ATTR_SEMIGROUP) {
+            semigroup::attr::ContainerAttr::new(&derive)
+                .ok()
+                .map(|a| a.derive_attr().clone())
+        } else {
+            None
+        };
+        derive_attr.unwrap_or_default()
+    }
 }
-impl ContainerAttr {
-    pub fn validate(self) -> darling::Result<Self> {
-        Ok(self)
-    }
-    pub fn is_selective(&self) -> bool {
-        self.selective
-    }
-    pub fn is_monoid(&self) -> bool {
-        self.monoid
-    }
-    pub fn is_commutative(&self) -> bool {
-        self.commutative
-    }
 
-    pub fn selective_where(&self) -> Option<&str> {
-        self.selective_where.as_deref()
-    }
-    pub fn monoid_where(&self) -> Option<&str> {
-        self.monoid_where.as_deref()
-    }
-    pub fn commutative_where(&self) -> Option<&str> {
-        self.commutative_where.as_deref()
+#[cfg(test)]
+mod tests {
+    use rstest::rstest;
+
+    use super::*;
+    use crate::attr::Property;
+
+    #[rstest]
+    #[case::semigroup_op(
+        syn::parse_quote! {
+            #[semigroup_op(properties(monoid))]
+            pub struct Sum<T>(pub T);
+        },
+        Property::Monoid,
+        true,
+    )]
+    #[case::semigroup(
+        syn::parse_quote! {
+            #[semigroup(properties(commutative))]
+            pub struct Config { pub num: u32 }
+        },
+        Property::Commutative,
+        true,
+    )]
+    #[case::without_attribute(
+        syn::parse_quote! {
+            #[other(properties(monoid))]
+            pub struct Sum<T>(pub T);
+        },
+        Property::Monoid,
+        false,
+    )]
+    fn test_derive_attr_from_item(
+        #[case] item: ItemStruct,
+        #[case] property: Property,
+        #[case] expected: bool,
+    ) {
+        assert_eq!(DeriveAttr::from(&item).implements(property), expected);
     }
 }

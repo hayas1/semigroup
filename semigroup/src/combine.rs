@@ -1,4 +1,4 @@
-use semigroup_derive::{SemigroupOpPriv, properties_priv};
+use semigroup_derive::{SemigroupOpPriv, semigroup_properties_doc_priv};
 
 use crate::{Construction, Lazy, Selected, Selective, SelectiveOp, Semigroup, SemigroupOp};
 
@@ -206,24 +206,16 @@ impl<I: Iterator> CombineIterator for I {}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[semigroup_op(
-    manual_op_impl,
-    semigroup_where = "T: crate::Semigroup",
-    selective,
-    selective_where = "T: crate::Selective",
-    monoid,
-    identity = Self(T::identity()),
-    monoid_where = "T: crate::Monoid",
-    commutative,
-    commutative_where = "T: crate::Commutative"
+    properties(selective, monoid(identity = Self(T::identity())), commutative),
+    manual_impl(semigroup),
+    bound(
+        semigroup = "T: crate::Semigroup",
+        selective = "T: crate::Selective",
+        monoid = "T: crate::Monoid",
+        commutative = "T: crate::Commutative",
+    ),
 )]
-#[properties_priv(
-    selective,
-    selective_where = "T: crate::Selective",
-    monoid,
-    monoid_where = "T: crate::Monoid",
-    commutative,
-    commutative_where = "T: crate::Commutative"
-)]
+#[semigroup_properties_doc_priv]
 pub struct Dual<T>(pub T);
 
 impl<T: Selective> SelectiveOp<T> for Dual<T> {
