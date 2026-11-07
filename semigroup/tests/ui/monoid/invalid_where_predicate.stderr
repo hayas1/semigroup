@@ -1,0 +1,5 @@
+error: Unknown value: `where T Default`
+ --> tests/ui/monoid/invalid_where_predicate.rs:4:70
+  |
+4 | #[semigroup_op(monoid, identity = Self(T::default()), monoid_where = "T Default")]
+  |                                                                      ^^^^^^^^^^^

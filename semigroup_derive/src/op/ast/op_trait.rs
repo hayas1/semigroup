@@ -83,7 +83,8 @@ impl<'a> OpTrait<'a> {
         attr.is_monoid().then(|| {
             let mut g = generics.clone();
             attr.semigroup_where()
-                .into_iter()
+                .iter()
+                .cloned()
                 .for_each(|w| g.make_where_clause().predicates.push(w));
             g.make_where_clause()
                 .predicates
