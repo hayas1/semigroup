@@ -114,7 +114,7 @@ pub trait Selective {
     fn select(base: &Self, other: &Self) -> Selected;
 }
 
-#[cfg(feature = "test")]
+#[cfg(feature = "testing")]
 pub mod test_semigroup {
     use std::fmt::Debug;
 
@@ -131,7 +131,7 @@ pub mod test_semigroup {
     ///
     /// # Usage
     /// ```sh
-    /// cargo add semigroup --dev --features test
+    /// cargo add semigroup --dev --features testing
     /// ```
     ///
     /// - 1 argument: iterator of more than 3 items that implements [`Semigroup`].
