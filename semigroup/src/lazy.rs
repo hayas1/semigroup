@@ -413,7 +413,7 @@ pub mod serde_lazy {
     }
 }
 
-#[cfg(feature = "test")]
+#[cfg(feature = "testing")]
 pub mod test_lazy {
     use std::fmt::Debug;
 
