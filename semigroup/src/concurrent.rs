@@ -302,7 +302,7 @@ pub trait TryCombineStream: Sized + TryStream {
 }
 impl<T: TryStream> TryCombineStream for T {}
 
-#[cfg(feature = "test")]
+#[cfg(feature = "testing")]
 pub mod test_async_semigroup {
     use std::fmt::Debug;
 

@@ -15,12 +15,12 @@ error[E0599]: the method `annotated` exists for struct `Annotated<Coalesce<{inte
  ::: src/annotate.rs
   |
   | pub struct Annotated<T, A> {
-  | -------------------------- doesn't satisfy `Annotated<Coalesce<{integer}>, &str>: Annotate<_>` or `Annotated<Coalesce<{integer}>, &str>: Idempotent`
+  | -------------------------- doesn't satisfy `Annotated<Coalesce<{integer}>, &str>: Annotate<_>` or `Annotated<Coalesce<{integer}>, &str>: Selective`
   |
   = note: the following trait bounds were not satisfied:
-          `Annotated<Coalesce<{integer}>, &str>: Idempotent`
+          `Annotated<Coalesce<{integer}>, &str>: Selective`
           which is required by `Annotated<Coalesce<{integer}>, &str>: Annotate<_>`
-          `&Annotated<Coalesce<{integer}>, &str>: Idempotent`
+          `&Annotated<Coalesce<{integer}>, &str>: Selective`
           which is required by `&Annotated<Coalesce<{integer}>, &str>: Annotate<_>`
-          `&mut Annotated<Coalesce<{integer}>, &str>: Idempotent`
+          `&mut Annotated<Coalesce<{integer}>, &str>: Selective`
           which is required by `&mut Annotated<Coalesce<{integer}>, &str>: Annotate<_>`

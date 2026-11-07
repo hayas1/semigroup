@@ -93,7 +93,7 @@
 //! | :---: | :---: | :---: | :---: | :---: |
 //! | **property** | *associativity* | *annotation* | *identity element* | *commutativity* |
 //! | **`#[derive(Semigroup)]`** <br> **`#[semigroup(...)]`** | | `annotated` | `monoid` | `commutative` |
-//! | **`#[derive(SemigroupOp)]`** <br> **`#[semigroup_op(...)]`** | | `idempotent` | `monoid` | `commutative` |
+//! | **`#[derive(SemigroupOp)]`** <br> **`#[semigroup_op(...)]`** | | `selective` | `monoid` | `commutative` |
 //! | **testing** | [`assert_semigroup!`] |  | [`assert_monoid!`] | [`assert_commutative!`] |
 //! | **typical combiner** | [`CombineIterator`] | [`Lazy`] | [`SegmentTree`](`segment_tree::SegmentTree`) | [`CombineStream`] |
 //!

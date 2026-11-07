@@ -14,7 +14,7 @@ pub struct TraitImpl<'a> {
 impl ToTokens for TraitImpl<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.impl_semigroup().to_tokens(tokens);
-        self.impl_idempotent().to_tokens(tokens);
+        self.impl_selective().to_tokens(tokens);
         self.impl_monoid().to_tokens(tokens);
         self.impl_commutative().to_tokens(tokens);
     }
@@ -60,12 +60,12 @@ impl<'a> TraitImpl<'a> {
         })
     }
 
-    pub fn impl_idempotent(&self) -> Option<ItemImpl> {
+    pub fn impl_selective(&self) -> Option<ItemImpl> {
         let Self {
             constant:
                 Constant {
-                    path_idempotent,
-                    path_idempotent_op,
+                    path_selective,
+                    path_selective_op,
                     path_selected,
                     ..
                 },
@@ -76,17 +76,17 @@ impl<'a> TraitImpl<'a> {
             ..
         } = self;
 
-        attr.is_idempotent().then(|| {
+        attr.is_selective().then(|| {
             let mut g = generics.clone();
-            attr.idempotent_where()
+            attr.selective_where()
                 .into_iter()
                 .for_each(|w| g.make_where_clause().predicates.push(w));
             let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
             parse_quote! {
                 #[automatically_derived]
-                impl #impl_generics #path_idempotent for #ident #ty_generics #where_clause {
+                impl #impl_generics #path_selective for #ident #ty_generics #where_clause {
                     fn select(base: &Self, other: &Self) -> #path_selected {
-                        <Self as #path_idempotent_op<_>>::lift_select(&base.0, &other.0)
+                        <Self as #path_selective_op<_>>::lift_select(&base.0, &other.0)
                     }
                 }
             }

@@ -1,6 +1,6 @@
 use semigroup_derive::{SemigroupOpPriv, properties_priv};
 
-use crate::{Construction, Idempotent, IdempotentOp, Lazy, Selected, Semigroup, SemigroupOp};
+use crate::{Construction, Lazy, Selected, Selective, SelectiveOp, Semigroup, SemigroupOp};
 
 /// Extensions for [`Iterator`]s that items implement [`Semigroup`].
 /// Composed of a variety of the 3 main methods
@@ -208,8 +208,8 @@ impl<I: Iterator> CombineIterator for I {}
 #[semigroup_op(
     manual_op_impl,
     semigroup_where = "T: crate::Semigroup",
-    idempotent,
-    idempotent_where = "T: crate::Idempotent",
+    selective,
+    selective_where = "T: crate::Selective",
     monoid,
     identity = Self(T::identity()),
     monoid_where = "T: crate::Monoid",
@@ -217,8 +217,8 @@ impl<I: Iterator> CombineIterator for I {}
     commutative_where = "T: crate::Commutative"
 )]
 #[properties_priv(
-    idempotent,
-    idempotent_where = "T: crate::Idempotent",
+    selective,
+    selective_where = "T: crate::Selective",
     monoid,
     monoid_where = "T: crate::Monoid",
     commutative,
@@ -226,7 +226,7 @@ impl<I: Iterator> CombineIterator for I {}
 )]
 pub struct Dual<T>(pub T);
 
-impl<T: Idempotent> IdempotentOp<T> for Dual<T> {
+impl<T: Selective> SelectiveOp<T> for Dual<T> {
     fn lift_select(base: &T, other: &T) -> Selected {
         match T::select(other, base) {
             Selected::Base => Selected::Other,
@@ -259,7 +259,7 @@ impl<T: Semigroup> SemigroupOp<T> for Dual<T> {
     }
 }
 
-#[cfg(feature = "test")]
+#[cfg(feature = "testing")]
 pub mod test_combine {
     use std::fmt::Debug;
 

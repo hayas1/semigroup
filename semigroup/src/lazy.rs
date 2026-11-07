@@ -44,7 +44,7 @@ use crate::{Annotated, Semigroup};
 ///
 /// let lazy = Lazy::from(a).semigroup(b.into()).semigroup(c.into());
 /// assert_eq!(lazy.clone().map_combine(|x| Coalesce(x.num)), Coalesce(Some(1)));
-/// assert_eq!(lazy.map_combine_rev(|x| Coalesce(x.str)), Coalesce(Some("ten")));
+/// assert_eq!(lazy.map_rcombine(|x| Coalesce(x.str)), Coalesce(Some("ten")));
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, SemigroupOpPriv)]
 #[semigroup_op(commutative, commutative_where = "T: crate::Commutative", hidden_inner)]
@@ -102,14 +102,14 @@ impl<T: Semigroup> Lazy<T> {
     /// let c = Coalesce(Some(3));
     ///
     /// let lazy = Lazy::from(a).semigroup(b.into()).semigroup(c.into());
-    /// assert_eq!(lazy.combine_rev(), Coalesce(Some(3)));
+    /// assert_eq!(lazy.rcombine(), Coalesce(Some(3)));
     /// ```
-    pub fn combine_rev(self) -> T {
+    pub fn rcombine(self) -> T {
         let (last, head) = self.split_off_last();
         head.into_iter().rfold(last, Semigroup::op)
     }
 
-    /// Evaluates [`Lazy`] buffer in reverse order like [`Lazy::combine_rev`] by cloning each element.
+    /// Evaluates [`Lazy`] buffer in reverse order like [`Lazy::rcombine`] by cloning each element.
     ///
     /// # Examples
     /// ```
@@ -119,9 +119,9 @@ impl<T: Semigroup> Lazy<T> {
     /// let c = Coalesce(Some(3));
     ///
     /// let lazy = Lazy::from(a).semigroup(b.into()).semigroup(c.into());
-    /// assert_eq!(lazy.combine_rev_clone(), Coalesce(Some(3)));
+    /// assert_eq!(lazy.rcombine_clone(), Coalesce(Some(3)));
     /// ```
-    pub fn combine_rev_clone(&self) -> T
+    pub fn rcombine_clone(&self) -> T
     where
         T: Clone,
     {
@@ -130,15 +130,37 @@ impl<T: Semigroup> Lazy<T> {
     }
 }
 impl<T: Semigroup + Clone> Lazy<&T> {
-    /// TODO
+    /// Evaluates [`Lazy`] buffer of references like [`Lazy::combine`] by cloning each referenced element.
+    ///
+    /// # Examples
+    /// ```
+    /// use semigroup::{op::Coalesce, Lazy, Semigroup};
+    /// let a = Coalesce(Some(1));
+    /// let b = Coalesce(Some(2));
+    /// let c = Coalesce(Some(3));
+    ///
+    /// let lazy = Lazy::from(&a).semigroup((&b).into()).semigroup((&c).into());
+    /// assert_eq!(lazy.combine_cloned(), Coalesce(Some(1)));
+    /// ```
     pub fn combine_cloned(&self) -> T {
         let (&first, tail) = self.split_first();
         tail.iter()
             .map(|&t| t.clone())
             .fold(first.clone(), Semigroup::op)
     }
-    /// TODO
-    pub fn combine_rev_cloned(&self) -> T {
+    /// Evaluates [`Lazy`] buffer of references in reverse order like [`Lazy::rcombine`] by cloning each referenced element.
+    ///
+    /// # Examples
+    /// ```
+    /// use semigroup::{op::Coalesce, Lazy, Semigroup};
+    /// let a = Coalesce(Some(1));
+    /// let b = Coalesce(Some(2));
+    /// let c = Coalesce(Some(3));
+    ///
+    /// let lazy = Lazy::from(&a).semigroup((&b).into()).semigroup((&c).into());
+    /// assert_eq!(lazy.rcombine_cloned(), Coalesce(Some(3)));
+    /// ```
+    pub fn rcombine_cloned(&self) -> T {
         let (&last, head) = self.split_last();
         head.iter()
             .map(|&t| t.clone())
@@ -220,9 +242,9 @@ impl<T> Lazy<T> {
         self.map(f).combine() // TODO memory allocation
     }
     /// Maps each element of the [`Lazy`] buffer with a function, and returns the reversed combined value. Examples in [`Lazy`].
-    pub fn map_combine_rev<U: Semigroup, F: FnMut(T) -> U>(self, f: F) -> U {
+    pub fn map_rcombine<U: Semigroup, F: FnMut(T) -> U>(self, f: F) -> U {
         // TODO implement `WithSemigroup` trait? to avoid from `Coalesce` of `lazy.map_combine(|x| Coalesce(x.num))`
-        self.map(f).combine_rev() // TODO memory allocation
+        self.map(f).rcombine() // TODO memory allocation
     }
 }
 impl<T, A: PartialEq> Lazy<Annotated<T, A>> {
@@ -413,7 +435,7 @@ pub mod serde_lazy {
     }
 }
 
-#[cfg(feature = "test")]
+#[cfg(feature = "testing")]
 pub mod test_lazy {
     use std::fmt::Debug;
 
@@ -426,7 +448,7 @@ pub mod test_lazy {
     pub fn assert_lazy_owned<T: Semigroup + Clone + PartialEq + Debug>(a: T, b: T, c: T) {
         let lazy = Lazy::from(a.clone());
         assert_eq!(lazy.combine_clone(), a.clone());
-        assert_eq!(lazy.combine_rev_clone(), a.clone());
+        assert_eq!(lazy.rcombine_clone(), a.clone());
 
         let lazy = lazy.semigroup(b.clone().into()).semigroup(c.clone().into());
         assert_eq!(
@@ -438,18 +460,18 @@ pub mod test_lazy {
             Semigroup::op(Semigroup::op(a.clone(), b.clone()), c.clone())
         );
         assert_eq!(
-            lazy.clone().combine_rev(),
+            lazy.clone().rcombine(),
             Semigroup::op(Semigroup::op(c.clone(), b.clone()), a.clone())
         );
         assert_eq!(
-            lazy.combine_rev_clone(),
+            lazy.rcombine_clone(),
             Semigroup::op(Semigroup::op(c.clone(), b.clone()), a.clone())
         );
     }
     pub fn assert_lazy_ref<T: Semigroup + Clone + PartialEq + Debug>(a: &T, b: &T, c: &T) {
         let lazy = Lazy::from(a);
         assert_eq!(&lazy.combine_cloned(), a);
-        assert_eq!(&lazy.combine_rev_cloned(), a);
+        assert_eq!(&lazy.rcombine_cloned(), a);
 
         let lazy = lazy.semigroup(b.into()).semigroup(c.into());
         assert_eq!(
@@ -457,7 +479,7 @@ pub mod test_lazy {
             Semigroup::op(Semigroup::op(a.clone(), b.clone()), c.clone())
         );
         assert_eq!(
-            lazy.combine_rev_cloned(),
+            lazy.rcombine_cloned(),
             Semigroup::op(Semigroup::op(c.clone(), b.clone()), a.clone())
         );
     }
