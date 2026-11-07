@@ -3,6 +3,7 @@ use quote::ToTokens;
 use syn::{Data, DataEnum, DataUnion, DeriveInput};
 
 use crate::{
+    attr::Property,
     constant::Constant,
     error::SemigroupError,
     semigroup::{
@@ -39,7 +40,8 @@ impl<'a> Semigroup<'a> {
             Data::Struct(data_struct) => {
                 let semigroup = StructSemigroup::new(constant, derive, attr, data_struct)?;
                 let annotated = attr
-                    .is_annotated()
+                    .derive_attr()
+                    .derives(Property::Annotated)
                     .then(|| StructAnnotated::new(constant, derive, attr, data_struct))
                     .transpose()?;
                 Ok(Self {

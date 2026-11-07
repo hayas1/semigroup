@@ -4,14 +4,14 @@ use std::{
 };
 
 use crate::{
+    attr::Property,
     constant::{DERIVE_OP, DERIVE_SEMIGROUP},
-    name::Name,
 };
 
 #[derive(Debug, Clone)]
 pub enum ConstructionError {
     ExpectNewType,
-    UnsupportedProperty(Name),
+    UnsupportedProperty(Property),
     ManualSemigroupWithoutSelective,
 }
 impl Error for ConstructionError {}
@@ -21,8 +21,11 @@ impl Display for ConstructionError {
             Self::ExpectNewType => {
                 write!(f, "derive {DERIVE_OP} only supports newtype structs",)
             }
-            Self::UnsupportedProperty(Name(name)) => {
-                write!(f, "derive {DERIVE_OP} does not support property `{name}`")
+            Self::UnsupportedProperty(property) => {
+                write!(
+                    f,
+                    "derive {DERIVE_OP} does not support property `{property}`"
+                )
             }
             Self::ManualSemigroupWithoutSelective => {
                 write!(
@@ -38,7 +41,7 @@ impl Display for ConstructionError {
 pub enum SemigroupError {
     UnsupportedEnum,
     UnsupportedUnion,
-    UnsupportedProperty(Name),
+    UnsupportedProperty(Property),
     ManualSemigroupImpl,
 }
 impl Error for SemigroupError {}
@@ -51,10 +54,10 @@ impl Display for SemigroupError {
             Self::UnsupportedUnion => {
                 write!(f, "derive {DERIVE_SEMIGROUP} does not support unions")
             }
-            Self::UnsupportedProperty(Name(name)) => {
+            Self::UnsupportedProperty(property) => {
                 write!(
                     f,
-                    "derive {DERIVE_SEMIGROUP} does not support property `{name}`"
+                    "derive {DERIVE_SEMIGROUP} does not support property `{property}`"
                 )
             }
             Self::ManualSemigroupImpl => {
@@ -82,23 +85,23 @@ impl Display for PropertiesError {
 
 #[derive(Debug, Clone)]
 pub enum AttrError {
-    ManualImplWithoutProperty(Name),
-    BoundWithoutProperty(Name),
+    ManualImplWithoutProperty(Property),
+    BoundWithoutProperty(Property),
 }
 impl Error for AttrError {}
 impl Display for AttrError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::ManualImplWithoutProperty(Name(name)) => {
+            Self::ManualImplWithoutProperty(property) => {
                 write!(
                     f,
-                    "`manual_impl({name})` requires `{name}` in `properties(..)`"
+                    "`manual_impl({property})` requires `{property}` in `properties(..)`"
                 )
             }
-            Self::BoundWithoutProperty(Name(name)) => {
+            Self::BoundWithoutProperty(property) => {
                 write!(
                     f,
-                    "`bound({name} = ..)` requires `{name}` in `properties(..)`"
+                    "`bound({property} = ..)` requires `{property}` in `properties(..)`"
                 )
             }
         }

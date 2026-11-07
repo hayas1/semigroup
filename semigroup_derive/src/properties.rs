@@ -2,17 +2,14 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::ItemStruct;
 
-use crate::{
-    constant::ConstantExt,
-    properties::{attr::ContainerAttr, documented::Documented},
-};
+use crate::{attr::DeriveAttr, constant::ConstantExt, properties::documented::Documented};
 
 mod attr;
 mod documented;
 
 pub fn impl_properties<C: ConstantExt>(item: &ItemStruct) -> syn::Result<TokenStream> {
     let constant = C::constant();
-    let attr = ContainerAttr::from_item(item);
+    let attr = DeriveAttr::from(item);
     let documented = Documented::new(&constant, &attr, item)?;
     Ok(documented.to_token_stream())
 }
@@ -82,6 +79,20 @@ mod tests {
                 bound = "T: Ord + num::Bounded",
             )]
             pub struct Max<T>(pub T);
+        },
+    )]
+    #[case::properties_annotated_bound(
+        "properties_annotated_bound",
+        impl_properties::<Internal>,
+        syn::parse_quote! {
+            /// A semigroup struct that keeps the annotation of the selected value.
+            /// # Properties
+            /// <!-- properties -->
+            #[derive(SemigroupPriv)]
+            #[semigroup(properties(annotated), bound(annotated = "T: Clone"))]
+            pub struct Config<T> {
+                pub value: T,
+            }
         },
     )]
     fn test_derive_properties_snapshot(

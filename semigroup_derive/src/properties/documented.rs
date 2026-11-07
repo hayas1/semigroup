@@ -2,10 +2,7 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::ItemStruct;
 
-use crate::{
-    constant::Constant,
-    properties::{attr::ContainerAttr, documented::content::Content},
-};
+use crate::{attr::DeriveAttr, constant::Constant, properties::documented::content::Content};
 
 mod content;
 mod table;
@@ -23,7 +20,7 @@ impl ToTokens for Documented<'_> {
 impl<'a> Documented<'a> {
     pub fn new(
         constant: &'a Constant,
-        attr: &'a ContainerAttr,
+        attr: &'a DeriveAttr,
         item: &'a ItemStruct,
     ) -> syn::Result<Self> {
         let mut content = Content::new(constant, attr, item)?;

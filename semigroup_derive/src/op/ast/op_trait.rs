@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{DeriveInput, Field, ItemImpl, parse_quote};
 
-use crate::{constant::Constant, op::attr::ContainerAttr};
+use crate::{attr::Property, constant::Constant, op::attr::ContainerAttr};
 
 #[derive(Debug, Clone)]
 pub struct OpTrait<'a> {
@@ -50,12 +50,9 @@ impl<'a> OpTrait<'a> {
             ..
         } = self;
 
-        (attr.is_selective() && attr.gen_semigroup_op_impl()).then(|| {
-            let mut g = generics.clone();
-            attr.semigroup_bound()
-                .iter()
-                .cloned()
-                .for_each(|w| g.make_where_clause().predicates.push(w));
+        let attr = attr.derive_attr();
+        (attr.implements(Property::Selective) && attr.derives(Property::Semigroup)).then(|| {
+            let g = attr.generics(Property::Semigroup, generics, Vec::new);
             let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
             parse_quote! {
                 #[automatically_derived]
@@ -85,12 +82,9 @@ impl<'a> OpTrait<'a> {
             ..
         } = self;
 
-        attr.is_monoid().then(|| {
-            let mut g = generics.clone();
-            attr.semigroup_bound()
-                .iter()
-                .cloned()
-                .for_each(|w| g.make_where_clause().predicates.push(w));
+        let attr = attr.derive_attr();
+        attr.implements(Property::Monoid).then(|| {
+            let mut g = attr.generics(Property::Semigroup, generics, Vec::new);
             g.make_where_clause()
                 .predicates
                 .push(parse_quote! { Self: #path_monoid });

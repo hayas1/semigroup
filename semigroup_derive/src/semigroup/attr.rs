@@ -1,80 +1,39 @@
 use darling::{FromDeriveInput, FromField};
 use syn::{
-    AngleBracketedGenericArguments, DeriveInput, Expr, ExprPath, Field, GenericArgument, Ident,
-    PathArguments, Type, TypePath, WherePredicate, parse_quote,
+    AngleBracketedGenericArguments, DeriveInput, Expr, ExprPath, Field, GenericArgument,
+    PathArguments, Type, TypePath, parse_quote,
 };
 
 use crate::{
-    attr::{CommonAttr, predicates},
+    attr::{DeriveAttr, Property},
     error::SemigroupError,
-    name::Name,
 };
 
-/// `#[semigroup(properties(..), manual_impl(..), bound(..), with = "..")]`, see [`crate::attr`].
 #[derive(Debug, Clone, PartialEq, FromDeriveInput)]
 #[darling(attributes(semigroup), and_then = Self::validate)]
 pub struct ContainerAttr {
     #[darling(flatten)]
-    common: CommonAttr,
+    derive_attr: DeriveAttr,
     with: Option<Expr>,
 }
 impl ContainerAttr {
     pub fn new(derive: &DeriveInput) -> syn::Result<Self> {
         Ok(Self::from_derive_input(derive)?)
     }
-    pub fn validate(self) -> darling::Result<Self> {
-        let Self { common, .. } = &self;
-        if common.is_selective() {
+    fn validate(self) -> darling::Result<Self> {
+        let Self { derive_attr, .. } = &self;
+        if derive_attr.implements(Property::Selective) {
             return Err(darling::Error::custom(SemigroupError::UnsupportedProperty(
-                Name("selective"),
+                Property::Selective,
             )));
         }
-        if common.manual_semigroup_impl() {
+        if !derive_attr.derives(Property::Semigroup) {
             return Err(darling::Error::custom(SemigroupError::ManualSemigroupImpl));
         }
         Ok(self)
     }
-    pub fn common(&self) -> &CommonAttr {
-        &self.common
-    }
-
-    /// `None` when nothing is given, so that the derive infers the bounds from the fields.
-    pub fn semigroup_bound(&self) -> Option<&[WherePredicate]> {
-        predicates(self.common.semigroup_bound())
-    }
-
-    pub fn is_annotated(&self) -> bool {
-        self.common.is_annotated()
-    }
-    /// The type parameter of the annotation of `XxxAnnotated`, `A` unless given.
-    pub fn annotation_param(&self) -> Ident {
-        self.common.annotation_param()
-    }
-    /// Bounds of the `Semigroup` impl of `XxxAnnotated`, which infers none.
-    pub fn annotated_bound(&self) -> &[WherePredicate] {
-        predicates(self.common.annotated_bound()).unwrap_or_default()
-    }
-
-    pub fn is_monoid(&self) -> bool {
-        self.common.is_monoid()
-    }
-    pub fn identity(&self) -> Option<&Expr> {
-        self.common.identity()
-    }
-    /// `None` when nothing is given, so that the derive infers the bounds from the fields.
-    pub fn monoid_bound(&self) -> Option<&[WherePredicate]> {
-        predicates(self.common.monoid_bound())
-    }
-    pub fn gen_monoid_impl(&self) -> bool {
-        !self.common.manual_monoid_impl()
-    }
-
-    pub fn is_commutative(&self) -> bool {
-        self.common.is_commutative()
-    }
-    /// `None` when nothing is given, so that the derive infers the bounds from the fields.
-    pub fn commutative_bound(&self) -> Option<&[WherePredicate]> {
-        predicates(self.common.commutative_bound())
+    pub fn derive_attr(&self) -> &DeriveAttr {
+        &self.derive_attr
     }
 }
 
@@ -224,7 +183,7 @@ mod tests {
             pub struct NamedStruct {}
         },
         Ok(ContainerAttr {
-            common: <crate::attr::CommonAttr as darling::FromMeta>::from_list(
+            derive_attr: <DeriveAttr as darling::FromMeta>::from_list(
                 &darling::ast::NestedMeta::parse_meta_list(quote::quote! {
                     properties(annotated(param = B), monoid)
                 })

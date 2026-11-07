@@ -2,6 +2,8 @@ use syn::{Attribute, Path, parse_quote};
 
 pub const DERIVE_OP: &str = "SemigroupOp";
 pub const DERIVE_SEMIGROUP: &str = "Semigroup";
+pub const ATTR_OP: &str = "semigroup_op";
+pub const ATTR_SEMIGROUP: &str = "semigroup";
 
 #[derive(Debug, Clone)]
 pub struct Constant {
