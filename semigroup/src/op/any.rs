@@ -1,6 +1,6 @@
-use semigroup_derive::{SemigroupOpPriv, semigroup_properties_doc_priv};
+use semigroup_derive::{CommutativeOp, SelectiveOp, SemigroupOp, semigroup_properties_doc};
 
-use crate::{Selected, SelectiveOp};
+use crate::Selected;
 
 /// A [`Semigroup`](crate::Semigroup) [op construction](crate::SemigroupOp) that returns `true` if either value is `true`.
 /// # Properties
@@ -15,20 +15,32 @@ use crate::{Selected, SelectiveOp};
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), true);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
+#[semigroup_properties_doc]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Default,
+    Hash,
+    SemigroupOp,
+    SelectiveOp,
+    CommutativeOp,
+)]
+#[cfg_attr(feature = "monoid", derive(semigroup_derive::MonoidOp))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[semigroup_op(properties(selective, monoid(identity = Self(false)), commutative))]
-#[semigroup_properties_doc_priv]
+#[semigroup_op(
+    impl(
+        semigroup = Self::lift_select_assign,
+        selective = |base, other| if !base && *other { Selected::Other } else { Selected::Base },
+        monoid = Self(false),
+    ),
+    crate = crate,
+)]
 pub struct Any(pub bool);
-impl SelectiveOp<bool> for Any {
-    fn lift_select(base: &bool, other: &bool) -> Selected {
-        if !base && *other {
-            Selected::Other
-        } else {
-            Selected::Base
-        }
-    }
-}
 
 #[cfg(test)]
 mod tests {

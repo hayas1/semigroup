@@ -14,15 +14,11 @@ pub trait Construction<T>: Sized + From<T> + Deref<Target = T> + DerefMut {
     /// use semigroup::{Construction, SemigroupOp, Semigroup};
     ///
     /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
+    /// #[semigroup_op(impl(semigroup = |base, other| match (&base, &other) {
+    ///         (None, Some(_)) => *base = other,
+    ///         _ => {},
+    ///     }))]
     /// struct Coalesce<T>(Option<T>);
-    /// impl<T> SemigroupOp<Option<T>> for Coalesce<T> {
-    ///     fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {
-    ///         match (&base, &other) {
-    ///             (None, Some(_)) => *base = other,
-    ///             _ => {},
-    ///         }
-    ///     }
-    /// }
     ///
     /// let a = Coalesce(Some(1));
     /// assert_eq!(a.into_inner(), Some(1));
@@ -51,15 +47,11 @@ pub trait SemigroupOp<T>: Semigroup + Construction<T> {
     /// use semigroup::{Construction, SemigroupOp, Semigroup};
     ///
     /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
+    /// #[semigroup_op(impl(semigroup = |base, other| match (&base, &other) {
+    ///         (None, Some(_)) => *base = other,
+    ///         _ => {},
+    ///     }))]
     /// struct Coalesce<T>(Option<T>);
-    /// impl<T> SemigroupOp<Option<T>> for Coalesce<T> {
-    ///     fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {
-    ///         match (&base, &other) {
-    ///             (None, Some(_)) => *base = other,
-    ///             _ => {},
-    ///         }
-    ///     }
-    /// }
     ///
     /// let a = None;
     /// let b = Some(2);
@@ -73,25 +65,19 @@ pub trait SemigroupOp<T>: Semigroup + Construction<T> {
 
 /// [`SelectiveOp`] represents [`Selective`] as a [new type struct](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) like [`Construction`].
 ///
-/// Implement [`SelectiveOp::lift_select`] to declare which inner value is selected.
-/// The derive macro `#[semigroup_op(properties(selective))]` automatically generates the [`SemigroupOp`], [`Semigroup`], and
-/// [`Selective`] implementations from this single method.
+/// `#[derive(SelectiveOp)]` implements [`SelectiveOp::lift_select`] with the function given as `impl(selective = ..)`,
+/// and [`Selective`] on it. A selective op usually derives [`SemigroupOp`] with `impl(semigroup = Self::lift_select_assign)`.
 ///
 /// # Examples
 /// ```
 /// use semigroup::{Construction, SelectiveOp, SemigroupOp, Selected, Semigroup, Annotate};
 ///
-/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
-/// #[semigroup_op(properties(selective))]
+/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp, SelectiveOp)]
+/// #[semigroup_op(impl(semigroup = Self::lift_select_assign, selective = |base, other| match (base, other) {
+///         (None, Some(_)) => Selected::Other,
+///         _ => Selected::Base,
+///     }))]
 /// struct Coalesce<T>(Option<T>);
-/// impl<T> SelectiveOp<Option<T>> for Coalesce<T> {
-///     fn lift_select(base: &Option<T>, other: &Option<T>) -> Selected {
-///         match (base, other) {
-///             (None, Some(_)) => Selected::Other,
-///             _ => Selected::Base,
-///         }
-///     }
-/// }
 ///
 /// let a = Coalesce(None).annotated("first");
 /// let b = Coalesce(Some(2)).annotated("second");
@@ -124,17 +110,12 @@ pub trait MonoidOp<T>: SemigroupOp<T> + crate::Monoid {
     /// ```
     /// use semigroup::{Construction, MonoidOp, SemigroupOp, Semigroup};
     ///
-    /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
-    /// #[semigroup_op(properties(monoid(identity = Self(None))))]
+    /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp, MonoidOp)]
+    /// #[semigroup_op(impl(semigroup = |base, other| match (&base, &other) {
+    ///         (None, Some(_)) => *base = other,
+    ///         _ => {},
+    ///     }, monoid = Self(None)))]
     /// struct Coalesce<T>(Option<T>);
-    /// impl<T> SemigroupOp<Option<T>> for Coalesce<T> {
-    ///     fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {
-    ///         match (&base, &other) {
-    ///             (None, Some(_)) => *base = other,
-    ///             _ => {},
-    ///         }
-    ///     }
-    /// }
     ///
     /// let a: Option<u32> = Coalesce::lift_identity();
     /// assert_eq!(a, None);
@@ -143,3 +124,8 @@ pub trait MonoidOp<T>: SemigroupOp<T> + crate::Monoid {
         Self::identity().into_inner()
     }
 }
+
+/// [`CommutativeOp`] represents [`crate::Commutative`] as a [new type struct](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) like [`MonoidOp`].
+///
+/// It has no method: `#[derive(CommutativeOp)]` declares that the op of [`SemigroupOp`] is commutative.
+pub trait CommutativeOp<T>: SemigroupOp<T> + crate::Commutative {}

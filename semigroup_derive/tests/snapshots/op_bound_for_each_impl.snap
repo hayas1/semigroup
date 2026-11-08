@@ -1,0 +1,107 @@
+---
+source: semigroup_derive/src/op.rs
+expression: formatted
+---
+#[automatically_derived]
+impl<T> From<T> for Dual<T> {
+    fn from(value: T) -> Self {
+        Dual(value)
+    }
+}
+#[automatically_derived]
+impl<T> std::ops::Deref for Dual<T> {
+    type Target = T;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+#[automatically_derived]
+impl<T> std::ops::DerefMut for Dual<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+#[automatically_derived]
+impl<T> crate::Construction<T> for Dual<T> {
+    fn into_inner(self) -> T {
+        self.0
+    }
+}
+#[automatically_derived]
+impl<T> crate::SemigroupOp<T> for Dual<T>
+where
+    T: crate::Semigroup,
+{
+    fn lift_op_assign(base: &mut T, other: T) {
+        let op: fn(&mut T, T) = {
+            #[allow(unused_imports)]
+            use crate::SemigroupOp as _;
+            #[allow(unused_imports)]
+            use crate::SelectiveOp as _;
+            #[allow(unused_imports)]
+            use crate::Construction as _;
+            Self::rop
+        };
+        op(base, other)
+    }
+}
+#[automatically_derived]
+impl<T> crate::Semigroup for Dual<T>
+where
+    T: crate::Semigroup,
+{
+    fn op_assign(base: &mut Self, other: Self) {
+        <Self as crate::SemigroupOp<_>>::lift_op_assign(&mut base.0, other.0);
+    }
+}
+#[automatically_derived]
+impl<T> crate::SelectiveOp<T> for Dual<T>
+where
+    T: crate::Selective,
+{
+    fn lift_select(base: &T, other: &T) -> crate::Selected {
+        let select: fn(&T, &T) -> crate::Selected = {
+            #[allow(unused_imports)]
+            use crate::SemigroupOp as _;
+            #[allow(unused_imports)]
+            use crate::SelectiveOp as _;
+            #[allow(unused_imports)]
+            use crate::Construction as _;
+            Self::rselect
+        };
+        select(base, other)
+    }
+}
+#[automatically_derived]
+impl<T> crate::Selective for Dual<T>
+where
+    T: crate::Selective,
+{
+    fn select(base: &Self, other: &Self) -> crate::Selected {
+        <Self as crate::SelectiveOp<_>>::lift_select(&base.0, &other.0)
+    }
+}
+#[automatically_derived]
+impl<T> crate::Monoid for Dual<T>
+where
+    T: crate::Monoid,
+{
+    fn identity() -> Self {
+        Default::default()
+    }
+}
+#[automatically_derived]
+impl<T> crate::MonoidOp<T> for Dual<T>
+where
+    Self: crate::SemigroupOp<T> + crate::Monoid,
+{}
+#[automatically_derived]
+impl<T> crate::Commutative for Dual<T>
+where
+    T: crate::Commutative,
+{}
+#[automatically_derived]
+impl<T> crate::CommutativeOp<T> for Dual<T>
+where
+    Self: crate::SemigroupOp<T> + crate::Commutative,
+{}

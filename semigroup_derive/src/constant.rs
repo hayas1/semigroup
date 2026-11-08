@@ -1,9 +1,4 @@
-use syn::{Attribute, Path, parse_quote};
-
-pub const DERIVE_OP: &str = "SemigroupOp";
-pub const DERIVE_SEMIGROUP: &str = "Semigroup";
-pub const ATTR_OP: &str = "semigroup_op";
-pub const ATTR_SEMIGROUP: &str = "semigroup";
+use syn::{Path, parse_quote};
 
 #[derive(Debug, Clone)]
 pub struct Constant {
@@ -19,48 +14,24 @@ pub struct Constant {
     pub path_semigroup_op: Path,
     pub path_selective_op: Path,
     pub path_monoid_op: Path,
-    pub attr_feature_monoid: Option<Attribute>,
+    pub path_commutative_op: Path,
 }
-pub trait ConstantExt {
-    fn constant() -> Constant;
-}
-pub enum External {}
-impl ConstantExt for External {
-    fn constant() -> Constant {
-        Constant {
-            path_semigroup: parse_quote! {::semigroup::Semigroup},
-            path_selective: parse_quote! {::semigroup::Selective},
-            path_selected: parse_quote! {::semigroup::Selected},
-            path_annotated: parse_quote! {::semigroup::Annotated},
-            path_annotate: parse_quote! {::semigroup::Annotate},
-            path_annotate_fields: parse_quote! {::semigroup::AnnotateFields},
-            path_monoid: parse_quote! {::semigroup::Monoid},
-            path_commutative: parse_quote! {::semigroup::Commutative},
-            path_construction_trait: parse_quote! {::semigroup::Construction},
-            path_semigroup_op: parse_quote! {::semigroup::SemigroupOp},
-            path_selective_op: parse_quote! {::semigroup::SelectiveOp},
-            path_monoid_op: parse_quote! {::semigroup::MonoidOp},
-            attr_feature_monoid: None,
-        }
-    }
-}
-pub enum Internal {}
-impl ConstantExt for Internal {
-    fn constant() -> Constant {
-        Constant {
-            path_semigroup: parse_quote! {crate::Semigroup},
-            path_selective: parse_quote! {crate::Selective},
-            path_selected: parse_quote! {crate::Selected},
-            path_annotated: parse_quote! {crate::Annotated},
-            path_annotate: parse_quote! {crate::Annotate},
-            path_annotate_fields: parse_quote! {crate::AnnotateFields},
-            path_monoid: parse_quote! {crate::Monoid},
-            path_commutative: parse_quote! {crate::Commutative},
-            path_construction_trait: parse_quote! {crate::Construction},
-            path_semigroup_op: parse_quote! {crate::SemigroupOp},
-            path_selective_op: parse_quote! {crate::SelectiveOp},
-            path_monoid_op: parse_quote! {crate::MonoidOp},
-            attr_feature_monoid: Some(parse_quote! {#[cfg(feature = "monoid")]}),
+impl Constant {
+    pub fn new(krate: &Path) -> Self {
+        Self {
+            path_semigroup: parse_quote! { #krate::Semigroup },
+            path_selective: parse_quote! { #krate::Selective },
+            path_selected: parse_quote! { #krate::Selected },
+            path_annotated: parse_quote! { #krate::Annotated },
+            path_annotate: parse_quote! { #krate::Annotate },
+            path_annotate_fields: parse_quote! { #krate::AnnotateFields },
+            path_monoid: parse_quote! { #krate::Monoid },
+            path_commutative: parse_quote! { #krate::Commutative },
+            path_construction_trait: parse_quote! { #krate::Construction },
+            path_semigroup_op: parse_quote! { #krate::SemigroupOp },
+            path_selective_op: parse_quote! { #krate::SelectiveOp },
+            path_monoid_op: parse_quote! { #krate::MonoidOp },
+            path_commutative_op: parse_quote! { #krate::CommutativeOp },
         }
     }
 }

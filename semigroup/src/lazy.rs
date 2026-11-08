@@ -1,6 +1,6 @@
 use std::{ops::Index, slice::SliceIndex};
 
-use semigroup_derive::{SemigroupOpPriv, semigroup_properties_doc_priv};
+use semigroup_derive::{Commutative, semigroup_properties_doc};
 
 use crate::{Annotated, Semigroup};
 
@@ -27,10 +27,10 @@ use crate::{Annotated, Semigroup};
 ///
 /// ## Derive
 /// ```
-/// use semigroup::{op::Coalesce, Lazy, Semigroup};
+/// use semigroup::{op::Coalesce, Lazy, Semigroup, AnnotateFields};
 ///
-/// #[derive(Debug, Clone, Copy, PartialEq, Semigroup)]
-/// #[semigroup(properties(annotated), with = "semigroup::op::Coalesce")]
+/// #[derive(Debug, Clone, Copy, PartialEq, Semigroup, AnnotateFields)]
+/// #[semigroup(with = "semigroup::op::Coalesce")]
 /// struct ExampleStruct<'a> {
 ///     num: Option<u32>,
 ///     str: Option<&'a str>,
@@ -46,13 +46,9 @@ use crate::{Annotated, Semigroup};
 /// assert_eq!(lazy.clone().map_combine(|x| Coalesce(x.num)), Coalesce(Some(1)));
 /// assert_eq!(lazy.map_rcombine(|x| Coalesce(x.str)), Coalesce(Some("ten")));
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, SemigroupOpPriv)]
-#[semigroup_op(
-    properties(commutative),
-    bound(commutative = "T: crate::Commutative"),
-    hidden_inner
-)]
-#[semigroup_properties_doc_priv]
+#[semigroup_properties_doc]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Commutative)]
+#[semigroup(bound(commutative = "T: crate::Commutative"), crate = crate)]
 pub struct Lazy<T>(Vec<T>);
 impl<T> Semigroup for Lazy<T> {
     fn op_assign(base: &mut Self, other: Self) {

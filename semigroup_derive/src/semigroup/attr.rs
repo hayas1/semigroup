@@ -1,39 +1,49 @@
-use darling::{FromDeriveInput, FromField};
+use darling::{FromDeriveInput, FromField, FromMeta};
 use syn::{
-    AngleBracketedGenericArguments, DeriveInput, Expr, ExprPath, Field, GenericArgument,
+    AngleBracketedGenericArguments, DeriveInput, Expr, ExprPath, Field, GenericArgument, Ident,
     PathArguments, Type, TypePath, parse_quote,
 };
 
-use crate::{
-    attr::{DeriveAttr, Property},
-    error::SemigroupError,
-};
+use crate::attr::DeriveAttr;
+
+#[derive(Debug, Clone, Default, PartialEq, FromMeta)]
+#[darling(default)]
+pub struct Impls {
+    monoid: Option<Expr>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, FromMeta)]
+#[darling(default, from_word = || Ok(Self::default()))]
+pub struct AnnotatedArgs {
+    param: Option<Ident>,
+}
 
 #[derive(Debug, Clone, PartialEq, FromDeriveInput)]
-#[darling(attributes(semigroup), and_then = Self::validate)]
+#[darling(attributes(semigroup))]
 pub struct ContainerAttr {
     #[darling(flatten)]
     derive_attr: DeriveAttr,
+    #[darling(rename = "impl", default)]
+    impls: Impls,
+    #[darling(default)]
+    annotated: AnnotatedArgs,
     with: Option<Expr>,
 }
 impl ContainerAttr {
     pub fn new(derive: &DeriveInput) -> syn::Result<Self> {
         Ok(Self::from_derive_input(derive)?)
     }
-    fn validate(self) -> darling::Result<Self> {
-        let Self { derive_attr, .. } = &self;
-        if derive_attr.implements(Property::Selective) {
-            return Err(darling::Error::custom(SemigroupError::UnsupportedProperty(
-                Property::Selective,
-            )));
-        }
-        if !derive_attr.derives(Property::Semigroup) {
-            return Err(darling::Error::custom(SemigroupError::ManualSemigroupImpl));
-        }
-        Ok(self)
-    }
     pub fn derive_attr(&self) -> &DeriveAttr {
         &self.derive_attr
+    }
+    pub fn identity(&self) -> Option<&Expr> {
+        self.impls.monoid.as_ref()
+    }
+    pub fn annotation_param(&self) -> Ident {
+        self.annotated
+            .param
+            .clone()
+            .unwrap_or_else(|| parse_quote! { A })
     }
 }
 
@@ -178,36 +188,36 @@ mod tests {
     #[rstest]
     #[case::ok(
         syn::parse_quote! {
-            #[derive(Semigroup)]
-            #[semigroup(properties(annotated(param = B), monoid), with = "semigroup::op::Coalesce")]
+            #[derive(Semigroup, Monoid, AnnotateFields)]
+            #[semigroup(
+                impl(monoid = Self { num: None }),
+                annotated(param = B),
+                with = "semigroup::op::Coalesce",
+            )]
             pub struct NamedStruct {}
         },
         Ok(ContainerAttr {
-            derive_attr: <DeriveAttr as darling::FromMeta>::from_list(
-                &darling::ast::NestedMeta::parse_meta_list(quote::quote! {
-                    properties(annotated(param = B), monoid)
-                })
-                .unwrap(),
-            )
-            .unwrap(),
+            derive_attr: DeriveAttr::default(),
+            impls: Impls { monoid: Some(parse_quote! { Self { num: None } }) },
+            annotated: AnnotatedArgs { param: Some(parse_quote! { B }) },
             with: Some(parse_quote! { semigroup::op::Coalesce }),
         }),
     )]
-    #[case::identity_at_top_level(
+    #[case::impl_of_op(
         syn::parse_quote! {
             #[derive(Semigroup)]
-            #[semigroup(identity = ())]
+            #[semigroup(impl(semigroup = |_, _| ()))]
             pub struct UnnamedStruct();
         },
-        Err("Unknown field: `identity`. Available values: `bound`, `manual_impl`, `properties`, `with`"),
+        Err("Unknown field: `semigroup`. Available values: `monoid`"),
     )]
-    #[case::selective(
+    #[case::legacy_properties(
         syn::parse_quote! {
             #[derive(Semigroup)]
-            #[semigroup(properties(selective))]
+            #[semigroup(properties(monoid))]
             pub struct UnnamedStruct();
         },
-        Err("derive Semigroup does not support property `selective`"),
+        Err("Unknown field: `properties`. Available values: `annotated`, `bound`, `crate`, `impl`, `with`"),
     )]
     fn test_semigroup_container_attr(
         #[case] input: DeriveInput,

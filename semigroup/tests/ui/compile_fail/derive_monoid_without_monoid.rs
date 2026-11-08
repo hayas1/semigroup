@@ -1,7 +1,7 @@
-use semigroup::Semigroup;
+use semigroup::{Monoid, Semigroup};
 
-#[derive(Debug, Clone, PartialEq, Semigroup)]
-#[semigroup(properties(monoid), with = "semigroup::op::Coalesce")]
+#[derive(Debug, Clone, PartialEq, Semigroup, Monoid)]
+#[semigroup(with = "semigroup::op::Coalesce")]
 pub struct NamedStruct {
     pub num: Option<u32>,
     #[semigroup(with = "semigroup::op::Last")]

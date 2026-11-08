@@ -10,6 +10,8 @@ expression: formatted
 ///|  impl |          ✅         |         ❌        |           ❌           |
 ///| where |      `T: Clone`     |                   |                        |
 ///<!-- properties end -->
+#[derive(Semigroup, AnnotateFields)]
+#[semigroup(bound(annotated = "T: Clone"), crate = crate)]
 pub struct Config<T> {
     pub value: T,
 }

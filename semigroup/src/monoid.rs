@@ -1,6 +1,6 @@
-use semigroup_derive::{SemigroupOpPriv, semigroup_properties_doc_priv};
+use semigroup_derive::{CommutativeOp, MonoidOp, SemigroupOp, semigroup_properties_doc};
 
-use crate::{Semigroup, SemigroupOp};
+use crate::Semigroup;
 
 /// [`Monoid`] represents a binary operation that satisfies the following properties
 /// 1. *Closure*: `op: T × T → T`
@@ -9,11 +9,11 @@ use crate::{Semigroup, SemigroupOp};
 ///
 /// # Examples
 /// ## Deriving
-/// [`Monoid`] can be derived like [`Semigroup`], use `monoid` attribute.
+/// [`Monoid`] can be derived like [`Semigroup`].
 /// ```
 /// use semigroup::{Semigroup, Monoid};
-/// #[derive(Debug, Clone, PartialEq, Default, Semigroup)]
-/// #[semigroup(properties(monoid), with = "semigroup::op::Coalesce")]
+/// #[derive(Debug, Clone, PartialEq, Default, Semigroup, Monoid)]
+/// #[semigroup(with = "semigroup::op::Coalesce")]
 /// pub struct ExampleStruct<'a> {
 ///     pub str: Option<&'a str>,
 ///     #[semigroup(with = "semigroup::op::Sum")]
@@ -30,20 +30,15 @@ use crate::{Semigroup, SemigroupOp};
 /// ```
 ///
 /// ## Construction
-/// [`Monoid`] can be constructed by [`crate::MonoidOp`] like [`Semigroup`], use `monoid` attribute.
+/// [`Monoid`] can be constructed by [`crate::MonoidOp`] like [`Semigroup`], with `#[derive(MonoidOp)]`.
 ///
 /// Some operations are already provided by [`crate::op`].
 /// ```
-/// use semigroup::{Semigroup, SemigroupOp, Monoid};
+/// use semigroup::{Semigroup, SemigroupOp, Monoid, MonoidOp};
 ///
-/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
-/// #[semigroup_op(properties(monoid(identity = Self(0))))]
+/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp, MonoidOp)]
+/// #[semigroup_op(impl(semigroup = |base, other| *base += other, monoid = Self(0)))]
 /// pub struct Sum(u64);
-/// impl SemigroupOp<u64> for Sum {
-///     fn lift_op_assign(base: &mut u64, other: u64) {
-///         *base += other;
-///     }
-/// }
 /// let (a, b, c) = (Sum::identity(), Sum(2), Sum(3));
 /// // #[test]
 /// semigroup::assert_monoid!(&a, &b, &c);
@@ -71,10 +66,9 @@ pub trait Monoid: Semigroup {
 /// In [`Semigroup`] operations of [`crate::op::Min`] and [`crate::op::Max`], [`std::time::Instant`] does not have a suitable *identity element* for extension to a [`Monoid`].
 /// ```compile_fail
 /// use std::time::{Duration, Instant};
-/// use semigroup::{Semigroup, Monoid, OptionMonoid};
+/// use semigroup::{Semigroup, Monoid, OptionMonoid, Commutative};
 ///
-/// #[derive(Debug, Clone, PartialEq, Semigroup)]
-/// #[semigroup(properties(monoid, commutative))]
+/// #[derive(Debug, Clone, PartialEq, Semigroup, Monoid, Commutative)]
 /// pub struct BoundingDuration {
 ///     #[semigroup(with = "semigroup::op::Min")]
 ///     start: Instant,
@@ -91,10 +85,9 @@ pub trait Monoid: Semigroup {
 /// In such case, [`OptionMonoid`] is useful.
 /// ```
 /// use std::time::{Duration, Instant};
-/// use semigroup::{Semigroup, Monoid, OptionMonoid};
+/// use semigroup::{Semigroup, Monoid, OptionMonoid, Commutative};
 ///
-/// #[derive(Debug, Clone, PartialEq, Semigroup)]
-/// #[semigroup(properties(commutative))]
+/// #[derive(Debug, Clone, PartialEq, Semigroup, Commutative)]
 /// pub struct BoundingDuration {
 ///     #[semigroup(with = "semigroup::op::Min")]
 ///     start: Instant,
@@ -118,25 +111,37 @@ pub trait Monoid: Semigroup {
 /// }
 /// assert_eq!(bd.as_ref().unwrap().duration(), Duration::from_millis(250));
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
-#[semigroup_op(
-    properties(monoid(identity = Self(None)), commutative),
-    bound(commutative = "T: crate::Commutative"),
+#[semigroup_properties_doc]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Default,
+    Hash,
+    SemigroupOp,
+    MonoidOp,
+    CommutativeOp,
 )]
-#[semigroup_properties_doc_priv]
+#[semigroup_op(
+    impl(
+        semigroup = |base, other| match (base, other) {
+            (Some(b), Some(o)) => Semigroup::op_assign(b, o),
+            (_, None) => {}
+            (b @ None, o @ Some(_)) => *b = o,
+        },
+        monoid = Self(None),
+    ),
+    bound(commutative = "T: crate::Commutative"),
+    crate = crate,
+)]
 pub struct OptionMonoid<T: Semigroup>(pub Option<T>);
 impl<T: Semigroup> From<T> for OptionMonoid<T> {
     fn from(value: T) -> Self {
         Self(Some(value))
-    }
-}
-impl<T: Semigroup> SemigroupOp<Option<T>> for OptionMonoid<T> {
-    fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {
-        match (base, other) {
-            (Some(b), Some(o)) => Semigroup::op_assign(b, o),
-            (_, None) => {}
-            (b @ None, o @ Some(_)) => *b = o,
-        }
     }
 }
 
@@ -195,15 +200,10 @@ pub mod test_monoid {
     /// # Panics
     /// - If the given function does not satisfy the *monoid* property.
     /// ```should_panic
-    /// use semigroup::{assert_monoid, SemigroupOp, Semigroup};
-    /// #[derive(Debug, Clone, PartialEq, SemigroupOp)]
-    /// #[semigroup_op(properties(monoid(identity = Self(0))))]
+    /// use semigroup::{assert_monoid, SemigroupOp, Semigroup, MonoidOp};
+    /// #[derive(Debug, Clone, PartialEq, SemigroupOp, MonoidOp)]
+    /// #[semigroup_op(impl(semigroup = |base, other| *base -= other, monoid = Self(0)))]
     /// pub struct Sub(i32);
-    /// impl SemigroupOp<i32> for Sub {
-    ///     fn lift_op_assign(base: &mut i32, other: i32) {
-    ///         *base -= other;
-    ///     }
-    /// }
     /// let a = Sub(1);
     /// let b = Sub(2);
     /// let c = Sub(3);

@@ -46,8 +46,8 @@ assert_eq!(config, Config { num: Some(1), str: Some("ten"), boolean: true });
 More detail is in [`Annotate`](https://docs.rs/semigroup/latest/semigroup/annotate/trait.Annotate.html) and [`Lazy`](https://docs.rs/semigroup/latest/semigroup/lazy/struct.Lazy.html).
 ```rust
 use semigroup::{Annotate, AnnotateFields, Lazy, Semigroup};
-#[derive(Debug, Clone, PartialEq, Semigroup)]
-#[semigroup(properties(annotated), with = "semigroup::op::Coalesce")]
+#[derive(Debug, Clone, PartialEq, Semigroup, AnnotateFields)]
+#[semigroup(with = "semigroup::op::Coalesce")]
 pub struct Config<'a> {
     pub num: Option<u32>,
     pub str: Option<&'a str>,
@@ -93,8 +93,8 @@ first / last, ...).
 | | [`Semigroup`](https://docs.rs/semigroup/latest/semigroup/semigroup/trait.Semigroup.html) | [`Annotate`](https://docs.rs/semigroup/latest/semigroup/annotate/trait.Annotate.html) | [`Monoid`](https://docs.rs/semigroup/latest/semigroup/monoid/trait.Monoid.html) | [`Commutative`](https://docs.rs/semigroup/latest/semigroup/commutative/trait.Commutative.html) |
 | :---: | :---: | :---: | :---: | :---: |
 | **property** | *associativity* | *annotation* | *identity element* | *commutativity* |
-| **`#[derive(Semigroup)]`** <br> **`#[semigroup(properties(...))]`** | | `annotated` | `monoid` | `commutative` |
-| **`#[derive(SemigroupOp)]`** <br> **`#[semigroup_op(properties(...))]`** | | `selective` | `monoid` | `commutative` |
+| **derive** <br> **`#[semigroup(...)]`** | `Semigroup` | `AnnotateFields` | `Monoid` | `Commutative` |
+| **derive for op** <br> **`#[semigroup_op(...)]`** | `SemigroupOp` | `SelectiveOp` | `MonoidOp` | `CommutativeOp` |
 | **testing** | [`assert_semigroup!`](https://docs.rs/semigroup/latest/semigroup/macro.assert_semigroup.html) |  | [`assert_monoid!`](https://docs.rs/semigroup/latest/semigroup/macro.assert_monoid.html) | [`assert_commutative!`](https://docs.rs/semigroup/latest/semigroup/macro.assert_commutative.html) |
 | **typical combiner** | [`CombineIterator`](https://docs.rs/semigroup/latest/semigroup/combine/trait.CombineIterator.html) | [`Lazy`](https://docs.rs/semigroup/latest/semigroup/lazy/struct.Lazy.html) | [`SegmentTree`](https://docs.rs/semigroup/latest/semigroup/segment_tree/struct.SegmentTree.html) | [`CombineStream`](https://docs.rs/semigroup/latest/semigroup/concurrent/trait.CombineStream.html) |
 

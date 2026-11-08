@@ -1,5 +1,5 @@
 error: expected `:`
- --> tests/ui/monoid/invalid_bound.rs:4:82
+ --> tests/ui/monoid/invalid_bound.rs:4:63
   |
-4 | #[semigroup_op(properties(monoid(identity = Self(T::default()))), bound(monoid = "T Default"))]
-  |                                                                                  ^^^^^^^^^^^
+4 | #[semigroup_op(impl(semigroup = |_, _| {}), bound(semigroup = "T Default"))]
+  |                                                               ^^^^^^^^^^^

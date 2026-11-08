@@ -1,14 +1,12 @@
 use std::{
-    collections::{BTreeMap, BTreeSet, btree_map::Entry},
+    collections::{BTreeMap, btree_map::Entry},
     fmt::{Display, Formatter},
 };
 
 use darling::{FromMeta, ast::NestedMeta};
-use syn::{
-    Expr, Generics, Ident, Meta, Token, WherePredicate, parse_quote, punctuated::Punctuated,
-};
+use syn::{Generics, Meta, Path, Token, WherePredicate, parse_quote, punctuated::Punctuated};
 
-use crate::error::AttrError;
+use crate::constant::Constant;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Property {
@@ -42,19 +40,11 @@ impl Property {
         }
     }
 
-    // `annotated` generates a struct rather than an impl, and `commutative` is a marker with nothing to write.
-    fn implementable_by_hand(self) -> bool {
-        matches!(self, Self::Semigroup | Self::Selective | Self::Monoid)
-    }
-
-    fn parse_list(
-        items: &[NestedMeta],
-        accepts: impl Fn(Self) -> bool,
-    ) -> darling::Result<BTreeMap<Self, &Meta>> {
+    fn parse_list(items: &[NestedMeta]) -> darling::Result<BTreeMap<Self, &Meta>> {
         let mut parsed = BTreeMap::new();
         let mut errors = darling::Error::accumulator();
         for item in items {
-            if let Some((property, meta)) = errors.handle(Self::parse_item(item, &accepts)) {
+            if let Some((property, meta)) = errors.handle(Self::parse_item(item)) {
                 match parsed.entry(property) {
                     Entry::Vacant(entry) => {
                         entry.insert(meta);
@@ -67,20 +57,16 @@ impl Property {
         errors.finish_with(parsed)
     }
 
-    fn parse_item(
-        item: &NestedMeta,
-        accepts: impl Fn(Self) -> bool,
-    ) -> darling::Result<(Self, &Meta)> {
+    fn parse_item(item: &NestedMeta) -> darling::Result<(Self, &Meta)> {
         let NestedMeta::Meta(meta) = item else {
             return Err(darling::Error::unsupported_format("literal").with_span(item));
         };
-        let accepted = Self::ALL.into_iter().filter(|&p| accepts(p));
-        accepted
-            .clone()
+        Self::ALL
+            .into_iter()
             .find(|p| meta.path().is_ident(p.name()))
             .map(|p| (p, meta))
             .ok_or_else(|| {
-                let mut names: Vec<_> = accepted.map(Self::name).collect();
+                let mut names: Vec<_> = Self::ALL.into_iter().map(Self::name).collect();
                 names.sort();
                 let field = quote::ToTokens::to_token_stream(meta.path()).to_string();
                 darling::Error::unknown_field_with_alts(&field, &names).with_span(meta.path())
@@ -114,64 +100,6 @@ impl Bound {
     }
 }
 
-pub type SemigroupArgs = ();
-
-#[derive(Debug, Clone, Default, PartialEq, FromMeta)]
-#[darling(default, from_word = || Ok(Self::default()))]
-pub struct AnnotatedArgs {
-    param: Option<Ident>,
-}
-
-pub type SelectiveArgs = ();
-
-#[derive(Debug, Clone, Default, PartialEq, FromMeta)]
-#[darling(default, from_word = || Ok(Self::default()))]
-pub struct MonoidArgs {
-    identity: Option<Expr>,
-}
-
-pub type CommutativeArgs = ();
-
-#[derive(Debug, Clone, Default, PartialEq, FromMeta)]
-#[darling(default)]
-pub struct Properties {
-    semigroup: Option<SemigroupArgs>,
-    annotated: Option<AnnotatedArgs>,
-    selective: Option<SelectiveArgs>,
-    monoid: Option<MonoidArgs>,
-    commutative: Option<CommutativeArgs>,
-}
-impl Properties {
-    fn lists(&self, property: Property) -> bool {
-        match property {
-            Property::Semigroup => self.semigroup.is_some(),
-            Property::Annotated => self.annotated.is_some(),
-            Property::Selective => self.selective.is_some(),
-            Property::Monoid => self.monoid.is_some(),
-            Property::Commutative => self.commutative.is_some(),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Default, PartialEq)]
-pub struct ManualImpl(BTreeSet<Property>);
-impl FromMeta for ManualImpl {
-    fn from_list(items: &[NestedMeta]) -> darling::Result<Self> {
-        let parsed = Property::parse_list(items, Property::implementable_by_hand)?;
-        let mut manual = BTreeSet::new();
-        let mut errors = darling::Error::accumulator();
-        for (property, meta) in parsed {
-            if errors
-                .handle(<()>::from_meta(meta).map_err(|e| e.at(property.name())))
-                .is_some()
-            {
-                manual.insert(property);
-            }
-        }
-        errors.finish_with(Self(manual))
-    }
-}
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum BoundAttr {
     Every(Bound),
@@ -187,7 +115,7 @@ impl FromMeta for BoundAttr {
         Ok(Self::Every(Bound::from_value(value)?))
     }
     fn from_list(items: &[NestedMeta]) -> darling::Result<Self> {
-        let parsed = Property::parse_list(items, |_| true)?;
+        let parsed = Property::parse_list(items)?;
         let mut each = BTreeMap::new();
         let mut errors = darling::Error::accumulator();
         for (property, meta) in parsed {
@@ -207,54 +135,23 @@ impl BoundAttr {
             Self::Each(each) => each.get(&property),
         }
     }
-    fn named(&self) -> impl Iterator<Item = &Property> {
-        let each = match self {
-            Self::Every(_) => None,
-            Self::Each(each) => Some(each),
-        };
-        each.into_iter().flat_map(BTreeMap::keys)
-    }
 }
 
 #[derive(Debug, Clone, Default, PartialEq, FromMeta)]
-#[darling(default, and_then = Self::validate)]
+#[darling(default)]
 pub struct DeriveAttr {
-    properties: Properties,
-    manual_impl: ManualImpl,
     bound: BoundAttr,
+    #[darling(rename = "crate")]
+    krate: Option<Path>,
 }
 impl DeriveAttr {
-    fn validate(self) -> darling::Result<Self> {
-        let mut errors = darling::Error::accumulator();
-        for &property in self.manual_impl.0.iter().filter(|&&p| !self.implements(p)) {
-            errors.push(darling::Error::custom(
-                AttrError::ManualImplWithoutProperty(property),
-            ));
-        }
-        for &property in self.bound.named().filter(|&&p| !self.implements(p)) {
-            errors.push(darling::Error::custom(AttrError::BoundWithoutProperty(
-                property,
-            )));
-        }
-        errors.finish_with(self)
+    pub fn constant(&self) -> Constant {
+        Constant::new(&self.krate())
     }
-
-    pub fn implements(&self, property: Property) -> bool {
-        property == Property::Semigroup || self.properties.lists(property)
-    }
-    pub fn derives(&self, property: Property) -> bool {
-        self.implements(property) && !self.manual_impl.0.contains(&property)
-    }
-
-    pub fn annotation_param(&self) -> Ident {
-        self.properties
-            .annotated
-            .as_ref()
-            .and_then(|annotated| annotated.param.clone())
-            .unwrap_or_else(|| parse_quote! { A })
-    }
-    pub fn identity(&self) -> Option<&Expr> {
-        self.properties.monoid.as_ref()?.identity.as_ref()
+    pub fn krate(&self) -> Path {
+        self.krate
+            .clone()
+            .unwrap_or_else(|| parse_quote! { ::semigroup })
     }
 
     pub fn bound(&self, property: Property) -> Option<&Bound> {
@@ -298,33 +195,15 @@ mod tests {
     }
 
     #[rstest]
-    #[case::words(
-        quote::quote! { properties(selective, monoid, commutative) },
+    #[case::empty(quote::quote! {}, Ok(DeriveAttr::default()))]
+    #[case::bound_for_each_impl(
+        quote::quote! { bound(semigroup = "T: Clone", monoid = "T: Zero, T: Copy") },
         Ok(DeriveAttr {
-            properties: Properties {
-                selective: Some(()),
-                monoid: Some(MonoidArgs::default()),
-                commutative: Some(()),
-                ..Default::default()
-            },
+            bound: BoundAttr::Each(BTreeMap::from([
+                (Property::Semigroup, bound("T: Clone")),
+                (Property::Monoid, bound("T: Zero, T: Copy")),
+            ])),
             ..Default::default()
-        }),
-    )]
-    #[case::lists(
-        quote::quote! {
-            properties(annotated(param = B), selective, monoid(identity = Self(T::zero()))),
-            manual_impl(semigroup, selective),
-            bound(monoid = "T: Zero, T: Copy"),
-        },
-        Ok(DeriveAttr {
-            properties: Properties {
-                annotated: Some(AnnotatedArgs { param: Some(syn::parse_quote! { B }) }),
-                selective: Some(()),
-                monoid: Some(MonoidArgs { identity: Some(syn::parse_quote! { Self(T::zero()) }) }),
-                ..Default::default()
-            },
-            manual_impl: ManualImpl(BTreeSet::from([Property::Semigroup, Property::Selective])),
-            bound: BoundAttr::Each(BTreeMap::from([(Property::Monoid, bound("T: Zero, T: Copy"))])),
         }),
     )]
     #[case::bound_for_every_impl(
@@ -334,37 +213,24 @@ mod tests {
             ..Default::default()
         }),
     )]
-    #[case::typo(
-        quote::quote! { properties(monoid(identiti = Self(0))) },
-        Err("Unknown field: `identiti`. Did you mean `identity`? at properties/monoid"),
+    #[case::krate(
+        quote::quote! { crate = crate },
+        Ok(DeriveAttr {
+            krate: Some(parse_quote! { crate }),
+            ..Default::default()
+        }),
     )]
     #[case::invalid_bound(
-        quote::quote! { properties(monoid), bound(monoid = "T Zero") },
+        quote::quote! { bound(monoid = "T Zero") },
         Err("expected `:` at bound/monoid"),
-    )]
-    #[case::unknown_property(
-        quote::quote! { properties(monoids) },
-        Err("Unknown field: `monoids`. Did you mean `monoid`? at properties"),
-    )]
-    #[case::duplicate_property(
-        quote::quote! { properties(monoid, monoid) },
-        Err("Duplicate field `monoid` at properties"),
-    )]
-    #[case::manual_impl_of_marker(
-        quote::quote! { properties(commutative), manual_impl(commutative) },
-        Err("Unknown field: `commutative`. Available values: `monoid`, `selective`, `semigroup` at manual_impl"),
     )]
     #[case::unknown_bound(
         quote::quote! { bound(monoids = "T: Zero") },
         Err("Unknown field: `monoids`. Did you mean `monoid`? at bound"),
     )]
-    #[case::manual_impl_without_property(
-        quote::quote! { manual_impl(monoid) },
-        Err("`manual_impl(monoid)` requires `monoid` in `properties(..)`"),
-    )]
-    #[case::bound_without_property(
-        quote::quote! { bound(commutative = "T: Ord") },
-        Err("`bound(commutative = ..)` requires `commutative` in `properties(..)`"),
+    #[case::duplicate_bound(
+        quote::quote! { bound(monoid = "T: Zero", monoid = "T: One") },
+        Err("Duplicate field `monoid` at bound"),
     )]
     fn test_derive_attr(
         #[case] input: proc_macro2::TokenStream,
@@ -376,5 +242,11 @@ mod tests {
             actual.as_ref().map_err(ToString::to_string),
             expected.as_ref().map_err(ToString::to_string),
         );
+    }
+
+    #[test]
+    fn test_krate_default() {
+        let expected: Path = parse_quote! { ::semigroup };
+        assert_eq!(DeriveAttr::default().krate(), expected);
     }
 }

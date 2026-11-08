@@ -1,5 +1,5 @@
 error: unexpected token
- --> tests/ui/monoid/semigroup_properties_doc_arguments.rs:7:28
+ --> tests/ui/monoid/semigroup_properties_doc_arguments.rs:5:28
   |
-7 | #[semigroup_properties_doc(selective)]
+5 | #[semigroup_properties_doc(selective)]
   |                            ^^^^^^^^^

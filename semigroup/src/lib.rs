@@ -45,8 +45,8 @@
 //! More detail is in [`Annotate`] and [`Lazy`].
 //! ```
 //! use semigroup::{Annotate, AnnotateFields, Lazy, Semigroup};
-//! #[derive(Debug, Clone, PartialEq, Semigroup)]
-//! #[semigroup(properties(annotated), with = "semigroup::op::Coalesce")]
+//! #[derive(Debug, Clone, PartialEq, Semigroup, AnnotateFields)]
+//! #[semigroup(with = "semigroup::op::Coalesce")]
 //! pub struct Config<'a> {
 //!     pub num: Option<u32>,
 //!     pub str: Option<&'a str>,
@@ -92,8 +92,8 @@
 //! | | [`Semigroup`] | [`Annotate`] | [`Monoid`] | [`Commutative`] |
 //! | :---: | :---: | :---: | :---: | :---: |
 //! | **property** | *associativity* | *annotation* | *identity element* | *commutativity* |
-//! | **`#[derive(Semigroup)]`** <br> **`#[semigroup(properties(...))]`** | | `annotated` | `monoid` | `commutative` |
-//! | **`#[derive(SemigroupOp)]`** <br> **`#[semigroup_op(properties(...))]`** | | `selective` | `monoid` | `commutative` |
+//! | **derive** <br> **`#[semigroup(...)]`** | `Semigroup` | `AnnotateFields` | `Monoid` | `Commutative` |
+//! | **derive for op** <br> **`#[semigroup_op(...)]`** | `SemigroupOp` | `SelectiveOp` | `MonoidOp` | `CommutativeOp` |
 //! | **testing** | [`assert_semigroup!`] |  | [`assert_monoid!`] | [`assert_commutative!`] |
 //! | **typical combiner** | [`CombineIterator`] | [`Lazy`] | [`SegmentTree`](`segment_tree::SegmentTree`) | [`CombineStream`] |
 //!
@@ -134,4 +134,10 @@ pub use self::{annotate::*, combine::*, commutative::*, construction::*, lazy::*
 
 #[cfg(feature = "derive")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "derive")))]
-pub use semigroup_derive::{Semigroup, SemigroupOp, semigroup_properties_doc};
+pub use semigroup_derive::{
+    AnnotateFields, Commutative, CommutativeOp, SelectiveOp, Semigroup, SemigroupOp,
+    semigroup_properties_doc,
+};
+#[cfg(all(feature = "derive", feature = "monoid"))]
+#[cfg_attr(doc_cfg, doc(cfg(all(feature = "derive", feature = "monoid"))))]
+pub use semigroup_derive::{Monoid, MonoidOp};

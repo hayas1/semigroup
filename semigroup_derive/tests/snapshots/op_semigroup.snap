@@ -1,0 +1,80 @@
+---
+source: semigroup_derive/src/op.rs
+expression: formatted
+---
+#[automatically_derived]
+impl<T> From<T> for Sum<T> {
+    fn from(value: T) -> Self {
+        Sum(value)
+    }
+}
+#[automatically_derived]
+impl<T> std::ops::Deref for Sum<T> {
+    type Target = T;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+#[automatically_derived]
+impl<T> std::ops::DerefMut for Sum<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+#[automatically_derived]
+impl<T> ::semigroup::Construction<T> for Sum<T> {
+    fn into_inner(self) -> T {
+        self.0
+    }
+}
+#[automatically_derived]
+impl<T> ::semigroup::SemigroupOp<T> for Sum<T>
+where
+    T: std::ops::AddAssign + num::Zero,
+{
+    fn lift_op_assign(base: &mut T, other: T) {
+        let op: fn(&mut T, T) = {
+            #[allow(unused_imports)]
+            use ::semigroup::SemigroupOp as _;
+            #[allow(unused_imports)]
+            use ::semigroup::SelectiveOp as _;
+            #[allow(unused_imports)]
+            use ::semigroup::Construction as _;
+            |base, other| *base += other
+        };
+        op(base, other)
+    }
+}
+#[automatically_derived]
+impl<T> ::semigroup::Semigroup for Sum<T>
+where
+    T: std::ops::AddAssign + num::Zero,
+{
+    fn op_assign(base: &mut Self, other: Self) {
+        <Self as ::semigroup::SemigroupOp<_>>::lift_op_assign(&mut base.0, other.0);
+    }
+}
+#[automatically_derived]
+impl<T> ::semigroup::Monoid for Sum<T>
+where
+    T: std::ops::AddAssign + num::Zero,
+{
+    fn identity() -> Self {
+        Self(T::zero())
+    }
+}
+#[automatically_derived]
+impl<T> ::semigroup::MonoidOp<T> for Sum<T>
+where
+    Self: ::semigroup::SemigroupOp<T> + ::semigroup::Monoid,
+{}
+#[automatically_derived]
+impl<T> ::semigroup::Commutative for Sum<T>
+where
+    T: std::ops::AddAssign + num::Zero,
+{}
+#[automatically_derived]
+impl<T> ::semigroup::CommutativeOp<T> for Sum<T>
+where
+    Self: ::semigroup::SemigroupOp<T> + ::semigroup::Commutative,
+{}

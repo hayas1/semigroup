@@ -1,6 +1,6 @@
-use semigroup_derive::{SemigroupOpPriv, semigroup_properties_doc_priv};
+use semigroup_derive::{SelectiveOp, SemigroupOp, semigroup_properties_doc};
 
-use crate::{Selected, SelectiveOp};
+use crate::Selected;
 
 /// A [`Semigroup`](crate::Semigroup) [op construction](crate::SemigroupOp) that returns the first value.
 ///
@@ -17,16 +17,16 @@ use crate::{Selected, SelectiveOp};
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), 1);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
+#[semigroup_properties_doc]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp, SelectiveOp,
+)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[semigroup_op(properties(selective))]
-#[semigroup_properties_doc_priv]
+#[semigroup_op(
+    impl(semigroup = Self::lift_select_assign, selective = |_, _| Selected::Base),
+    crate = crate,
+)]
 pub struct First<T>(pub T);
-impl<T> SelectiveOp<T> for First<T> {
-    fn lift_select(_base: &T, _other: &T) -> Selected {
-        Selected::Base
-    }
-}
 
 #[cfg(test)]
 mod tests {

@@ -1,0 +1,17 @@
+---
+source: semigroup_derive/src/semigroup.rs
+expression: formatted
+---
+#[automatically_derived]
+impl ::semigroup::Semigroup for MonoidStruct {
+    fn op_assign(base: &mut Self, other: Self) {
+        use ::semigroup::SemigroupOp;
+        semigroup::op::Sum::lift_op_assign(&mut base.sum, other.sum);
+    }
+}
+#[automatically_derived]
+impl ::semigroup::Monoid for MonoidStruct {
+    fn identity() -> Self {
+        Self { sum: 0 }
+    }
+}

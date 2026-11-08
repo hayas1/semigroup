@@ -1,0 +1,28 @@
+error: derive SemigroupOp requires `impl(semigroup = ..)`
+ --> tests/ui/semigroup/semigroup_op_without_impl.rs:4:12
+  |
+4 | pub struct Sum(pub u32);
+  |            ^^^
+
+error: derive SelectiveOp requires `impl(selective = ..)`
+ --> tests/ui/semigroup/semigroup_op_without_impl.rs:8:12
+  |
+8 | pub struct Max(pub u32);
+  |            ^^^
+
+error[E0599]: no associated function or constant named `lift_select_assign` found for struct `Max` in the current scope
+ --> tests/ui/semigroup/semigroup_op_without_impl.rs:7:39
+  |
+7 | #[semigroup_op(impl(semigroup = Self::lift_select_assign))]
+  |                                       ^^^^^^^^^^^^^^^^^^ associated function or constant not found in `Max`
+8 | pub struct Max(pub u32);
+  | -------------- associated function or constant `lift_select_assign` not found for this struct
+  |
+  = help: items from traits can only be used if the trait is implemented and in scope
+  = note: the following trait defines an item `lift_select_assign`, perhaps you need to implement it:
+          candidate #1: `SelectiveOp`
+help: there is an associated function `lift_op_assign` with a similar name
+ --> src/construction.rs
+  |
+  |     fn lift_op_assign(base: &mut T, other: T);
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -1,5 +1,5 @@
 //! Attributes of `#[derive(SemigroupOp)]` as written up to 0.6.0, kept to show the errors they get.
-//! From 0.7.0 every property goes in `properties(..)`.
+//! From 0.7.0 each property is a derive, such as `#[derive(Monoid)]`, with its function or value in `impl(..)`.
 use semigroup::SemigroupOp;
 
 #[derive(SemigroupOp)]
