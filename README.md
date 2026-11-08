@@ -46,8 +46,8 @@ assert_eq!(config, Config { num: Some(1), str: Some("ten"), boolean: true });
 More detail is in [`Annotate`](https://docs.rs/semigroup/latest/semigroup/annotate/trait.Annotate.html) and [`Lazy`](https://docs.rs/semigroup/latest/semigroup/lazy/struct.Lazy.html).
 ```rust
 use semigroup::{Annotate, AnnotateFields, Lazy, Semigroup};
-#[derive(Debug, Clone, PartialEq, Semigroup)]
-#[semigroup(properties(annotated), with = "semigroup::op::Coalesce")]
+#[derive(Debug, Clone, PartialEq, Semigroup, AnnotateFields)]
+#[semigroup(with = "semigroup::op::Coalesce")]
 pub struct Config<'a> {
     pub num: Option<u32>,
     pub str: Option<&'a str>,

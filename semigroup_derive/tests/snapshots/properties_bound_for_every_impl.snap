@@ -10,4 +10,16 @@ expression: formatted
 ///|  impl |            ✅           |            ✅           |            ✅           |
 ///| where | `T: Ord + num::Bounded` | `T: Ord + num::Bounded` | `T: Ord + num::Bounded` |
 ///<!-- properties end -->
+#[derive(SemigroupOp, SelectiveOp, MonoidOp, CommutativeOp)]
+#[semigroup_op(
+    impl(
+        semigroup = Self::lift_select_assign,
+        selective = |base,
+        other|if
+        other>base{Selected::Other}else{Selected::Base},
+        monoid = Self(T::min_value()),
+    ),
+    bound = "T: Ord + num::Bounded",
+    crate = crate,
+)]
 pub struct Max<T>(pub T);

@@ -1,6 +1,5 @@
 ---
 source: semigroup_derive/src/properties.rs
-assertion_line: 94
 expression: formatted
 ---
 /// A semigroup construction that returns the first non-`None` value.
@@ -11,4 +10,9 @@ expression: formatted
 ///|  impl |          ✅         |         ✅        |           ❌           |
 ///| where |                     |                   |                        |
 ///<!-- properties end -->
+#[derive(SemigroupOp, SelectiveOp, MonoidOp)]
+#[semigroup_op(
+    impl(semigroup = Self::lift_select_assign, selective = |_, _|Selected::Base),
+    crate = crate,
+)]
 pub struct Coalesce<T>(pub Option<T>);

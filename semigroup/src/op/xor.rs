@@ -1,8 +1,6 @@
 use std::ops::BitXorAssign;
 
-use semigroup_derive::{SemigroupOpPriv, semigroup_properties_doc_priv};
-
-use crate::SemigroupOp;
+use semigroup_derive::{CommutativeOp, SemigroupOp, semigroup_properties_doc};
 
 /// A [`Semigroup`](crate::Semigroup) [op construction](crate::SemigroupOp) that returns the exclusive or.
 /// # Properties
@@ -16,19 +14,18 @@ use crate::SemigroupOp;
 /// let b = Xor(0b100);
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), 0b001);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
+#[semigroup_properties_doc]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp, CommutativeOp,
+)]
+#[cfg_attr(feature = "monoid", derive(semigroup_derive::MonoidOp))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[semigroup_op(
-    properties(monoid(identity = Self(T::zero())), commutative),
+    impl(semigroup = |base, other| *base ^= other, monoid = Self(T::zero())),
     bound(monoid = "T: num::Zero"),
+    crate = crate,
 )]
-#[semigroup_properties_doc_priv]
 pub struct Xor<T: BitXorAssign>(pub T);
-impl<T: BitXorAssign> SemigroupOp<T> for Xor<T> {
-    fn lift_op_assign(base: &mut T, other: T) {
-        *base ^= other;
-    }
-}
 
 #[cfg(test)]
 mod tests {

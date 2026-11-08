@@ -333,15 +333,10 @@ pub mod test_async_semigroup {
     /// # Panics
     /// - If the given function does not satisfy the *async semigroup* property.
     /// ```should_panic
-    /// use semigroup::{assert_async_semigroup, SemigroupOp, Semigroup};
-    /// #[derive(Debug, Clone, PartialEq, SemigroupOp)]
-    /// #[semigroup_op(properties(commutative))]
+    /// use semigroup::{assert_async_semigroup, SemigroupOp, Semigroup, CommutativeOp};
+    /// #[derive(Debug, Clone, PartialEq, SemigroupOp, CommutativeOp)]
+    /// #[semigroup_op(impl(semigroup = |base, other| *base -= other))]
     /// pub struct Sub(i32);
-    /// impl SemigroupOp<i32> for Sub {
-    ///     fn lift_op_assign(base: &mut i32, other: i32) {
-    ///         *base -= other;
-    ///     }
-    /// }
     /// let a = Sub(1);
     /// let b = Sub(2);
     /// let c = Sub(3);
@@ -416,15 +411,10 @@ pub mod test_async_semigroup {
     /// # Panics
     /// - If the given function does not satisfy the *async commutative* property.
     /// ```should_panic
-    /// use semigroup::{assert_async_commutative, SemigroupOp, Semigroup};
-    /// #[derive(Debug, Clone, PartialEq, SemigroupOp)]
-    /// #[semigroup_op(properties(commutative))]
+    /// use semigroup::{assert_async_commutative, SemigroupOp, Semigroup, CommutativeOp};
+    /// #[derive(Debug, Clone, PartialEq, SemigroupOp, CommutativeOp)]
+    /// #[semigroup_op(impl(semigroup = |base, other| *base -= other))]
     /// pub struct Sub(i32);
-    /// impl SemigroupOp<i32> for Sub {
-    ///     fn lift_op_assign(base: &mut i32, other: i32) {
-    ///         *base -= other;
-    ///     }
-    /// }
     /// let a = Sub(1);
     /// let b = Sub(2);
     /// let c = Sub(3);

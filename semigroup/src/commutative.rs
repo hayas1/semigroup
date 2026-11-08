@@ -13,9 +13,8 @@ use crate::Semigroup;
 /// ## Deriving
 /// [`Commutative`] can be derived like [`Semigroup`], use `commutative` attribute.
 /// ```
-/// use semigroup::Semigroup;
-/// #[derive(Debug, Clone, PartialEq, Default, Semigroup)]
-/// #[semigroup(properties(commutative))]
+/// use semigroup::{Commutative, Semigroup};
+/// #[derive(Debug, Clone, PartialEq, Default, Semigroup, Commutative)]
 /// pub struct ExampleStruct {
 ///     #[semigroup(with = "semigroup::op::Sum")]
 ///     pub sum: u32,
@@ -35,16 +34,11 @@ use crate::Semigroup;
 /// ## Construction
 /// [`Commutative`] can be constructed like [`Semigroup`], use `commutative` attribute.
 /// ```
-/// use semigroup::{SemigroupOp, Semigroup};
+/// use semigroup::{SemigroupOp, Semigroup, CommutativeOp};
 ///
-/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
-/// #[semigroup_op(properties(commutative))]
+/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp, CommutativeOp)]
+/// #[semigroup_op(impl(semigroup = |base, other| *base += other))]
 /// pub struct Sum(u64);
-/// impl SemigroupOp<u64> for Sum {
-///     fn lift_op_assign(base: &mut u64, other: u64) {
-///         *base += other;
-///     }
-/// }
 ///
 /// let (a, b, c) = (Sum(1), Sum(2), Sum(3));
 /// // #[test]
@@ -107,15 +101,10 @@ pub mod test_commutative {
     /// # Panics
     /// - If the given function does not satisfy the *commutative* property.
     /// ```should_panic
-    /// use semigroup::{assert_commutative, SemigroupOp, Semigroup};
-    /// #[derive(Debug, Clone, PartialEq, SemigroupOp)]
-    /// #[semigroup_op(properties(commutative))]
+    /// use semigroup::{assert_commutative, SemigroupOp, Semigroup, CommutativeOp};
+    /// #[derive(Debug, Clone, PartialEq, SemigroupOp, CommutativeOp)]
+    /// #[semigroup_op(impl(semigroup = |base, other| *base -= other))]
     /// pub struct Sub(i32);
-    /// impl SemigroupOp<i32> for Sub {
-    ///     fn lift_op_assign(base: &mut i32, other: i32) {
-    ///         *base -= other;
-    ///     }
-    /// }
     /// let a = Sub(1);
     /// let b = Sub(2);
     /// let c = Sub(3);

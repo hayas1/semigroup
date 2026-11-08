@@ -1,0 +1,5 @@
+error: no derive of semigroup is found: place `#[semigroup_properties_doc]` above `#[derive(..)]`
+ --> tests/ui/semigroup/semigroup_properties_doc_below_derive.rs:8:12
+  |
+8 | pub struct Construct<T>(pub T);
+  |            ^^^^^^^^^

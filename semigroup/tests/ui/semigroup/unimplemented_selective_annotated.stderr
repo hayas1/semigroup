@@ -1,7 +1,7 @@
 error[E0599]: no associated function or constant named `lift_select` found for struct `semigroup::op::Sum<_>` in the current scope
- --> tests/ui/semigroup/unimplemented_selective_annotated.rs:3:35
+ --> tests/ui/semigroup/unimplemented_selective_annotated.rs:3:46
   |
-3 | #[derive(Debug, Clone, PartialEq, Semigroup)]
-  |                                   ^^^^^^^^^ associated function or constant not found in `semigroup::op::Sum<_>`
+3 | #[derive(Debug, Clone, PartialEq, Semigroup, AnnotateFields)]
+  |                                              ^^^^^^^^^^^^^^ associated function or constant not found in `semigroup::op::Sum<_>`
   |
-  = note: this error originates in the derive macro `Semigroup` (in Nightly builds, run with -Z macro-backtrace for more info)
+  = note: this error originates in the derive macro `AnnotateFields` (in Nightly builds, run with -Z macro-backtrace for more info)

@@ -1,15 +1,14 @@
-error[E0432]: unresolved import `semigroup`
- --> tests/ui/semigroup/derive_monoid_without_monoid.rs:3:35
+error[E0432]: unresolved import `semigroup::Monoid`
+ --> tests/ui/semigroup/derive_monoid_without_monoid.rs:1:17
   |
-3 | #[derive(Debug, Clone, PartialEq, Semigroup)]
-  |                                   ^^^^^^^^^ no `MonoidOp` in the root
+1 | use semigroup::{Monoid, Semigroup};
+  |                 ^^^^^^ no `Monoid` in the root
   |
-  = note: this error originates in the derive macro `Semigroup` (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error[E0405]: cannot find trait `Monoid` in crate `::semigroup`
- --> tests/ui/semigroup/derive_monoid_without_monoid.rs:3:35
+note: found an item that was configured out
+ --> src/lib.rs
   |
-3 | #[derive(Debug, Clone, PartialEq, Semigroup)]
-  |                                   ^^^^^^^^^ not found in `::semigroup`
-  |
-  = note: this error originates in the derive macro `Semigroup` (in Nightly builds, run with -Z macro-backtrace for more info)
+  | #[cfg(all(feature = "derive", feature = "monoid"))]
+  |                               ------------------ the item is gated behind the `monoid` feature
+  | #[cfg_attr(doc_cfg, doc(cfg(all(feature = "derive", feature = "monoid"))))]
+  | pub use semigroup_derive::{Monoid, MonoidOp};
+  |                            ^^^^^^

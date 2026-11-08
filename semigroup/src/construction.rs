@@ -14,15 +14,11 @@ pub trait Construction<T>: Sized + From<T> + Deref<Target = T> + DerefMut {
     /// use semigroup::{Construction, SemigroupOp, Semigroup};
     ///
     /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
+    /// #[semigroup_op(impl(semigroup = |base, other| match (&base, &other) {
+    ///         (None, Some(_)) => *base = other,
+    ///         _ => {},
+    ///     }))]
     /// struct Coalesce<T>(Option<T>);
-    /// impl<T> SemigroupOp<Option<T>> for Coalesce<T> {
-    ///     fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {
-    ///         match (&base, &other) {
-    ///             (None, Some(_)) => *base = other,
-    ///             _ => {},
-    ///         }
-    ///     }
-    /// }
     ///
     /// let a = Coalesce(Some(1));
     /// assert_eq!(a.into_inner(), Some(1));
@@ -51,15 +47,11 @@ pub trait SemigroupOp<T>: Semigroup + Construction<T> {
     /// use semigroup::{Construction, SemigroupOp, Semigroup};
     ///
     /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
+    /// #[semigroup_op(impl(semigroup = |base, other| match (&base, &other) {
+    ///         (None, Some(_)) => *base = other,
+    ///         _ => {},
+    ///     }))]
     /// struct Coalesce<T>(Option<T>);
-    /// impl<T> SemigroupOp<Option<T>> for Coalesce<T> {
-    ///     fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {
-    ///         match (&base, &other) {
-    ///             (None, Some(_)) => *base = other,
-    ///             _ => {},
-    ///         }
-    ///     }
-    /// }
     ///
     /// let a = None;
     /// let b = Some(2);
@@ -81,17 +73,12 @@ pub trait SemigroupOp<T>: Semigroup + Construction<T> {
 /// ```
 /// use semigroup::{Construction, SelectiveOp, SemigroupOp, Selected, Semigroup, Annotate};
 ///
-/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
-/// #[semigroup_op(properties(selective))]
+/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp, SelectiveOp)]
+/// #[semigroup_op(impl(semigroup = Self::lift_select_assign, selective = |base, other| match (base, other) {
+///         (None, Some(_)) => Selected::Other,
+///         _ => Selected::Base,
+///     }))]
 /// struct Coalesce<T>(Option<T>);
-/// impl<T> SelectiveOp<Option<T>> for Coalesce<T> {
-///     fn lift_select(base: &Option<T>, other: &Option<T>) -> Selected {
-///         match (base, other) {
-///             (None, Some(_)) => Selected::Other,
-///             _ => Selected::Base,
-///         }
-///     }
-/// }
 ///
 /// let a = Coalesce(None).annotated("first");
 /// let b = Coalesce(Some(2)).annotated("second");
@@ -124,17 +111,12 @@ pub trait MonoidOp<T>: SemigroupOp<T> + crate::Monoid {
     /// ```
     /// use semigroup::{Construction, MonoidOp, SemigroupOp, Semigroup};
     ///
-    /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
-    /// #[semigroup_op(properties(monoid(identity = Self(None))))]
+    /// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp, MonoidOp)]
+    /// #[semigroup_op(impl(semigroup = |base, other| match (&base, &other) {
+    ///         (None, Some(_)) => *base = other,
+    ///         _ => {},
+    ///     }, monoid = Self(None)))]
     /// struct Coalesce<T>(Option<T>);
-    /// impl<T> SemigroupOp<Option<T>> for Coalesce<T> {
-    ///     fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {
-    ///         match (&base, &other) {
-    ///             (None, Some(_)) => *base = other,
-    ///             _ => {},
-    ///         }
-    ///     }
-    /// }
     ///
     /// let a: Option<u32> = Coalesce::lift_identity();
     /// assert_eq!(a, None);

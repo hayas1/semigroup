@@ -3,9 +3,7 @@ use std::{
     hash::Hash,
 };
 
-use semigroup_derive::{SemigroupOpPriv, semigroup_properties_doc_priv};
-
-use crate::SemigroupOp;
+use semigroup_derive::{SemigroupOp, semigroup_properties_doc};
 
 /// A [`Semigroup`](crate::Semigroup) [op construction](crate::SemigroupOp) that intersection two sets.
 /// # Properties
@@ -20,15 +18,14 @@ use crate::SemigroupOp;
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), vec![2, 3].into_iter().collect());
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Default, SemigroupOpPriv)]
+#[semigroup_properties_doc]
+#[derive(Debug, Clone, PartialEq, Eq, Default, SemigroupOp)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[semigroup_properties_doc_priv]
+#[semigroup_op(
+    impl(semigroup = |base, other| base.retain(|k| other.contains(k))),
+    crate = crate,
+)]
 pub struct Intersection<T: Eq + Hash>(pub HashSet<T>);
-impl<T: Eq + Hash> SemigroupOp<HashSet<T>> for Intersection<T> {
-    fn lift_op_assign(base: &mut HashSet<T>, other: HashSet<T>) {
-        base.retain(|k| other.contains(k));
-    }
-}
 
 /// A [`Semigroup`](crate::Semigroup) [op construction](crate::SemigroupOp) that intersection two maps.
 /// # Properties
@@ -43,15 +40,14 @@ impl<T: Eq + Hash> SemigroupOp<HashSet<T>> for Intersection<T> {
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), vec![("two",2), ("three", 3)].into_iter().collect());
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Default, SemigroupOpPriv)]
+#[semigroup_properties_doc]
+#[derive(Debug, Clone, PartialEq, Eq, Default, SemigroupOp)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[semigroup_properties_doc_priv]
+#[semigroup_op(
+    impl(semigroup = |base, other| base.retain(|k, _| other.contains_key(k))),
+    crate = crate,
+)]
 pub struct IntersectionMap<K: Eq + Hash, V>(pub HashMap<K, V>);
-impl<K: Eq + Hash, V> SemigroupOp<HashMap<K, V>> for IntersectionMap<K, V> {
-    fn lift_op_assign(base: &mut HashMap<K, V>, other: HashMap<K, V>) {
-        base.retain(|k, _| other.contains_key(k));
-    }
-}
 
 #[cfg(test)]
 mod tests {

@@ -1,58 +1,58 @@
-error: Unknown field: `selective`. Available values: `bound`, `hidden_inner`, `manual_impl`, `properties`
+error: Unknown field: `selective`. Available values: `bound`, `crate`, `impl`
  --> tests/ui/monoid/legacy_0.6.0_semigroup_op.rs:6:16
   |
 6 | #[semigroup_op(selective)]
   |                ^^^^^^^^^
 
-error: Unknown field: `monoid`. Available values: `bound`, `hidden_inner`, `manual_impl`, `properties`
+error: Unknown field: `monoid`. Available values: `bound`, `crate`, `impl`
   --> tests/ui/monoid/legacy_0.6.0_semigroup_op.rs:10:16
    |
 10 | #[semigroup_op(monoid, identity = Self(T::default()))]
    |                ^^^^^^
 
-error: Unknown field: `identity`. Available values: `bound`, `hidden_inner`, `manual_impl`, `properties`
+error: Unknown field: `identity`. Available values: `bound`, `crate`, `impl`
   --> tests/ui/monoid/legacy_0.6.0_semigroup_op.rs:10:24
    |
 10 | #[semigroup_op(monoid, identity = Self(T::default()))]
    |                        ^^^^^^^^
 
-error: Unknown field: `commutative`. Available values: `bound`, `hidden_inner`, `manual_impl`, `properties`
+error: Unknown field: `commutative`. Available values: `bound`, `crate`, `impl`
   --> tests/ui/monoid/legacy_0.6.0_semigroup_op.rs:14:16
    |
 14 | #[semigroup_op(commutative)]
    |                ^^^^^^^^^^^
 
-error: Unknown field: `semigroup_where`. Available values: `bound`, `hidden_inner`, `manual_impl`, `properties`
+error: Unknown field: `semigroup_where`. Available values: `bound`, `crate`, `impl`
   --> tests/ui/monoid/legacy_0.6.0_semigroup_op.rs:18:16
    |
 18 | #[semigroup_op(semigroup_where = "T: Clone")]
    |                ^^^^^^^^^^^^^^^
 
-error: Unknown field: `selective_where`. Available values: `bound`, `hidden_inner`, `manual_impl`, `properties`
+error: Unknown field: `selective_where`. Available values: `bound`, `crate`, `impl`
   --> tests/ui/monoid/legacy_0.6.0_semigroup_op.rs:22:16
    |
 22 | #[semigroup_op(selective_where = "T: Clone")]
    |                ^^^^^^^^^^^^^^^
 
-error: Unknown field: `monoid_where`. Available values: `bound`, `hidden_inner`, `manual_impl`, `properties`
+error: Unknown field: `monoid_where`. Available values: `bound`, `crate`, `impl`
   --> tests/ui/monoid/legacy_0.6.0_semigroup_op.rs:26:16
    |
 26 | #[semigroup_op(monoid_where = "T: Default")]
    |                ^^^^^^^^^^^^
 
-error: Unknown field: `commutative_where`. Available values: `bound`, `hidden_inner`, `manual_impl`, `properties`
+error: Unknown field: `commutative_where`. Available values: `bound`, `crate`, `impl`
   --> tests/ui/monoid/legacy_0.6.0_semigroup_op.rs:30:16
    |
 30 | #[semigroup_op(commutative_where = "T: Ord")]
    |                ^^^^^^^^^^^^^^^^^
 
-error: Unknown field: `manual_op_impl`. Did you mean `manual_impl`?
+error: Unknown field: `manual_op_impl`. Available values: `bound`, `crate`, `impl`
   --> tests/ui/monoid/legacy_0.6.0_semigroup_op.rs:34:16
    |
 34 | #[semigroup_op(manual_op_impl)]
    |                ^^^^^^^^^^^^^^
 
-error: Unknown field: `without_monoid_impl`. Available values: `bound`, `hidden_inner`, `manual_impl`, `properties`
+error: Unknown field: `without_monoid_impl`. Available values: `bound`, `crate`, `impl`
   --> tests/ui/monoid/legacy_0.6.0_semigroup_op.rs:38:16
    |
 38 | #[semigroup_op(without_monoid_impl)]

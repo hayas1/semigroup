@@ -5,32 +5,25 @@ use std::{
 
 use crate::{
     attr::Property,
-    constant::{DERIVE_OP, DERIVE_SEMIGROUP},
+    derive::{OpDerive, SemigroupDerive},
 };
 
 #[derive(Debug, Clone)]
-pub enum ConstructionError {
-    ExpectNewType,
-    UnsupportedProperty(Property),
-    ManualSemigroupWithoutSelective,
+pub enum SemigroupError {
+    ExpectStruct(SemigroupDerive),
+    BoundRequired(SemigroupDerive, Property),
 }
-impl Error for ConstructionError {}
-impl Display for ConstructionError {
+impl Error for SemigroupError {}
+impl Display for SemigroupError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::ExpectNewType => {
-                write!(f, "derive {DERIVE_OP} only supports newtype structs",)
+            Self::ExpectStruct(derive) => {
+                write!(f, "derive {derive} only supports structs")
             }
-            Self::UnsupportedProperty(property) => {
+            Self::BoundRequired(derive, property) => {
                 write!(
                     f,
-                    "derive {DERIVE_OP} does not support property `{property}`"
-                )
-            }
-            Self::ManualSemigroupWithoutSelective => {
-                write!(
-                    f,
-                    "`manual_impl(semigroup)` of derive {DERIVE_OP} only skips the `SemigroupOp` impl derived from `SelectiveOp`, so it requires `selective`"
+                    "derive {derive} infers its bounds from struct fields, so other items require `bound({property} = ..)`"
                 )
             }
         }
@@ -38,33 +31,20 @@ impl Display for ConstructionError {
 }
 
 #[derive(Debug, Clone)]
-pub enum SemigroupError {
-    UnsupportedEnum,
-    UnsupportedUnion,
-    UnsupportedProperty(Property),
-    ManualSemigroupImpl,
+pub enum OpError {
+    ExpectNewType(OpDerive),
+    ImplRequired(OpDerive),
 }
-impl Error for SemigroupError {}
-impl Display for SemigroupError {
+impl Error for OpError {}
+impl Display for OpError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::UnsupportedEnum => {
-                write!(f, "derive {DERIVE_SEMIGROUP} does not support enums")
+            Self::ExpectNewType(derive) => {
+                write!(f, "derive {derive} only supports newtype structs")
             }
-            Self::UnsupportedUnion => {
-                write!(f, "derive {DERIVE_SEMIGROUP} does not support unions")
-            }
-            Self::UnsupportedProperty(property) => {
-                write!(
-                    f,
-                    "derive {DERIVE_SEMIGROUP} does not support property `{property}`"
-                )
-            }
-            Self::ManualSemigroupImpl => {
-                write!(
-                    f,
-                    "derive {DERIVE_SEMIGROUP} does not support `manual_impl(semigroup)`: deriving the `Semigroup` impl is what it does"
-                )
+            Self::ImplRequired(derive) => {
+                let property = derive.property();
+                write!(f, "derive {derive} requires `impl({property} = ..)`")
             }
         }
     }
@@ -73,37 +53,17 @@ impl Display for SemigroupError {
 #[derive(Debug, Clone)]
 pub enum PropertiesError {
     InvalidDocAttr,
+    DeriveNotFound,
 }
 impl Error for PropertiesError {}
 impl Display for PropertiesError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::InvalidDocAttr => write!(f, "invalid doc attribute"),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub enum AttrError {
-    ManualImplWithoutProperty(Property),
-    BoundWithoutProperty(Property),
-}
-impl Error for AttrError {}
-impl Display for AttrError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::ManualImplWithoutProperty(property) => {
-                write!(
-                    f,
-                    "`manual_impl({property})` requires `{property}` in `properties(..)`"
-                )
-            }
-            Self::BoundWithoutProperty(property) => {
-                write!(
-                    f,
-                    "`bound({property} = ..)` requires `{property}` in `properties(..)`"
-                )
-            }
+            Self::DeriveNotFound => write!(
+                f,
+                "no derive of semigroup is found: place `#[semigroup_properties_doc]` above `#[derive(..)]`"
+            ),
         }
     }
 }

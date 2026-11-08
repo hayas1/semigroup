@@ -24,15 +24,10 @@ pub mod iter;
 ///
 /// ## Custom monoid operator
 /// ```
-/// use semigroup::{Semigroup, SemigroupOp, segment_tree::SegmentTree, Monoid};
-/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp)]
-/// #[semigroup_op(properties(monoid(identity = Self(i32::MIN)), commutative))]
+/// use semigroup::{Semigroup, SemigroupOp, segment_tree::SegmentTree, Monoid, MonoidOp, CommutativeOp};
+/// #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp, MonoidOp, CommutativeOp)]
+/// #[semigroup_op(impl(semigroup = |base, other| *base = std::cmp::max(*base, other), monoid = Self(i32::MIN)))]
 /// struct Max(pub i32);
-/// impl SemigroupOp<i32> for Max {
-///     fn lift_op_assign(base: &mut i32, other: i32) {
-///         *base = std::cmp::max(*base, other);
-///     }
-/// }
 ///
 /// let data = [2, -5, 122, -33, -12, 14, -55, 500, 3];
 /// let mut max_tree: SegmentTree<_> = data.into_iter().map(Max).collect();

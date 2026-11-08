@@ -1,5 +1,5 @@
 use quote::{ToTokens, format_ident};
-use syn::{Block, DeriveInput, Expr, Field, FieldValue, Fields, Member, Stmt, Type, parse_quote};
+use syn::{Block, Expr, Field, FieldValue, Fields, Member, Stmt, Type, parse_quote};
 
 use crate::{
     constant::Constant,
@@ -12,34 +12,37 @@ pub struct FieldSemigroupOp<'a> {
     container_attr: &'a ContainerAttr,
     member: Member,
     ty: &'a Type,
-    field_attr: FieldAttr,
+    field_attr: &'a FieldAttr,
 }
 impl<'a> FieldSemigroupOp<'a> {
     pub fn new(
         constant: &'a Constant,
-        _derive: &'a DeriveInput,
         container_attr: &'a ContainerAttr,
         member: Member,
         field: &'a Field,
-    ) -> syn::Result<Self> {
-        Ok(Self {
+        field_attr: &'a FieldAttr,
+    ) -> Self {
+        Self {
             constant,
             container_attr,
             member,
             ty: &field.ty,
-            field_attr: FieldAttr::new(field)?,
-        })
+            field_attr,
+        }
     }
     pub fn new_fields(
         constant: &'a Constant,
-        derive: &'a DeriveInput,
         container_attr: &'a ContainerAttr,
         fields: &'a Fields,
-    ) -> syn::Result<Vec<Self>> {
+        field_attrs: &'a [FieldAttr],
+    ) -> Vec<Self> {
         fields
             .iter()
             .zip(fields.members())
-            .map(|(field, member)| Self::new(constant, derive, container_attr, member, field))
+            .zip(field_attrs)
+            .map(|((field, member), field_attr)| {
+                Self::new(constant, container_attr, member, field, field_attr)
+            })
             .collect()
     }
 
@@ -158,34 +161,37 @@ pub struct FieldAnnotated<'a> {
     pub container_attr: &'a ContainerAttr,
     pub member: Member,
     pub ty: &'a Type,
-    pub field_attr: FieldAttr,
+    pub field_attr: &'a FieldAttr,
 }
 impl<'a> FieldAnnotated<'a> {
     pub fn new(
         constant: &'a Constant,
-        _derive: &'a DeriveInput,
         container_attr: &'a ContainerAttr,
         member: Member,
         field: &'a Field,
-    ) -> syn::Result<Self> {
-        Ok(Self {
+        field_attr: &'a FieldAttr,
+    ) -> Self {
+        Self {
             constant,
             container_attr,
             member,
             ty: &field.ty,
-            field_attr: FieldAttr::new(field)?,
-        })
+            field_attr,
+        }
     }
     pub fn new_fields(
         constant: &'a Constant,
-        derive: &'a DeriveInput,
         container_attr: &'a ContainerAttr,
         fields: &'a Fields,
-    ) -> syn::Result<Vec<Self>> {
+        field_attrs: &'a [FieldAttr],
+    ) -> Vec<Self> {
         fields
             .iter()
             .zip(fields.members())
-            .map(|(field, member)| Self::new(constant, derive, container_attr, member, field))
+            .zip(field_attrs)
+            .map(|((field, member), field_attr)| {
+                Self::new(constant, container_attr, member, field, field_attr)
+            })
             .collect()
     }
 

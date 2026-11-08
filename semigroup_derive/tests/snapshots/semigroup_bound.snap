@@ -13,25 +13,6 @@ where
         semigroup::op::Sum::lift_op_assign(&mut base.count, other.count);
     }
 }
-#[automatically_derived]
-#[cfg(feature = "monoid")]
-impl<T> crate::Monoid for Tagged<T>
-where
-    T: Semigroup + Clone,
-{
-    fn identity() -> Self {
-        use crate::MonoidOp;
-        Self {
-            value: crate::Monoid::identity(),
-            count: semigroup::op::Sum::lift_identity(),
-        }
-    }
-}
-#[automatically_derived]
-impl<T> crate::Commutative for Tagged<T>
-where
-    T: crate::Commutative,
-{}
 #[derive(Debug, Clone, PartialEq)]
 pub struct TaggedAnnotated<T, B> {
     pub value: crate::Annotated<T, B>,
@@ -91,3 +72,21 @@ impl<T, B> From<TaggedAnnotated<T, B>> for Tagged<T> {
         }
     }
 }
+#[automatically_derived]
+impl<T> crate::Monoid for Tagged<T>
+where
+    T: Semigroup + Clone,
+{
+    fn identity() -> Self {
+        use crate::MonoidOp;
+        Self {
+            value: crate::Monoid::identity(),
+            count: semigroup::op::Sum::lift_identity(),
+        }
+    }
+}
+#[automatically_derived]
+impl<T> crate::Commutative for Tagged<T>
+where
+    T: crate::Commutative,
+{}

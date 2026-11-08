@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use hdrhistogram::{Counter, Histogram};
-use semigroup_derive::{SemigroupOpPriv, SemigroupPriv, semigroup_properties_doc_priv};
+use semigroup_derive::{Commutative, semigroup_properties_doc};
 
 use crate::Semigroup;
 
@@ -40,8 +40,7 @@ use crate::Semigroup;
 ///     Construction, Commutative, CombineStream, Semigroup
 /// };
 ///
-/// #[derive(Debug, Clone, PartialEq, Semigroup)]
-/// #[semigroup(properties(commutative))]
+/// #[derive(Debug, Clone, PartialEq, Semigroup, Commutative)]
 /// pub struct RequestAggregate {
 ///     count: Sum<u64>,
 ///     pass: Sum<u64>,
@@ -122,9 +121,10 @@ use crate::Semigroup;
 /// );
 /// # });
 /// ```
-#[derive(Debug, Clone, PartialEq, SemigroupPriv)]
-#[semigroup(properties(monoid, commutative))]
-#[semigroup_properties_doc_priv]
+#[semigroup_properties_doc]
+#[derive(Debug, Clone, PartialEq, semigroup_derive::Semigroup, Commutative)]
+#[cfg_attr(feature = "monoid", derive(semigroup_derive::Monoid))]
+#[semigroup(crate = crate)]
 pub struct HdrHistogram<C: Counter>(HdrHistogramInner<C>);
 impl<C: Counter, T: Into<HdrHistogramInner<C>>> From<T> for HdrHistogram<C> {
     fn from(value: T) -> Self {
@@ -150,8 +150,13 @@ impl<C: Counter> HdrHistogram<C> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, SemigroupOpPriv)]
-#[semigroup_op(properties(monoid(identity = HdrHistogramInner::new()), commutative), hidden_inner)]
+#[derive(Debug, Clone, PartialEq, Commutative)]
+#[cfg_attr(feature = "monoid", derive(semigroup_derive::Monoid))]
+#[semigroup(
+    impl(monoid = HdrHistogramInner::new()),
+    bound(commutative = ""),
+    crate = crate
+)]
 enum HdrHistogramInner<C: Counter> {
     Value(u64),
     Histogram(Histogram<C>),

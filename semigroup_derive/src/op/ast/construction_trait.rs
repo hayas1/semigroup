@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{DeriveInput, Field, ItemImpl, parse_quote};
 
-use crate::{constant::Constant, op::attr::ContainerAttr};
+use crate::constant::Constant;
 
 #[derive(Debug, Clone)]
 pub struct ConstructionTrait<'a> {
@@ -20,17 +20,12 @@ impl ToTokens for ConstructionTrait<'_> {
     }
 }
 impl<'a> ConstructionTrait<'a> {
-    pub fn new(
-        constant: &'a Constant,
-        derive: &'a DeriveInput,
-        _attr: &'a ContainerAttr,
-        field: &'a Field,
-    ) -> syn::Result<Self> {
-        Ok(Self {
+    pub fn new(constant: &'a Constant, derive: &'a DeriveInput, field: &'a Field) -> Self {
+        Self {
             constant,
             derive,
             field,
-        })
+        }
     }
     pub fn impl_from(&self) -> ItemImpl {
         let Self {

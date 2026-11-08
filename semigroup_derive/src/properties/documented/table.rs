@@ -1,18 +1,15 @@
 use comfy_table::{Cell, CellAlignment, Cells, Row, Table, presets::ASCII_MARKDOWN};
 use syn::ItemStruct;
 
-use crate::{
-    attr::{DeriveAttr, Property},
-    constant::Constant,
-};
+use crate::{attr::Property, constant::Constant, properties::attr::PropertiesAttr};
 
 #[derive(Debug, Clone)]
 pub struct PropertiesTable<'a> {
     constant: &'a Constant,
-    attr: &'a DeriveAttr,
+    attr: &'a PropertiesAttr,
 }
 impl<'a> PropertiesTable<'a> {
-    pub fn new(constant: &'a Constant, attr: &'a DeriveAttr, item: &'a ItemStruct) -> Self {
+    pub fn new(constant: &'a Constant, attr: &'a PropertiesAttr, item: &'a ItemStruct) -> Self {
         let _ = item;
         Self { constant, attr }
     }

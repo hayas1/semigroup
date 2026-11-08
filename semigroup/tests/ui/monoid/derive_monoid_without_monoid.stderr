@@ -1,7 +1,7 @@
 error[E0599]: no associated function or constant named `lift_identity` found for struct `Last<_>` in the current scope
- --> tests/ui/monoid/derive_monoid_without_monoid.rs:3:35
+ --> tests/ui/monoid/derive_monoid_without_monoid.rs:3:46
   |
-3 | #[derive(Debug, Clone, PartialEq, Semigroup)]
-  |                                   ^^^^^^^^^ associated function or constant not found in `Last<_>`
+3 | #[derive(Debug, Clone, PartialEq, Semigroup, Monoid)]
+  |                                              ^^^^^^ associated function or constant not found in `Last<_>`
   |
-  = note: this error originates in the derive macro `Semigroup` (in Nightly builds, run with -Z macro-backtrace for more info)
+  = note: this error originates in the derive macro `Monoid` (in Nightly builds, run with -Z macro-backtrace for more info)

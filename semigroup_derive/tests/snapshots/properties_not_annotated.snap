@@ -1,6 +1,5 @@
 ---
 source: semigroup_derive/src/properties.rs
-assertion_line: 94
 expression: formatted
 ---
 /// A semigroup struct that returns the sum and overwrite.
@@ -11,6 +10,8 @@ expression: formatted
 ///|  impl |            ❌           |           ❌          |             ❌             |
 ///| where |                         |                       |                            |
 ///<!-- properties end -->
+#[derive(Semigroup)]
+#[semigroup(with = "semigroup::op::Last")]
 pub struct UnnamedStruct<T: std::ops::Add>(
     #[semigroup(with = "semigroup::op::Added")]
     T,

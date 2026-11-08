@@ -1,8 +1,9 @@
 use syn::{Attribute, Expr, ExprLit, ItemStruct, Lit, Meta, MetaNameValue, parse_quote};
 
 use crate::{
-    attr::DeriveAttr, constant::Constant, error::PropertiesError,
-    properties::documented::table::PropertiesTable,
+    constant::Constant,
+    error::PropertiesError,
+    properties::{attr::PropertiesAttr, documented::table::PropertiesTable},
 };
 
 #[derive(Debug, Clone)]
@@ -13,7 +14,7 @@ pub struct Content<'a> {
 impl<'a> Content<'a> {
     pub fn new(
         constant: &'a Constant,
-        attr: &'a DeriveAttr,
+        attr: &'a PropertiesAttr,
         item: &'a ItemStruct,
     ) -> syn::Result<Self> {
         Ok(Self {

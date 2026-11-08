@@ -1,6 +1,5 @@
 ---
 source: semigroup_derive/src/op.rs
-assertion_line: 55
 expression: formatted
 ---
 #[automatically_derived]
@@ -31,18 +30,62 @@ impl<T> ::semigroup::Construction<Option<T>> for Coalesce<T> {
 #[automatically_derived]
 impl<T> ::semigroup::SemigroupOp<Option<T>> for Coalesce<T> {
     fn lift_op_assign(base: &mut Option<T>, other: Option<T>) {
-        <Self as ::semigroup::SelectiveOp<Option<T>>>::lift_select_assign(base, other);
+        let op: fn(&mut Option<T>, Option<T>) = {
+            #[allow(unused_imports)]
+            use ::semigroup::SemigroupOp as _;
+            #[allow(unused_imports)]
+            use ::semigroup::SelectiveOp as _;
+            #[allow(unused_imports)]
+            use ::semigroup::Construction as _;
+            Self::lift_select_assign
+        };
+        op(base, other)
     }
 }
 #[automatically_derived]
-impl<T> ::semigroup::Semigroup for Coalesce<T> {
+impl<T> ::semigroup::Semigroup for Coalesce<T>
+where
+    Self: ::semigroup::SemigroupOp<Option<T>>,
+{
     fn op_assign(base: &mut Self, other: Self) {
         <Self as ::semigroup::SemigroupOp<_>>::lift_op_assign(&mut base.0, other.0);
     }
 }
 #[automatically_derived]
-impl<T> ::semigroup::Selective for Coalesce<T> {
+impl<T> ::semigroup::SelectiveOp<Option<T>> for Coalesce<T> {
+    fn lift_select(base: &Option<T>, other: &Option<T>) -> ::semigroup::Selected {
+        let select: fn(&Option<T>, &Option<T>) -> ::semigroup::Selected = {
+            #[allow(unused_imports)]
+            use ::semigroup::SemigroupOp as _;
+            #[allow(unused_imports)]
+            use ::semigroup::SelectiveOp as _;
+            #[allow(unused_imports)]
+            use ::semigroup::Construction as _;
+            |base, other| match (base, other) {
+                (Some(_), _) | (None, None) => Selected::Base,
+                (None, Some(_)) => Selected::Other,
+            }
+        };
+        select(base, other)
+    }
+}
+#[automatically_derived]
+impl<T> ::semigroup::Selective for Coalesce<T>
+where
+    Self: ::semigroup::SelectiveOp<Option<T>>,
+{
     fn select(base: &Self, other: &Self) -> ::semigroup::Selected {
         <Self as ::semigroup::SelectiveOp<_>>::lift_select(&base.0, &other.0)
     }
 }
+#[automatically_derived]
+impl<T> ::semigroup::Monoid for Coalesce<T> {
+    fn identity() -> Self {
+        Self(None)
+    }
+}
+#[automatically_derived]
+impl<T> ::semigroup::MonoidOp<Option<T>> for Coalesce<T>
+where
+    Self: ::semigroup::SemigroupOp<Option<T>> + ::semigroup::Monoid,
+{}

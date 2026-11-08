@@ -1,6 +1,6 @@
-use semigroup_derive::{SemigroupOpPriv, semigroup_properties_doc_priv};
+use semigroup_derive::{SelectiveOp, SemigroupOp, semigroup_properties_doc};
 
-use crate::{Selected, SelectiveOp};
+use crate::Selected;
 
 /// A [`Semigroup`](crate::Semigroup) [op construction](crate::SemigroupOp) that returns the last non-`None` value.
 ///
@@ -17,19 +17,24 @@ use crate::{Selected, SelectiveOp};
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), Some(1));
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
+#[semigroup_properties_doc]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOp, SelectiveOp,
+)]
+#[cfg_attr(feature = "monoid", derive(semigroup_derive::MonoidOp))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[semigroup_op(properties(selective, monoid(identity = Self(None))))]
-#[semigroup_properties_doc_priv]
-pub struct Overwrite<T>(pub Option<T>);
-impl<T> SelectiveOp<Option<T>> for Overwrite<T> {
-    fn lift_select(base: &Option<T>, other: &Option<T>) -> Selected {
-        match (base, other) {
+#[semigroup_op(
+    impl(
+        semigroup = Self::lift_select_assign,
+        selective = |base, other| match (base, other) {
             (Some(_), None) => Selected::Base,
             _ => Selected::Other,
-        }
-    }
-}
+        },
+        monoid = Self(None),
+    ),
+    crate = crate,
+)]
+pub struct Overwrite<T>(pub Option<T>);
 
 #[cfg(test)]
 mod tests {

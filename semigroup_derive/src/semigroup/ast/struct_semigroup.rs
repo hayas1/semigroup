@@ -10,7 +10,7 @@ use crate::{
     constant::Constant,
     semigroup::{
         ast::field_semigroup::{FieldAnnotated, FieldSemigroupOp},
-        attr::ContainerAttr,
+        attr::{ContainerAttr, FieldAttr},
     },
 };
 
@@ -21,27 +21,22 @@ pub struct StructSemigroup<'a> {
     attr: &'a ContainerAttr,
     field_ops: Vec<FieldSemigroupOp<'a>>,
 }
-impl ToTokens for StructSemigroup<'_> {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.impl_semigroup().to_tokens(tokens);
-        self.impl_monoid().to_tokens(tokens);
-        self.impl_commutative().to_tokens(tokens);
-    }
-}
 impl<'a> StructSemigroup<'a> {
     pub fn new(
         constant: &'a Constant,
         derive: &'a DeriveInput,
         attr: &'a ContainerAttr,
         data_struct: &'a DataStruct,
-    ) -> syn::Result<Self> {
-        let field_ops = FieldSemigroupOp::new_fields(constant, derive, attr, &data_struct.fields)?;
-        Ok(Self {
+        field_attrs: &'a [FieldAttr],
+    ) -> Self {
+        let field_ops =
+            FieldSemigroupOp::new_fields(constant, attr, &data_struct.fields, field_attrs);
+        Self {
             constant,
             derive,
             attr,
             field_ops,
-        })
+        }
     }
     pub fn impl_semigroup(&self) -> ItemImpl {
         let Self {
@@ -71,77 +66,50 @@ impl<'a> StructSemigroup<'a> {
             }
         }
     }
-    pub fn impl_monoid(&self) -> Option<ItemImpl> {
+    pub fn fields_identity(&self) -> syn::Result<Vec<FieldValue>> {
+        self.field_ops
+            .iter()
+            .map(FieldSemigroupOp::impl_field_monoid_identity)
+            .collect()
+    }
+    pub fn impl_monoid(&self, fields_identity: &[FieldValue]) -> ItemImpl {
         let Self {
-            constant,
-            derive,
-            field_ops,
-            attr,
-            ..
+            constant, derive, ..
         } = self;
         let Constant {
             path_monoid,
             path_monoid_op,
-            attr_feature_monoid,
             ..
         } = constant;
         let DeriveInput { ident, .. } = derive;
-        let attr = attr.derive_attr();
-        attr.derives(Property::Monoid).then(|| {
-            let g = self.generics_bounded(Property::Monoid, path_monoid);
-            let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
-
-            attr.identity()
-                .map(|expr| {
-                    parse_quote! {
-                        #[automatically_derived]
-                        #attr_feature_monoid
-                        impl #impl_generics #path_monoid for #ident #ty_generics #where_clause {
-                            fn identity() -> Self {
-                                #expr
-                            }
-                        }
+        let g = self.generics_bounded(Property::Monoid, path_monoid);
+        let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
+        parse_quote! {
+            #[automatically_derived]
+            impl #impl_generics #path_monoid for #ident #ty_generics #where_clause {
+                fn identity() -> Self {
+                    use #path_monoid_op;
+                    Self {
+                        #(#fields_identity),*
                     }
-                })
-                .unwrap_or_else(|| {
-                    let fields_op = field_ops.iter().map(|op| {
-                        op.impl_field_monoid_identity()
-                            .unwrap_or_else(|e| todo!("{e}"))
-                    });
-                    parse_quote! {
-                        #[automatically_derived]
-                        #attr_feature_monoid
-                        impl #impl_generics #path_monoid for #ident #ty_generics #where_clause {
-                            fn identity() -> Self {
-                                use #path_monoid_op;
-                                Self {
-                                    #(#fields_op),*
-                                }
-                            }
-                        }
-                    }
-                })
-        })
+                }
+            }
+        }
     }
-    pub fn impl_commutative(&self) -> Option<ItemImpl> {
+    pub fn impl_commutative(&self) -> ItemImpl {
         let Self {
-            constant,
-            derive,
-            attr,
-            ..
+            constant, derive, ..
         } = self;
         let Constant {
             path_commutative, ..
         } = constant;
         let DeriveInput { ident, .. } = derive;
-        attr.derive_attr().derives(Property::Commutative).then(|| {
-            let g = self.generics_bounded(Property::Commutative, path_commutative);
-            let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
-            parse_quote! {
-                #[automatically_derived]
-                impl #impl_generics #path_commutative for #ident #ty_generics #where_clause {}
-            }
-        })
+        let g = self.generics_bounded(Property::Commutative, path_commutative);
+        let (impl_generics, ty_generics, where_clause) = g.split_for_impl();
+        parse_quote! {
+            #[automatically_derived]
+            impl #impl_generics #path_commutative for #ident #ty_generics #where_clause {}
+        }
     }
     fn generics_bounded(&self, property: Property, path_trait: &Path) -> Generics {
         let Self {
@@ -188,19 +156,20 @@ impl<'a> StructAnnotated<'a> {
         derive: &'a DeriveInput,
         attr: &'a ContainerAttr,
         data_struct: &'a DataStruct,
-    ) -> syn::Result<Self> {
+        field_attrs: &'a [FieldAttr],
+    ) -> Self {
         let annotated_ident = Self::annotated_ident(&derive.ident);
         let field_annotated =
-            FieldAnnotated::new_fields(constant, derive, attr, &data_struct.fields)?;
-        Ok(Self {
+            FieldAnnotated::new_fields(constant, attr, &data_struct.fields, field_attrs);
+        Self {
             constant,
             derive,
             attr,
             data_struct,
             annotated_ident,
-            annotation_param: attr.derive_attr().annotation_param(),
+            annotation_param: attr.annotation_param(),
             field_annotated,
-        })
+        }
     }
 
     pub fn annotated_ident(ident: &Ident) -> Ident {

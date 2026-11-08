@@ -1,6 +1,6 @@
-use semigroup_derive::{SemigroupOpPriv, semigroup_properties_doc_priv};
+use semigroup_derive::{CommutativeOp, SelectiveOp, SemigroupOp, semigroup_properties_doc};
 
-use crate::{Construction, Lazy, Selected, Selective, SelectiveOp, Semigroup, SemigroupOp};
+use crate::{Construction, Lazy, Selected, Selective, Semigroup};
 
 /// Extensions for [`Iterator`]s that items implement [`Semigroup`].
 /// Composed of a variety of the 3 main methods
@@ -203,23 +203,37 @@ impl<I: Iterator> CombineIterator for I {}
 /// let d = Config { value: Some(3) };
 /// assert_eq!(c.semigroup(d), Config { value: Some(3) });
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
+#[semigroup_properties_doc]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Default,
+    Hash,
+    SemigroupOp,
+    SelectiveOp,
+    CommutativeOp,
+)]
+#[cfg_attr(feature = "monoid", derive(semigroup_derive::MonoidOp))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[semigroup_op(
-    properties(selective, monoid(identity = Self(T::identity())), commutative),
-    manual_impl(semigroup),
+    impl(semigroup = Self::rop_assign, selective = Self::rselect, monoid = Self(T::identity())),
     bound(
         semigroup = "T: crate::Semigroup",
         selective = "T: crate::Selective",
         monoid = "T: crate::Monoid",
         commutative = "T: crate::Commutative",
     ),
+    crate = crate,
 )]
-#[semigroup_properties_doc_priv]
 pub struct Dual<T>(pub T);
 
-impl<T: Selective> SelectiveOp<T> for Dual<T> {
-    fn lift_select(base: &T, other: &T) -> Selected {
+impl<T: Selective> Dual<T> {
+    fn rselect(base: &T, other: &T) -> Selected {
         match T::select(other, base) {
             Selected::Base => Selected::Other,
             Selected::Other => Selected::Base,
@@ -227,13 +241,13 @@ impl<T: Selective> SelectiveOp<T> for Dual<T> {
     }
 }
 
-impl<T: Semigroup> SemigroupOp<T> for Dual<T> {
+impl<T: Semigroup> Dual<T> {
     /// Reversed operation: computes `*base = T::op(other, *base)`.
     ///
     /// Uses `ptr::read` / `ptr::write` to move out of `&mut T`.
     /// An abort-on-drop guard ensures soundness: if `T::op` panics, the process aborts
     /// rather than leaving `*base` in an invalid state that would cause a double-drop.
-    fn lift_op_assign(base: &mut T, other: T) {
+    fn rop_assign(base: &mut T, other: T) {
         struct AbortOnDrop;
         impl Drop for AbortOnDrop {
             fn drop(&mut self) {

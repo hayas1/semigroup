@@ -1,40 +1,34 @@
-error: Unknown field: `annotated`. Available values: `bound`, `manual_impl`, `properties`, `with`
- --> tests/ui/monoid/legacy_0.6.0_semigroup.rs:6:13
-  |
-6 | #[semigroup(annotated, with = "semigroup::op::Coalesce")]
-  |             ^^^^^^^^^
-
-error: Unknown field: `annotation_param`. Available values: `bound`, `manual_impl`, `properties`, `with`
+error: Unknown field: `annotation_param`. Did you mean `annotated`?
   --> tests/ui/monoid/legacy_0.6.0_semigroup.rs:12:13
    |
 12 | #[semigroup(annotation_param = B, with = "semigroup::op::Coalesce")]
    |             ^^^^^^^^^^^^^^^^
 
-error: Unknown field: `monoid`. Available values: `bound`, `manual_impl`, `properties`, `with`
+error: Unknown field: `monoid`. Available values: `annotated`, `bound`, `crate`, `impl`, `with`
   --> tests/ui/monoid/legacy_0.6.0_semigroup.rs:18:13
    |
 18 | #[semigroup(monoid, with = "semigroup::op::Coalesce")]
    |             ^^^^^^
 
-error: Unknown field: `identity`. Available values: `bound`, `manual_impl`, `properties`, `with`
+error: Unknown field: `identity`. Available values: `annotated`, `bound`, `crate`, `impl`, `with`
   --> tests/ui/monoid/legacy_0.6.0_semigroup.rs:24:13
    |
 24 | #[semigroup(identity = Self { num: None }, with = "semigroup::op::Coalesce")]
    |             ^^^^^^^^
 
-error: Unknown field: `commutative`. Available values: `bound`, `manual_impl`, `properties`, `with`
+error: Unknown field: `commutative`. Available values: `annotated`, `bound`, `crate`, `impl`, `with`
   --> tests/ui/monoid/legacy_0.6.0_semigroup.rs:30:13
    |
 30 | #[semigroup(commutative, with = "semigroup::op::Coalesce")]
    |             ^^^^^^^^^^^
 
-error: Unknown field: `monoid_where`. Available values: `bound`, `manual_impl`, `properties`, `with`
+error: Unknown field: `monoid_where`. Available values: `annotated`, `bound`, `crate`, `impl`, `with`
   --> tests/ui/monoid/legacy_0.6.0_semigroup.rs:36:13
    |
 36 | #[semigroup(monoid_where = "T: Default")]
    |             ^^^^^^^^^^^^
 
-error: Unknown field: `commutative_where`. Available values: `bound`, `manual_impl`, `properties`, `with`
+error: Unknown field: `commutative_where`. Available values: `annotated`, `bound`, `crate`, `impl`, `with`
   --> tests/ui/monoid/legacy_0.6.0_semigroup.rs:42:13
    |
 42 | #[semigroup(commutative_where = "T: Ord")]

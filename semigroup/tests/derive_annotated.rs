@@ -1,7 +1,7 @@
 use semigroup::{AnnotateFields, Semigroup};
 
-#[derive(Debug, Clone, PartialEq, Semigroup)]
-#[semigroup(properties(annotated), with = "semigroup::op::Coalesce")]
+#[derive(Debug, Clone, PartialEq, Semigroup, AnnotateFields)]
+#[semigroup(with = "semigroup::op::Coalesce")]
 pub struct NamedStruct {
     #[semigroup(with = "semigroup::op::Last")]
     pub name: String,
@@ -46,8 +46,8 @@ fn test_named_struct_into() {
     assert_eq!(recovered, original);
 }
 
-#[derive(Debug, Clone, PartialEq, Semigroup)]
-#[semigroup(properties(annotated), with = "semigroup::op::Coalesce")]
+#[derive(Debug, Clone, PartialEq, Semigroup, AnnotateFields)]
+#[semigroup(with = "semigroup::op::Coalesce")]
 pub struct UnnamedStruct(
     #[semigroup(with = "semigroup::op::Last")] String,
     Option<u32>,
@@ -79,8 +79,7 @@ fn test_unnamed_struct_into() {
     assert_eq!(recovered, original);
 }
 
-#[derive(Debug, Clone, PartialEq, Semigroup)]
-#[semigroup(properties(annotated))]
+#[derive(Debug, Clone, PartialEq, Semigroup, AnnotateFields)]
 pub struct DualCoalesce {
     #[semigroup(with = "semigroup::Dual(semigroup::op::Last(_))")]
     pub key: String,

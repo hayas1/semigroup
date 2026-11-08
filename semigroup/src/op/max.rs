@@ -1,6 +1,6 @@
-use semigroup_derive::{SemigroupOpPriv, semigroup_properties_doc_priv};
+use semigroup_derive::{CommutativeOp, SelectiveOp, SemigroupOp, semigroup_properties_doc};
 
-use crate::{Selected, SelectiveOp};
+use crate::Selected;
 
 /// A [`Semigroup`](crate::Semigroup) [op construction](crate::SemigroupOp) that returns the maximum value.
 /// # Properties
@@ -15,23 +15,33 @@ use crate::{Selected, SelectiveOp};
 ///
 /// assert_eq!(a.semigroup(b).into_inner(), 2);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash, SemigroupOpPriv)]
+#[semigroup_properties_doc]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Default,
+    Hash,
+    SemigroupOp,
+    SelectiveOp,
+    CommutativeOp,
+)]
+#[cfg_attr(feature = "monoid", derive(semigroup_derive::MonoidOp))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[semigroup_op(
-    properties(selective, monoid(identity = Self(T::min_value())), commutative),
+    impl(
+        semigroup = Self::lift_select_assign,
+        selective = |base, other| if base < other { Selected::Other } else { Selected::Base },
+        monoid = Self(T::min_value()),
+    ),
     bound(monoid = "T: num::Bounded"),
+    crate = crate,
 )]
-#[semigroup_properties_doc_priv]
 pub struct Max<T: Ord>(pub T);
-impl<T: Ord> SelectiveOp<T> for Max<T> {
-    fn lift_select(base: &T, other: &T) -> Selected {
-        if base < other {
-            Selected::Other
-        } else {
-            Selected::Base
-        }
-    }
-}
 
 #[cfg(test)]
 mod tests {
