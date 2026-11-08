@@ -143,3 +143,8 @@ pub trait MonoidOp<T>: SemigroupOp<T> + crate::Monoid {
         Self::identity().into_inner()
     }
 }
+
+/// [`CommutativeOp`] represents [`crate::Commutative`] as a [new type struct](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) like [`MonoidOp`].
+///
+/// It has no method: `#[derive(CommutativeOp)]` declares that the op of [`SemigroupOp`] is commutative.
+pub trait CommutativeOp<T>: SemigroupOp<T> + crate::Commutative {}
