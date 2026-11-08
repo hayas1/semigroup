@@ -11,7 +11,7 @@ use crate::Semigroup;
 ///
 /// # Examples
 /// ## Deriving
-/// [`Commutative`] can be derived like [`Semigroup`], use `commutative` attribute.
+/// [`Commutative`] can be derived like [`Semigroup`].
 /// ```
 /// use semigroup::{Commutative, Semigroup};
 /// #[derive(Debug, Clone, PartialEq, Default, Semigroup, Commutative)]
@@ -32,7 +32,7 @@ use crate::Semigroup;
 /// ```
 ///
 /// ## Construction
-/// [`Commutative`] can be constructed like [`Semigroup`], use `commutative` attribute.
+/// [`Commutative`] can be constructed like [`Semigroup`], with `#[derive(CommutativeOp)]`.
 /// ```
 /// use semigroup::{SemigroupOp, Semigroup, CommutativeOp};
 ///

@@ -92,8 +92,8 @@
 //! | | [`Semigroup`] | [`Annotate`] | [`Monoid`] | [`Commutative`] |
 //! | :---: | :---: | :---: | :---: | :---: |
 //! | **property** | *associativity* | *annotation* | *identity element* | *commutativity* |
-//! | **`#[derive(Semigroup)]`** <br> **`#[semigroup(properties(...))]`** | | `annotated` | `monoid` | `commutative` |
-//! | **`#[derive(SemigroupOp)]`** <br> **`#[semigroup_op(properties(...))]`** | | `selective` | `monoid` | `commutative` |
+//! | **derive** <br> **`#[semigroup(...)]`** | `Semigroup` | `AnnotateFields` | `Monoid` | `Commutative` |
+//! | **derive for op** <br> **`#[semigroup_op(...)]`** | `SemigroupOp` | `SelectiveOp` | `MonoidOp` | `CommutativeOp` |
 //! | **testing** | [`assert_semigroup!`] |  | [`assert_monoid!`] | [`assert_commutative!`] |
 //! | **typical combiner** | [`CombineIterator`] | [`Lazy`] | [`SegmentTree`](`segment_tree::SegmentTree`) | [`CombineStream`] |
 //!

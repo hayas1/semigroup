@@ -65,9 +65,8 @@ pub trait SemigroupOp<T>: Semigroup + Construction<T> {
 
 /// [`SelectiveOp`] represents [`Selective`] as a [new type struct](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) like [`Construction`].
 ///
-/// Implement [`SelectiveOp::lift_select`] to declare which inner value is selected.
-/// The derive macro `#[semigroup_op(properties(selective))]` automatically generates the [`SemigroupOp`], [`Semigroup`], and
-/// [`Selective`] implementations from this single method.
+/// `#[derive(SelectiveOp)]` implements [`SelectiveOp::lift_select`] with the function given as `impl(selective = ..)`,
+/// and [`Selective`] on it. A selective op usually derives [`SemigroupOp`] with `impl(semigroup = Self::lift_select_assign)`.
 ///
 /// # Examples
 /// ```

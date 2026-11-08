@@ -9,7 +9,7 @@ use crate::Semigroup;
 ///
 /// # Examples
 /// ## Deriving
-/// [`Monoid`] can be derived like [`Semigroup`], use `monoid` attribute.
+/// [`Monoid`] can be derived like [`Semigroup`].
 /// ```
 /// use semigroup::{Semigroup, Monoid};
 /// #[derive(Debug, Clone, PartialEq, Default, Semigroup, Monoid)]
@@ -30,7 +30,7 @@ use crate::Semigroup;
 /// ```
 ///
 /// ## Construction
-/// [`Monoid`] can be constructed by [`crate::MonoidOp`] like [`Semigroup`], use `monoid` attribute.
+/// [`Monoid`] can be constructed by [`crate::MonoidOp`] like [`Semigroup`], with `#[derive(MonoidOp)]`.
 ///
 /// Some operations are already provided by [`crate::op`].
 /// ```
