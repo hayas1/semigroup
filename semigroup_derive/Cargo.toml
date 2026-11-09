@@ -24,4 +24,4 @@ syn = { version = "3", features = ["full"] }
 [dev-dependencies]
 insta = "1"
 prettyplease = "0.3" # rustfmt is cli only
-rstest = "0.27"
+rstest = "0.28"
